@@ -3,12 +3,12 @@ name: GeoVision HTML tests
 on:
   push:
     paths:
-      - "GeoVision_Nova_v113_AI_QUARTIERI_RIPRISTINATI.html"
+      - "GeoVision_Nova_v114_AI_RAPIDA_APPROFONDIMENTO.html"
       - "tests/test_geovision.py"
       - ".github/workflows/geovision-tests.yml"
   pull_request:
     paths:
-      - "GeoVision_Nova_v113_AI_QUARTIERI_RIPRISTINATI.html"
+      - "GeoVision_Nova_v114_AI_RAPIDA_APPROFONDIMENTO.html"
       - "tests/test_geovision.py"
       - ".github/workflows/geovision-tests.yml"
 
