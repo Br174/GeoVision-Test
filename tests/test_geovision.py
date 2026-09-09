@@ -12,7 +12,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_HTML = ROOT / "GeoVision_Nova_v113_AI_QUARTIERI_RIPRISTINATI.html"
+DEFAULT_HTML = ROOT / "GeoVision_Nova_v114_AI_RAPIDA_APPROFONDIMENTO.html"
 HTML = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else DEFAULT_HTML
 
 if not HTML.exists():
@@ -27,7 +27,7 @@ def check(name: str, condition: bool) -> None:
 
 
 version_match = re.search(r"_v(\d+)_", HTML.name)
-version = version_match.group(1) if version_match else "113"
+version = version_match.group(1) if version_match else "114"
 
 check("doctype HTML", source.lstrip().lower().startswith("<!doctype html>"))
 check("titolo coerente con la versione", f"<title>GeoVision Nova v{version}</title>" in source)
@@ -68,15 +68,23 @@ check("reverse geocoding locale a zoom 16", "z >= 15 ? 16" in source)
 check("rifiuto nomi geografici generici", "function isGenericPlaceName" in source)
 check("recupero nome geografico", "await geographicNameFallback(pos)" in source)
 check("classificazione quartiere/rione/frazione", "Quartiere / Rione / Frazione" in source)
-check("Gemini modello principale", "'gemini-3.5-flash'" in source)
-check("Gemini modello di compatibilità", "'gemini-2.5-flash'" in source)
+check("modello rapido guida normale", "'gemini-3.5-flash-lite'" in source)
+check("compatibilità rapida guida normale", "'gemini-2.5-flash-lite'" in source)
+check("modello completo approfondimento", "'gemini-3.8-flash'" in source)
+check("compatibilità approfondimento", "'gemini-3.5-flash'" in source)
 check("stato chiave mancante", "geminiAiState = 'missing_key'" in source)
 check("stato chiave non valida", "geminiAiState = 'invalid_key'" in source)
 check("stato AI attiva visibile", "Audioguida AI · Gemini attiva" in source)
 check("fallback dichiarato visibile", "AI non disponibile · testo informativo di riserva" in source)
 check("nessun fallback presentato come AI", "Audioguida AI · verifica in corso" in source)
 check("stop retry su errori permanenti", "geminiAiState === 'missing_key' || geminiAiState === 'invalid_key' || geminiAiState === 'quota'" in source)
-check("richiesta Gemini con timeout", "new AbortController()" in source and "14000" in source)
+check("richiesta Gemini annullabile", "new AbortController()" in source and "ctrl.abort()" in source)
+check("tetto guida normale 18 secondi", "aiNarrationRetry(p, 'guide', '', told, 0, 2, 18000)" in source)
+check("tetto approfondimento 40 secondi", re.search(r"nextDepth,\s*3,\s*40000", source) is not None)
+check("esito rapido mostrato entro 12 secondi", "setTimeout(() => resolve(''), 12000)" in source)
+check("nessuna seconda richiesta AI tardiva", "let late = await aiNarrationRetry" not in source and "const late = await aiImmediate" in source)
+check("metadati con attesa limitata", "setTimeout(resolve, 2500)" in source and "3500" in source)
+check("output breve separato", "maxOutputTokens:mode === 'deepen' ? 900 : 420" in source)
 check("prompt vieta copia Wikipedia", "Non copiare Wikipedia" in source)
 check("voce italiana configurata", "u.lang = 'it-IT'" in source)
 check("GPS diretto", "getCurrentPosition" in source and "watchPosition" in source)
