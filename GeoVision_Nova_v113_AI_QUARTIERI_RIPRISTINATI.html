@@ -1,0 +1,3141 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#4f46e5">
+<title>GeoVision Nova v113</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>:root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#172033;background:#eef2ff}
+*{box-sizing:border-box}html,body,#app{width:100%;height:100%;margin:0;overflow:hidden}button,input,select{font:inherit}
+.app{position:relative;width:100%;height:100%;background:#dbeafe}
+.map{position:absolute;inset:0;z-index:1}.google-map{display:none}.google-active .google-map{display:block}.google-active #map{visibility:hidden}
+.topbar{position:absolute;z-index:800;top:max(18px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);width:min(640px,calc(100% - 34px));min-height:76px;background:rgba(255,255,255,.96);backdrop-filter:blur(16px);border-radius:22px;box-shadow:0 10px 32px #0f172a1f;display:grid;grid-template-columns:1fr 42px 1fr 1fr;align-items:center;padding:12px 14px;gap:6px}
+.key-status{position:absolute;left:50%;top:5px;transform:translateX(-50%);width:28px;height:6px;border-radius:999px;background:#f59e0b}.key-status.ok{background:#22c55e}.key-status.error{background:#ef4444}
+.topbar input{width:100%;border:0;outline:0;background:transparent;color:#475569;font-size:15px;min-width:0}.topbar .go{border:0;background:transparent;color:#5846e8;font-size:25px}.sep{height:32px;width:1px;background:#d8dce5}.field{display:flex;align-items:center;min-width:0}
+.controls{position:absolute;z-index:800;right:18px;top:128px;display:flex;flex-direction:column;gap:10px}.circle-btn{width:52px;height:52px;border-radius:50%;border:0;background:#fff;box-shadow:0 8px 25px #0f172a2b;color:#5846e8;font-size:20px;font-weight:800}.circle-btn.active{background:#5846e8;color:#fff}
+.reticle-ring{position:absolute;z-index:640;left:50%;top:50%;width:190px;height:190px;border:3px solid #5846e8;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none}.reticle-ring.off,.reticle-dot.off{opacity:0}.reticle-dot{position:absolute;z-index:650;left:50%;top:50%;width:12px;height:12px;border-radius:50%;transform:translate(-50%,-50%);background:#5846e8;border:2px solid white}
+.drawer{position:absolute;z-index:1000;right:18px;top:128px;width:min(330px,calc(100% - 36px));background:rgba(255,255,255,.98);border-radius:20px;box-shadow:0 18px 55px #0f172a2b;padding:14px;display:none}.drawer.show{display:block}.drawer-head{display:flex;align-items:center;justify-content:space-between}.panel-close{border:0;background:#172033;color:#fff;width:32px;height:32px;border-radius:50%;font-size:20px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.platform{border:0;border-radius:13px;background:#f1f5f9;padding:10px 6px;font-size:11px;font-weight:800;color:#334155}.platform strong{display:block;font-size:19px;margin-bottom:3px}
+.macro-panel{position:absolute;z-index:750;left:50%;bottom:18px;transform:translateX(-50%);width:min(620px,calc(100% - 32px));background:#ffffffee;border-radius:20px;padding:10px 12px;display:none}.macro-panel.show{display:block}.chips{display:flex;gap:7px;overflow-x:auto}.chip{border:1px solid #e2e8f0;border-radius:13px;background:#f8fafc;padding:8px 11px}
+.sheet{position:absolute;z-index:1400;left:50%;bottom:0;transform:translate(-50%,105%);width:min(700px,calc(100% - 22px));max-height:78vh;background:#fff;border-radius:28px 28px 0 0;box-shadow:0 -10px 40px #0f172a2c;overflow:hidden;transition:transform .25s ease}.sheet.show{transform:translate(-50%,0)}.sheet-head{display:flex;align-items:center;gap:8px;padding:11px 18px;border-bottom:1px solid #eef2f7}.drag{width:46px;height:5px;background:#cbd5e1;border-radius:999px;margin:0 auto}.voice{border:0;background:#eef2ff;color:#5846e8;border-radius:999px;padding:9px 12px;font-weight:900}.close-sheet{margin-left:auto;border:0;background:#172033;color:#fff;width:38px;height:38px;border-radius:50%;font-size:23px}.sheet-body{overflow:auto;max-height:calc(78vh - 58px);padding-bottom:28px}
+.video-picker{position:absolute;z-index:90;top:58px;left:62px;width:min(270px,calc(100% - 124px));display:none;grid-template-columns:1fr 1fr;gap:7px;padding:10px;background:#fff;border:1px solid #e2e8f0;border-radius:16px}.video-picker.show{display:grid}
+.photo-gallery{position:fixed;inset:0;z-index:3200;background:#fff;display:none;flex-direction:column}.photo-gallery.show{display:flex}.photo-gallery-head{height:68px;display:flex;align-items:center;gap:14px;padding:10px 16px;border-bottom:1px solid #e5e7eb}.photo-gallery-close{width:42px;height:42px;border:0;border-radius:50%;background:#111827;color:#fff;font-size:26px}.photo-gallery-body{flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px;background:#eef2f7}.photo-tile{border:0;padding:0;background:#dbe3ec;min-height:180px;overflow:hidden}.photo-tile img{display:block;width:100%;height:100%;min-height:180px;object-fit:cover}.photo-gallery-loading,.photo-gallery-empty{grid-column:1/-1;padding:48px 24px;text-align:center;color:#64748b;background:#fff}
+.google-photo-strip{display:flex;width:100%;height:220px;gap:2px;overflow:hidden;background:#e2e8f0}.google-photo-strip img{display:block;flex:1 1 0;min-width:0;height:100%;object-fit:cover}.google-card-host{min-height:220px;background:#fff}.google-card-host gmp-place-details{display:block;min-height:220px}
+.audio-guide{padding:16px 18px 18px;border-top:1px solid #eef2f7;background:#fff}.audio-title{font-size:12px;font-weight:900;color:#5846e8;text-transform:uppercase}.guide-scroll{max-height:270px;overflow-y:auto}.narration{font-size:16.5px;line-height:1.68;color:#334155;margin:16px 0}.deepen-guide{width:100%;margin-top:12px;border:0;border-radius:13px;background:#eef2ff;color:#5846e8;padding:11px 14px;font-weight:900}
+.toast{position:absolute;z-index:2000;left:50%;bottom:96px;transform:translateX(-50%);background:#172033;color:#fff;padding:11px 16px;border-radius:999px;font-size:12px;font-weight:800;opacity:0;transition:.2s}.toast.show{opacity:1}
+@media(max-width:600px){.topbar{grid-template-columns:1fr 34px 1fr 1fr;padding:10px 11px;min-height:72px}.topbar input{font-size:14px}.controls{right:16px;top:118px}.circle-btn{width:48px;height:48px}.sheet{max-height:82vh}.sheet-body{max-height:calc(82vh - 58px)}}
+
+/* === GeoVision v75: UI MINIMAL SIGILLATA ===
+   SOLO GRAFICA. Nessuna logica, evento, ricerca, social, API o scheda Google viene modificata. */
+:root{
+  --gv-ui-blue:#2f7de1;
+  --gv-ui-text:#667085;
+  --gv-ui-line:#e6e9ef;
+  --gv-ui-surface:#ffffff;
+  --gv-ui-soft:#f8f9fb;
+}
+/* contenitore e testata: puliti, piatti, senza ombre */
+.sheet{box-shadow:none!important}
+.sheet-head{
+  padding:12px 16px;
+  background:rgba(255,255,255,.98);
+  backdrop-filter:none;
+  border-bottom:1px solid var(--gv-ui-line);
+  box-shadow:none!important;
+}
+.drag{width:44px;height:4px;background:#d7dce5;border-radius:999px}
+/* comandi tondi della testata */
+.sheet-video,.voice{
+  width:46px;height:46px;padding:0;
+  border:1px solid var(--gv-ui-line)!important;
+  border-radius:50%;
+  display:grid;place-items:center;
+  background:#fff!important;
+  color:var(--gv-ui-blue)!important;
+  box-shadow:none!important;
+  transition:background .14s ease,transform .14s ease;
+}
+.sheet-video{font-size:0}
+.sheet-video svg{width:24px;height:24px;stroke-width:1.7}
+.voice{font-size:20px!important}
+.sheet-video:active,.voice:active{transform:scale(.96);background:#f8fafc!important}
+/* X delicata e coerente */
+.close-sheet,.panel-close,.photo-gallery-close{
+  border:1px solid var(--gv-ui-line)!important;
+  background:#fff!important;
+  color:#7a8494!important;
+  box-shadow:none!important;
+  font-weight:300!important;
+  display:grid;place-items:center;
+  line-height:1;
+}
+.close-sheet{width:42px;height:42px;font-size:0}
+.close-sheet::before{content:'×';font-size:28px;font-weight:300;transform:translateY(-1px)}
+.panel-close{font-size:23px!important}
+.photo-gallery-close{font-size:25px!important}
+/* menu Esplora: bianco, minimale, nessuna ombra */
+.video-picker{
+  top:67px;left:14px;
+  width:min(390px,calc(100% - 28px));
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;padding:12px;
+  background:rgba(255,255,255,.99);
+  backdrop-filter:none;
+  border:1px solid var(--gv-ui-line);
+  border-radius:24px;
+  box-shadow:none!important;
+}
+.video-picker button{
+  position:relative;
+  min-height:62px;
+  border:1px solid var(--gv-ui-line)!important;
+  border-radius:999px;
+  background:#fff!important;
+  color:var(--gv-ui-text)!important;
+  font-size:0;
+  font-weight:500!important;
+  display:flex;align-items:center;
+  gap:11px;
+  padding:8px 40px 8px 9px;
+  text-align:left;
+  box-shadow:none!important;
+  transition:background .14s ease,transform .14s ease,border-color .14s ease;
+}
+.video-picker button:active{transform:scale(.985);background:#f8f9fb!important;border-color:#d9dee7!important}
+.video-picker button::before{
+  content:'';
+  width:40px;height:40px;flex:0 0 40px;
+  border-radius:50%;
+  display:grid;place-items:center;
+  background:#f8f9fb center/23px 23px no-repeat;
+  box-shadow:none!important;
+}
+.video-picker button::after{
+  font-size:14px;
+  font-weight:500;
+  color:var(--gv-ui-text);
+  letter-spacing:0;
+}
+.video-picker button > *{pointer-events:none}
+/* chevron sottile, puramente grafico */
+.video-picker button{--chev:#98a2b3}
+.video-picker button::marker{display:none}
+.video-picker button span{display:none}
+/* freccia tramite background del bottone, senza aggiungere nodi */
+.video-picker button{background-image:linear-gradient(45deg,transparent 47%,var(--chev) 48% 55%,transparent 56%),linear-gradient(135deg,transparent 47%,var(--chev) 48% 55%,transparent 56%)!important;background-size:8px 8px,8px 8px!important;background-position:calc(100% - 18px) calc(50% - 3px),calc(100% - 18px) calc(50% + 3px)!important;background-repeat:no-repeat!important}
+/* icone: colore solo dentro il pallino */
+.video-picker button[data-vp="youtube"]::before{background-color:#fff5f5;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='3' y='6' width='18' height='12' rx='4' fill='%23ff3b30'/%3E%3Cpath d='m10 9 5 3-5 3z' fill='white'/%3E%3C/svg%3E")}.video-picker button[data-vp="youtube"]::after{content:'YouTube'}
+.video-picker button[data-vp="facebook"]::before{content:'f';background:#f1f6ff;color:#1877f2;font:600 28px/1 Arial,sans-serif}.video-picker button[data-vp="facebook"]::after{content:'Facebook'}
+.video-picker button[data-vp="instagram"]::before{background-color:#fff7fb;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='3' y1='21' x2='21' y2='3'%3E%3Cstop stop-color='%23ff9f0a'/%3E%3Cstop offset='.45' stop-color='%23ff2d55'/%3E%3Cstop offset='1' stop-color='%235854d6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='4' y='4' width='16' height='16' rx='5' stroke='url(%23g)' stroke-width='2.2'/%3E%3Ccircle cx='12' cy='12' r='3.6' stroke='url(%23g)' stroke-width='2.2'/%3E%3Ccircle cx='17.3' cy='6.8' r='1.2' fill='%23ff2d55'/%3E%3C/svg%3E")}.video-picker button[data-vp="instagram"]::after{content:'Instagram'}
+.video-picker button[data-vp="tiktok"]::before{content:'♪';background:#f7f7f8;color:#111827;font:600 25px/1 system-ui}.video-picker button[data-vp="tiktok"]::after{content:'TikTok'}
+.video-picker button[data-vp="web"]::before{background-color:#f8fbff;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%234285f4' d='M21.6 12.23c0-.71-.06-1.24-.2-1.79H12v3.25h5.52a4.7 4.7 0 0 1-2.05 3.08v2.66h3.32c1.94-1.79 2.81-4.43 2.81-7.2Z'/%3E%3Cpath fill='%2334a853' d='M12 22c2.7 0 4.96-.89 6.61-2.42l-3.32-2.66c-.89.6-2.04.96-3.29.96-2.53 0-4.68-1.71-5.45-4.08H3.12v2.73A10 10 0 0 0 12 22Z'/%3E%3Cpath fill='%23fbbc05' d='M6.55 13.8a6 6 0 0 1 0-3.6V7.47H3.12a10 10 0 0 0 0 9.06l3.43-2.73Z'/%3E%3Cpath fill='%23ea4335' d='M12 6.12c1.47 0 2.79.51 3.83 1.5l2.87-2.87A9.65 9.65 0 0 0 12 2a10 10 0 0 0-8.88 5.47l3.43 2.73C7.32 7.83 9.47 6.12 12 6.12Z'/%3E%3C/svg%3E")}.video-picker button[data-vp="web"]::after{content:'Google'}
+.video-picker button[data-vp="ai"]::before{content:'✦';background:#f7f4ff;color:#7656e8;font:500 22px/1 system-ui}.video-picker button[data-vp="ai"]::after{content:'AI AI'}
+.video-picker button[data-vp="images"]::before{background-color:#f3f8ff;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232f7de1' stroke-width='1.9'%3E%3Crect x='4' y='5' width='16' height='14' rx='3'/%3E%3Ccircle cx='9' cy='10' r='2'/%3E%3Cpath d='m6 17 4-4 3 3 2-2 3 3'/%3E%3C/svg%3E")}.video-picker button[data-vp="images"]::after{content:'Immagini'}
+@media(max-width:480px){
+  .video-picker{grid-template-columns:1fr 1fr;gap:8px;padding:10px}
+  .video-picker button{min-height:58px;padding-left:8px;padding-right:34px}
+  .video-picker button::before{width:36px;height:36px;flex-basis:36px;background-size:21px 21px}
+  .video-picker button::after{font-size:13px}
+}
+
+/* === GeoVision v76 · rifiniture SOLO grafiche + nuovo bottone Shopping === */
+/* Audio: icona lineare minimal, nessun emoji/effetto rétro */
+#voice.voice{width:44px;height:44px;padding:0;border:1px solid #e3e7ed!important;background:#fff!important;color:#6f7d8f!important;border-radius:50%!important;font-size:0!important;display:grid!important;place-items:center!important;box-shadow:none!important}
+#voice.voice::before{content:"";width:22px;height:22px;display:block;background:center/contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236f7d8f' stroke-width='1.65' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 10v4h3l4 3V7L8 10H5Z'/%3E%3Cpath d='M15 9.4c.9.7 1.4 1.6 1.4 2.6s-.5 1.9-1.4 2.6'/%3E%3Cpath d='M17.7 7.2c1.5 1.3 2.3 2.9 2.3 4.8s-.8 3.5-2.3 4.8'/%3E%3C/svg%3E")}
+#voice.voice:active{background:#f8fafc!important}
+
+/* TikTok: simbolo ufficiale riconoscibile (cyan/rosso/nero), solo grafica */
+.video-picker button[data-vp="tiktok"]::before{content:""!important;background-color:#f8f8f9!important;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M14.35 4.2c.45 1.94 1.57 3.25 3.5 3.85v2.65c-1.35-.03-2.54-.42-3.6-1.12v5.23c0 3.13-2.17 5.19-5.14 5.19-2.63 0-4.72-1.96-4.72-4.5 0-2.77 2.22-4.72 5.15-4.53v2.7c-1.35-.12-2.27.62-2.27 1.74 0 .98.78 1.73 1.82 1.73 1.23 0 2.08-.89 2.08-2.35V4.2h3.18Z' fill='%2325F4EE' transform='translate(-.45 .28)'/%3E%3Cpath d='M14.35 4.2c.45 1.94 1.57 3.25 3.5 3.85v2.65c-1.35-.03-2.54-.42-3.6-1.12v5.23c0 3.13-2.17 5.19-5.14 5.19-2.63 0-4.72-1.96-4.72-4.5 0-2.77 2.22-4.72 5.15-4.53v2.7c-1.35-.12-2.27.62-2.27 1.74 0 .98.78 1.73 1.82 1.73 1.23 0 2.08-.89 2.08-2.35V4.2h3.18Z' fill='%23FE2C55' transform='translate(.45 -.15)'/%3E%3Cpath d='M14.35 4.2c.45 1.94 1.57 3.25 3.5 3.85v2.65c-1.35-.03-2.54-.42-3.6-1.12v5.23c0 3.13-2.17 5.19-5.14 5.19-2.63 0-4.72-1.96-4.72-4.5 0-2.77 2.22-4.72 5.15-4.53v2.7c-1.35-.12-2.27.62-2.27 1.74 0 .98.78 1.73 1.82 1.73 1.23 0 2.08-.89 2.08-2.35V4.2h3.18Z' fill='%23111111'/%3E%3C/svg%3E")!important;background-size:24px 24px!important}
+
+/* Shopping: coerente con lo stesso design minimal */
+.video-picker button[data-vp="shopping"]::before{content:""!important;background-color:#f5f9ff!important;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234285F4' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 8h14l-1 12H6L5 8Z'/%3E%3Cpath d='M9 9V7a3 3 0 0 1 6 0v2'/%3E%3C/svg%3E")!important;background-size:22px 22px!important}
+.video-picker button[data-vp="shopping"]::after{content:'Shopping'}
+
+
+/* === GeoVision v77 · micro-correzioni grafiche: centratura + TikTok === */
+/* I tre comandi della testata restano invariati nelle funzioni: correggiamo solo l'allineamento ottico. */
+#voice.voice,#sheetVideo.sheet-video,#sheetClose.close-sheet{
+  position:relative!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:0!important;
+  text-align:center!important;
+}
+#voice.voice::before{
+  position:absolute!important;left:50%!important;top:50%!important;
+  transform:translate(-50%,-50%)!important;
+  margin:0!important;
+}
+#sheetVideo.sheet-video svg{
+  position:absolute!important;left:50%!important;top:50%!important;
+  transform:translate(-50%,-50%)!important;
+  margin:0!important;display:block!important;
+}
+#sheetClose.close-sheet::before{
+  position:absolute!important;left:50%!important;top:50%!important;
+  transform:translate(-50%,-53%)!important;
+  margin:0!important;line-height:1!important;
+}
+/* TikTok: nota unica, centrata e completa; niente frammenti/clipping. */
+.video-picker button[data-vp="tiktok"]::before{
+  content:""!important;
+  background-color:#f8f8f9!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+  background-size:24px 24px!important;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512'%3E%3Cg transform='translate(0 0)'%3E%3Cpath fill='%2325F4EE' d='M448 209.9a210.1 210.1 0 0 1-122.8-39.3v178.8A162.6 162.6 0 1 1 185 188.3v89.9a74.6 74.6 0 1 0 52.2 71.2V0h88a121.2 121.2 0 0 0 2.1 22.2 122.2 122.2 0 0 0 53.9 80.2A121.4 121.4 0 0 0 448 122.7z' transform='translate(-8 5)'/%3E%3Cpath fill='%23FE2C55' d='M448 209.9a210.1 210.1 0 0 1-122.8-39.3v178.8A162.6 162.6 0 1 1 185 188.3v89.9a74.6 74.6 0 1 0 52.2 71.2V0h88a121.2 121.2 0 0 0 2.1 22.2 122.2 122.2 0 0 0 53.9 80.2A121.4 121.4 0 0 0 448 122.7z' transform='translate(8 -5)'/%3E%3Cpath fill='%23111111' d='M448 209.9a210.1 210.1 0 0 1-122.8-39.3v178.8A162.6 162.6 0 1 1 185 188.3v89.9a74.6 74.6 0 1 0 52.2 71.2V0h88a121.2 121.2 0 0 0 2.1 22.2 122.2 122.2 0 0 0 53.9 80.2A121.4 121.4 0 0 0 448 122.7z'/%3E%3C/g%3E%3C/svg%3E")!important;
+}
+
+</style>
+<style>
+/* === v78 SOLO GRAFICA: barra superiore autoregolante === */
+.topbar{
+  min-height:56px !important;
+  padding:8px 12px !important;
+  border-radius:18px !important;
+  gap:5px !important;
+  transition:min-height .18s ease,padding .18s ease,border-radius .18s ease !important;
+}
+.topbar .field{
+  min-height:40px;
+  padding:0 4px;
+  align-items:center;
+}
+.topbar input{
+  font-size:14px !important;
+  line-height:1.22 !important;
+  color:#5f6875 !important;
+}
+.topbar .go{
+  font-size:23px !important;
+  line-height:1 !important;
+}
+.topbar .sep{
+  height:28px !important;
+}
+.topbar.gv-bar-medium{
+  min-height:66px !important;
+  padding-top:10px !important;
+  padding-bottom:10px !important;
+}
+.topbar.gv-bar-medium input{
+  font-size:13.5px !important;
+}
+.topbar.gv-bar-tall{
+  min-height:78px !important;
+  padding-top:12px !important;
+  padding-bottom:12px !important;
+  border-radius:22px !important;
+}
+.topbar.gv-bar-tall input{
+  font-size:12.8px !important;
+}
+@media(max-width:600px){
+  .topbar{
+    min-height:54px !important;
+    padding:7px 10px !important;
+    border-radius:17px !important;
+  }
+  .topbar .field{min-height:38px}
+  .topbar input{font-size:13.5px !important}
+  .topbar.gv-bar-medium{min-height:64px !important}
+  .topbar.gv-bar-tall{min-height:76px !important}
+  .topbar.gv-bar-tall input{font-size:12.3px !important}
+}
+</style><style>
+/* === v79 SOLO GRAFICA — nessuna logica/funzione modificata === */
+.sheet-head{
+  gap:8px !important;
+}
+.sheet-photos-visual{
+  width:38px;
+  height:38px;
+  flex:0 0 38px;
+  border:1px solid #e4e8ee;
+  border-radius:50%;
+  background:#fff;
+  padding:0;
+  display:grid;
+  place-items:center;
+  box-shadow:none !important;
+  cursor:default;
+  pointer-events:none; /* volutamente non attivo: solo grafica */
+}
+.sheet-photos-visual img{
+  width:22px;
+  height:22px;
+  display:block;
+  object-fit:contain;
+}
+.close-sheet{
+  background:#fff !important;
+  color:#7a8491 !important;
+  border:1px solid #e4e8ee !important;
+  box-shadow:none !important;
+}
+.voice{
+  box-shadow:none !important;
+}
+</style><style>
+/* === v80 SOLO GRAFICA: Google Photos pulito, nessuna logica modificata === */
+.sheet-photos-visual{
+  width:38px !important;
+  height:38px !important;
+  flex:0 0 38px !important;
+  border:1px solid #e4e8ee !important;
+  border-radius:50% !important;
+  background:#fff !important;
+  padding:0 !important;
+  display:grid !important;
+  place-items:center !important;
+  box-shadow:none !important;
+  cursor:default !important;
+  pointer-events:none !important;
+  overflow:hidden !important;
+}
+.gv-gphotos-logo{
+  position:relative;
+  width:22px;
+  height:22px;
+  display:block;
+}
+.gv-gphotos-logo .gp{
+  position:absolute;
+  width:11px;
+  height:11px;
+  display:block;
+}
+.gv-gphotos-logo .gp-yellow{
+  left:0;
+  top:5.5px;
+  background:#fbbc04;
+  border-radius:11px 0 0 0;
+}
+.gv-gphotos-logo .gp-red{
+  left:11px;
+  top:0;
+  background:#ea4335;
+  border-radius:0 11px 0 0;
+}
+.gv-gphotos-logo .gp-green{
+  left:5.5px;
+  top:11px;
+  background:#34a853;
+  border-radius:0 0 0 11px;
+}
+.gv-gphotos-logo .gp-blue{
+  left:11px;
+  top:11px;
+  background:#4285f4;
+  border-radius:0 0 11px 0;
+}
+</style><style>
+/* === v81: icona esatta + slide fluido. Nessun servizio/API/social/scheda Google alterato === */
+.sheet-head{
+  touch-action:none !important;
+  user-select:none !important;
+  -webkit-user-select:none !important;
+}
+.drag{
+  cursor:grab;
+}
+.sheet-head:active .drag{
+  cursor:grabbing;
+}
+.sheet-photos-visual{
+  width:38px !important;
+  height:38px !important;
+  flex:0 0 38px !important;
+  border:1px solid #e4e8ee !important;
+  border-radius:50% !important;
+  background:#fff !important;
+  padding:0 !important;
+  display:grid !important;
+  place-items:center !important;
+  box-shadow:none !important;
+  overflow:hidden !important;
+  pointer-events:none !important;
+}
+.sheet-photos-exact{
+  width:23px !important;
+  height:23px !important;
+  display:block !important;
+  object-fit:cover !important;
+  border-radius:50% !important;
+  transform:scale(1.02);
+}
+</style><style>
+/* === v82 SOLO GRAFICA — pulsante Foto identico al mockup approvato === */
+.sheet-head{
+  gap:8px !important;
+}
+.sheet-photos-visual{
+  width:44px !important;
+  height:44px !important;
+  flex:0 0 44px !important;
+  margin-left:auto !important;
+  border:1px solid #e2e6ec !important;
+  border-radius:50% !important;
+  background:#fff !important;
+  padding:0 !important;
+  display:grid !important;
+  place-items:center !important;
+  box-shadow:none !important;
+  overflow:visible !important;
+  pointer-events:none !important;
+}
+.sheet-photos-svg{
+  width:25px !important;
+  height:25px !important;
+  display:block !important;
+}
+.close-sheet{
+  width:44px !important;
+  height:44px !important;
+  flex:0 0 44px !important;
+  margin-left:0 !important;
+}
+</style><style>
+/* === v83 SOLO GRAFICA: barretta drag perfettamente centrata ===
+   Nessuna funzione, evento, API, scheda Google o servizio modificato. */
+.sheet-head{
+  position:relative !important;
+}
+.sheet-head .drag{
+  position:absolute !important;
+  left:50% !important;
+  top:50% !important;
+  transform:translate(-50%,-50%) !important;
+  margin:0 !important;
+  width:44px !important;
+  height:4px !important;
+  background:#d7dce5 !important;
+  border-radius:999px !important;
+  pointer-events:none !important;
+}
+</style><style>#audioGuide .source,#guideSource{display:none!important}</style>
+<style>
+/* v86 — solo rifinitura grafica del CTA dell'audioguida */
+.deepen-guide{
+  font-size:13px !important;
+  font-weight:500 !important;
+  letter-spacing:0 !important;
+  padding:9px 12px !important;
+  border-radius:12px !important;
+  background:#f6f7fb !important;
+  color:#697386 !important;
+  border:1px solid #e7eaf0 !important;
+  box-shadow:none !important;
+}
+.deepen-guide:disabled{opacity:.58 !important}
+</style>
+
+<style>
+/* v87: stato discreto del pre-caricamento approfondimento AI */
+.deepen-guide:disabled{
+  opacity:.52 !important;
+  cursor:default !important;
+}
+</style>
+<style>#audioGuide .source,#guideSource{display:none!important}</style>
+<style>
+/* v92 — pannello chiavi, coerente con UI minimal */
+.maps-settings{gap:12px!important}
+.key-box{display:grid;gap:7px;padding:10px 0;border-top:1px solid #edf0f4}
+.key-box:first-child{border-top:0;padding-top:0}
+.key-box>b{font-size:12px;font-weight:600;color:#526072}
+.key-actions{display:flex;gap:7px;flex-wrap:wrap}
+.key-actions .secondary{padding:8px 11px!important;font-size:11px!important;font-weight:600!important}
+.key-toggle{display:flex;align-items:center;gap:7px;font-size:11px;color:#667085}
+.key-toggle input{width:auto!important}
+</style>
+
+<style>
+/* v93 — tre chiavi Google Maps */
+.key-box input[id^="mapsKey"]{margin-top:2px}
+#mapsKeyActive{color:#4f79a8;font-weight:600}
+</style>
+
+<style>
+/* v94 — box chiavi aperto dal trattino della barra superiore */
+#mapsSetup{display:none!important}
+
+.maps-settings{
+  position:fixed!important;
+  z-index:26000!important;
+  top:calc(max(18px,env(safe-area-inset-top)) + 18px)!important;
+  left:50%!important;
+  transform:translateX(-50%) translateY(-8px)!important;
+  width:min(430px,calc(100vw - 24px))!important;
+  max-height:min(78vh,680px)!important;
+  overflow:auto!important;
+  padding:14px!important;
+  gap:12px!important;
+  background:rgba(255,255,255,.99)!important;
+  border:1px solid #e4e8ee!important;
+  border-radius:22px!important;
+  box-shadow:0 12px 34px rgba(15,23,42,.14)!important;
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+  transition:opacity .16s ease,transform .16s ease!important;
+}
+.maps-settings.show{
+  display:grid!important;
+  opacity:1!important;
+  visibility:visible!important;
+  pointer-events:auto!important;
+  transform:translateX(-50%) translateY(0)!important;
+}
+.maps-settings::before{
+  content:'';
+  position:sticky;
+  top:0;
+  display:block;
+  width:38px;
+  height:4px;
+  margin:0 auto 2px;
+  border-radius:999px;
+  background:#d9dee6;
+}
+.key-box{
+  padding:10px 0!important;
+}
+.key-box input{
+  min-height:42px!important;
+  border:1px solid #e5e9ef!important;
+  border-radius:12px!important;
+  background:#fbfcfd!important;
+  padding:10px 12px!important;
+  color:#526072!important;
+  box-shadow:none!important;
+}
+.keys-footer{
+  display:flex;
+  justify-content:flex-end;
+  padding-top:4px;
+}
+.keys-diagnostic-btn{
+  background:#eef7ff!important;
+  color:#4f79a8!important;
+  border:1px solid #d7e9fb!important;
+  box-shadow:none!important;
+}
+.hidden-key-tests{display:none!important}
+
+/* Diagnostica separata e fluttuante */
+.keys-diag-float{
+  position:fixed;
+  inset:0;
+  z-index:28000;
+  background:rgba(15,23,42,.28);
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  padding:86px 16px 16px;
+}
+.keys-diag-card{
+  width:min(390px,94vw);
+  background:#fff;
+  border:1px solid #e4e8ee;
+  border-radius:20px;
+  box-shadow:0 12px 34px rgba(15,23,42,.16);
+  padding:14px;
+}
+.keys-diag-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:12px;
+}
+.keys-diag-head>div{display:grid;gap:2px}
+.keys-diag-head b{font-size:15px;color:#344054;font-weight:600}
+.keys-diag-head small{font-size:11px;color:#98a2b3}
+#keysDiagClose{
+  width:36px;height:36px;border-radius:50%;
+  border:1px solid #e4e8ee;background:#fff;color:#7a8491;
+  font-size:22px;font-weight:300;line-height:1;
+}
+.keys-diag-actions{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:8px 10px;
+  align-items:center;
+}
+.keys-diag-actions button{
+  min-height:40px;
+  border:1px solid #e5e9ef;
+  border-radius:12px;
+  background:#fbfcfd;
+  color:#526072;
+  text-align:left;
+  padding:9px 11px;
+  font-size:12px;
+  font-weight:500;
+}
+.keys-diag-actions span{
+  font-size:11px;
+  color:#7b8794;
+  white-space:nowrap;
+}
+#keyStatus{cursor:pointer!important}
+</style>
+
+
+
+<style>
+/* =========================================================
+   GeoVision v97 · DESIGN SYSTEM COERENTE PREMIUM
+   SOLO GRAFICA. Nessuna logica, API, evento o servizio viene modificato.
+   ========================================================= */
+
+:root{
+  --gv-bg:#ffffff;
+  --gv-surface:#ffffff;
+  --gv-soft:#f7f9fc;
+  --gv-soft-blue:#eef7ff;
+  --gv-line:#e6eaf0;
+  --gv-line-strong:#d9e0e8;
+  --gv-text:#4f5b6a;
+  --gv-text-soft:#7b8794;
+  --gv-blue:#4f86c6;
+  --gv-blue-strong:#3d78bb;
+  --gv-radius-lg:22px;
+  --gv-radius-md:16px;
+  --gv-radius-pill:999px;
+}
+
+/* base */
+button,input,select{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button{box-shadow:none!important}
+input,select{box-shadow:none!important}
+
+/* BARRE / PANNELLI PRINCIPALI */
+.topbar,
+.drawer,
+.video-picker,
+.macro-panel,
+.sheet,
+.maps-settings,
+.keys-diag-card,
+.photo-gallery-head,
+.audio-dock{
+  background:rgba(255,255,255,.985)!important;
+  border:1px solid var(--gv-line)!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+}
+
+/* TOPBAR */
+.topbar{
+  border-radius:18px!important;
+}
+.topbar input{
+  color:var(--gv-text)!important;
+  font-weight:450!important;
+}
+.topbar input::placeholder{
+  color:#a0a8b3!important;
+}
+.topbar .go{
+  color:var(--gv-blue)!important;
+}
+
+/* CONTROLLI TONDI */
+.circle-btn,
+.voice,
+.sheet-video,
+.close-sheet,
+.panel-close,
+.photo-gallery-close,
+#keysDiagClose{
+  background:#fff!important;
+  border:1px solid var(--gv-line)!important;
+  color:#748091!important;
+  box-shadow:none!important;
+  transition:background .14s ease,border-color .14s ease,transform .14s ease!important;
+}
+.circle-btn:active,
+.voice:active,
+.sheet-video:active,
+.close-sheet:active,
+.panel-close:active,
+.photo-gallery-close:active,
+#keysDiagClose:active{
+  background:var(--gv-soft)!important;
+  border-color:var(--gv-line-strong)!important;
+  transform:scale(.97);
+}
+.circle-btn.active{
+  background:var(--gv-soft-blue)!important;
+  color:var(--gv-blue-strong)!important;
+  border-color:#d6e8fb!important;
+}
+
+/* DRAWER principale */
+.drawer{
+  border-radius:24px!important;
+  padding:14px!important;
+}
+.drawer-head h3{
+  margin:0!important;
+  font-size:14px!important;
+  font-weight:600!important;
+  color:#3f4b5a!important;
+}
+.drawer .hint,
+.drawer small,
+#zoomMode{
+  color:#8a94a3!important;
+  font-weight:450!important;
+}
+
+/* GRID SOCIAL — stessa estetica del menu moderno approvato */
+.drawer .grid{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:9px!important;
+  margin-top:12px!important;
+}
+.drawer .platform{
+  position:relative!important;
+  min-height:58px!important;
+  border:1px solid var(--gv-line)!important;
+  border-radius:var(--gv-radius-pill)!important;
+  background:#fff!important;
+  color:var(--gv-text)!important;
+  padding:8px 38px 8px 9px!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:10px!important;
+  font-size:13px!important;
+  font-weight:500!important;
+  text-align:left!important;
+  box-shadow:none!important;
+}
+.drawer .platform strong{
+  width:36px!important;
+  height:36px!important;
+  flex:0 0 36px!important;
+  border-radius:50%!important;
+  display:grid!important;
+  place-items:center!important;
+  margin:0!important;
+  font-size:0!important;
+  background:#f7f9fb!important;
+  color:transparent!important;
+}
+.drawer .platform::after{
+  content:'›';
+  position:absolute;
+  right:14px;
+  top:50%;
+  transform:translateY(-51%);
+  color:#a2aab5;
+  font-size:20px;
+  font-weight:300;
+}
+
+/* icone social coerenti */
+.drawer .platform[data-p="youtube"] strong{
+  background:#fff5f5 center/22px 22px no-repeat!important;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='3' y='6' width='18' height='12' rx='4' fill='%23ff3b30'/%3E%3Cpath d='m10 9 5 3-5 3z' fill='white'/%3E%3C/svg%3E")!important;
+}
+.drawer .platform[data-p="facebook"] strong{
+  font-size:25px!important;color:#1877f2!important;background:#f2f6ff!important;
+}
+.drawer .platform[data-p="facebook"] strong::before{content:'f';font:600 25px/1 Arial,sans-serif;color:#1877f2}
+.drawer .platform[data-p="instagram"] strong{
+  background:#fff7fb center/22px 22px no-repeat!important;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='3' y1='21' x2='21' y2='3'%3E%3Cstop stop-color='%23ff9f0a'/%3E%3Cstop offset='.45' stop-color='%23ff2d55'/%3E%3Cstop offset='1' stop-color='%235854d6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='4' y='4' width='16' height='16' rx='5' stroke='url(%23g)' stroke-width='2.2'/%3E%3Ccircle cx='12' cy='12' r='3.6' stroke='url(%23g)' stroke-width='2.2'/%3E%3Ccircle cx='17.3' cy='6.8' r='1.2' fill='%23ff2d55'/%3E%3C/svg%3E")!important;
+}
+.drawer .platform[data-p="tiktok"] strong{
+  background:#f8f8f9 center/22px 22px no-repeat!important;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512'%3E%3Cpath fill='%2325F4EE' d='M448 209.9a210.1 210.1 0 0 1-122.8-39.3v178.8A162.6 162.6 0 1 1 185 188.3v89.9a74.6 74.6 0 1 0 52.2 71.2V0h88a121.2 121.2 0 0 0 2.1 22.2 122.2 122.2 0 0 0 53.9 80.2A121.4 121.4 0 0 0 448 122.7z' transform='translate(-8 5)'/%3E%3Cpath fill='%23FE2C55' d='M448 209.9a210.1 210.1 0 0 1-122.8-39.3v178.8A162.6 162.6 0 1 1 185 188.3v89.9a74.6 74.6 0 1 0 52.2 71.2V0h88a121.2 121.2 0 0 0 2.1 22.2 122.2 122.2 0 0 0 53.9 80.2A121.4 121.4 0 0 0 448 122.7z' transform='translate(8 -5)'/%3E%3Cpath fill='%23111111' d='M448 209.9a210.1 210.1 0 0 1-122.8-39.3v178.8A162.6 162.6 0 1 1 185 188.3v89.9a74.6 74.6 0 1 0 52.2 71.2V0h88a121.2 121.2 0 0 0 2.1 22.2 122.2 122.2 0 0 0 53.9 80.2A121.4 121.4 0 0 0 448 122.7z'/%3E%3C/svg%3E")!important;
+}
+.drawer .platform[data-p="web"] strong{
+  background:#f8fbff center/22px 22px no-repeat!important;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%234285f4' d='M21.6 12.23c0-.71-.06-1.24-.2-1.79H12v3.25h5.52a4.7 4.7 0 0 1-2.05 3.08v2.66h3.32c1.94-1.79 2.81-4.43 2.81-7.2Z'/%3E%3Cpath fill='%2334a853' d='M12 22c2.7 0 4.96-.89 6.61-2.42l-3.32-2.66c-.89.6-2.04.96-3.29.96-2.53 0-4.68-1.71-5.45-4.08H3.12v2.73A10 10 0 0 0 12 22Z'/%3E%3Cpath fill='%23fbbc05' d='M6.55 13.8a6 6 0 0 1 0-3.6V7.47H3.12a10 10 0 0 0 0 9.06l3.43-2.73Z'/%3E%3Cpath fill='%23ea4335' d='M12 6.12c1.47 0 2.79.51 3.83 1.5l2.87-2.87A9.65 9.65 0 0 0 12 2a10 10 0 0 0-8.88 5.47l3.43 2.73C7.32 7.83 9.47 6.12 12 6.12Z'/%3E%3C/svg%3E")!important;
+}
+.drawer .platform[data-p="ai"] strong{
+  font-size:20px!important;color:#7656e8!important;background:#f7f4ff!important;
+}
+.drawer .platform[data-p="ai"] strong::before{content:'✦';font:500 20px/1 system-ui;color:#7656e8}
+.drawer .platform[data-p="images"] strong{
+  background:#f3f8ff center/22px 22px no-repeat!important;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232f7de1' stroke-width='1.9'%3E%3Crect x='4' y='5' width='16' height='14' rx='3'/%3E%3Ccircle cx='9' cy='10' r='2'/%3E%3Cpath d='m6 17 4-4 3 3 2-2 3 3'/%3E%3C/svg%3E")!important;
+}
+.drawer .platform[data-p="maps"] strong{
+  background:#f4f8ff center/21px 21px no-repeat!important;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234f86c6' stroke-width='1.8'%3E%3Cpath d='M12 21s6-5.6 6-11a6 6 0 1 0-12 0c0 5.4 6 11 6 11Z'/%3E%3Ccircle cx='12' cy='10' r='2.3'/%3E%3C/svg%3E")!important;
+}
+
+/* menu Esplora già moderno: uniformato */
+.video-picker{
+  border-radius:24px!important;
+  padding:12px!important;
+  gap:9px!important;
+}
+.video-picker button{
+  min-height:58px!important;
+  border-color:var(--gv-line)!important;
+  color:var(--gv-text)!important;
+}
+.video-picker button::after{
+  color:var(--gv-text)!important;
+  font-weight:500!important;
+}
+
+/* SHEET */
+.sheet{
+  border-radius:28px 28px 0 0!important;
+}
+.sheet-head{
+  border-bottom:1px solid var(--gv-line)!important;
+}
+.drag{
+  background:#d8dee6!important;
+}
+.audio-title{
+  color:var(--gv-blue)!important;
+  font-size:11px!important;
+  font-weight:600!important;
+  letter-spacing:.04em!important;
+}
+.narration{
+  color:#4f5b6a!important;
+  font-weight:430!important;
+}
+
+/* CTA audioguida */
+.deepen-guide{
+  background:var(--gv-soft-blue)!important;
+  color:var(--gv-blue-strong)!important;
+  border:1px solid #d8e9fb!important;
+  font-size:13px!important;
+  font-weight:500!important;
+  box-shadow:none!important;
+}
+
+/* PANNELLO CHIAVI */
+.maps-settings{
+  border-radius:24px!important;
+}
+.key-box{
+  border-color:var(--gv-line)!important;
+}
+.key-box>b{
+  color:#465361!important;
+  font-weight:600!important;
+}
+.key-box small{
+  color:#8a94a3!important;
+}
+.key-box input{
+  background:#fbfcfd!important;
+  border-color:var(--gv-line)!important;
+  color:#526072!important;
+}
+.key-actions .secondary,
+.secondary{
+  border:1px solid var(--gv-line)!important;
+  background:#fff!important;
+  color:#667085!important;
+  border-radius:12px!important;
+  box-shadow:none!important;
+}
+.key-actions .secondary:active,
+.secondary:active{
+  background:var(--gv-soft)!important;
+}
+.keys-diagnostic-btn{
+  background:var(--gv-soft-blue)!important;
+  color:var(--gv-blue-strong)!important;
+  border-color:#d8e9fb!important;
+}
+
+/* DIAGNOSTICA */
+.keys-diag-card{
+  border-radius:22px!important;
+}
+.keys-diag-actions button{
+  background:#fbfcfd!important;
+  border-color:var(--gv-line)!important;
+  color:#526072!important;
+}
+
+/* MACRO / CHIP */
+.macro-panel{
+  border-radius:22px!important;
+}
+.chip{
+  background:#fff!important;
+  border:1px solid var(--gv-line)!important;
+  color:#667085!important;
+  border-radius:999px!important;
+  box-shadow:none!important;
+}
+
+/* PHOTO GALLERY */
+.photo-gallery-head{
+  box-shadow:none!important;
+}
+.photo-gallery{
+  background:#fff!important;
+}
+
+/* TOAST */
+.toast{
+  background:#344054!important;
+  color:#fff!important;
+  border:1px solid rgba(255,255,255,.08)!important;
+  box-shadow:none!important;
+  font-weight:500!important;
+}
+
+/* MOBILE */
+@media(max-width:480px){
+  .drawer .grid{gap:8px!important}
+  .drawer .platform{min-height:56px!important;font-size:12.5px!important}
+  .drawer .platform strong{width:34px!important;height:34px!important;flex-basis:34px!important}
+}
+</style>
+
+
+
+
+
+
+
+
+
+<style>
+/* v104 — UNICA BARRETTA API */
+#keyStatus,
+#keyStatus::before,
+#keyStatus::after {
+  display:none !important;
+  content:none !important;
+}
+
+.topbar {
+  position:relative !important;
+  overflow:visible !important;
+}
+
+/* Hit-area grande, elemento visivo piccolo.
+   La linea è sul bordo superiore della topbar. */
+#apiKeysTrigger {
+  appearance:none !important;
+  -webkit-appearance:none !important;
+  position:absolute !important;
+  left:50% !important;
+  top:-24px !important;
+  transform:translateX(-50%) !important;
+  width:120px !important;
+  height:48px !important;
+  z-index:2147483600 !important;
+  margin:0 !important;
+  padding:0 !important;
+  border:0 !important;
+  outline:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  border-radius:20px !important;
+  pointer-events:auto !important;
+  touch-action:manipulation !important;
+  cursor:pointer !important;
+  -webkit-tap-highlight-color:transparent !important;
+}
+
+#apiKeysTrigger::before {
+  content:"";
+  position:absolute;
+  left:50%;
+  top:20px;
+  transform:translateX(-50%);
+  width:34px;
+  height:6px;
+  border-radius:999px;
+  background:#f59e0b;
+  pointer-events:none;
+}
+#apiKeysTrigger.ok::before       { background:#22c55e; }
+#apiKeysTrigger.error::before    { background:#ef4444; }
+#apiKeysTrigger.checking::before { background:#f59e0b; }
+#apiKeysTrigger:active::before   { transform:translateX(-50%) scale(.95); }
+
+/* Il pannello chiavi è ora fuori dal drawer e sempre sopra l'app */
+#mapsSettings {
+  z-index:2147483500 !important;
+}
+</style>
+
+<style>
+/* v105 — occhiello chiavi + topbar nascosta con scheda aperta */
+.key-input-wrap{
+  position:relative;
+  display:flex;
+  align-items:center;
+}
+.key-input-wrap input{
+  width:100% !important;
+  padding-right:42px !important;
+}
+.key-eye{
+  position:absolute;
+  right:8px;
+  top:50%;
+  transform:translateY(-50%);
+  width:30px;
+  height:30px;
+  border:0 !important;
+  background:transparent !important;
+  color:#8a94a3 !important;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  padding:0;
+  font-size:17px;
+  line-height:1;
+  box-shadow:none !important;
+}
+.key-eye.showing{
+  color:#4f86c6 !important;
+}
+.key-eye:active{
+  background:#f4f7fb !important;
+}
+
+.topbar{
+  transition:opacity .16s ease, transform .16s ease, visibility .16s ease !important;
+}
+.topbar.sheet-hidden{
+  opacity:0 !important;
+  transform:translateY(-16px) !important;
+  visibility:hidden !important;
+  pointer-events:none !important;
+}
+#apiKeysTrigger.sheet-hidden{
+  opacity:0 !important;
+  visibility:hidden !important;
+  pointer-events:none !important;
+}
+</style>
+
+<style>
+/* v106 — messaggi toast interni mantenuti ma completamente nascosti a video */
+.toast,
+#toast,
+.toast.show,
+.toast.visible,
+[class*="toast"]{
+  display:none !important;
+  visibility:hidden !important;
+  opacity:0 !important;
+  pointer-events:none !important;
+}
+</style>
+
+<style>
+/* v107 — pulsante posizione attivo */
+#locate.active{
+  background:#eef7ff !important;
+  border-color:#d7e9fb !important;
+}
+#locate.active::after{display:none!important;content:none!important}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script type="module">const api = { post: async (path, body) => { try {
+        const base = 'https://geovision-nova-xqcy9i.v2.appdeploy.ai';
+        const r = await fetch(base + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        if (!r.ok)
+            throw new Error(String(r.status));
+        return { data: await r.json() };
+    }
+    catch {
+        return { data: {} };
+    } } };
+const $ = (q) => document.querySelector(q);
+const app = document.getElementById('app');
+app.innerHTML = `<div class="app"><div id="map" class="map"></div><div id="gmap" class="map google-map"></div><div class="topbar"><div class="field"><input id="manual" placeholder="Scrivi…" maxlength="80"></div><button id="search" class="go">→</button><span id="keyStatus" class="checking" hidden aria-hidden="true"></span><div class="field"><input id="poi" placeholder="POI…" readonly></div><div class="field"><span class="sep"></span><input id="place" placeholder="Località…" readonly></div></div><div class="controls"><button id="menu" class="circle-btn">☰</button><button id="macro" class="circle-btn" title="Macroaree">◎</button><button id="locate" class="circle-btn" title="Posizione">●</button></div><div class="reticle-ring" id="ring"></div><div class="reticle-dot" id="reticleDot"></div><div id="drawer" class="drawer"><div class="drawer-head"><h3>Apri video e ricerche</h3><button id="drawerClose" class="panel-close" aria-label="Chiudi menu">×</button></div><div class="grid"><button class="platform" data-p="youtube"><strong>▶</strong>YouTube</button><button class="platform" data-p="facebook"><strong>f</strong>Facebook</button><button class="platform" data-p="instagram"><strong>◎</strong>Instagram</button><button class="platform" data-p="tiktok"><strong>♪</strong>TikTok</button><button class="platform" data-p="web"><strong>⌕</strong>Google</button><button class="platform" data-p="ai"><strong>AI</strong>AI</button><button class="platform" data-p="images"><strong>▧</strong>Immagini</button><button class="platform" data-p="maps"><strong>⌖</strong>Mappe</button></div><div class="hint">La ricerca combina frase manuale + POI + località o macroarea.</div><div class="reticle-tools"><small id="zoomMode">Scala geografica</small></div><button id="mapsSetup" class="maps-setup" type="button">Google Maps</button><div id="mapsSettings" class="maps-settings">
+<div class="key-box">
+  <b>Google Maps · 3 chiavi</b>
+  <div class="key-input-wrap"><input id="mapsKey1" type="password" placeholder="Chiave Google Maps 1"><button class="key-eye" type="button" data-target="mapsKey1" aria-label="Mostra chiave">◉</button></div>
+  <div class="key-input-wrap"><input id="mapsKey2" type="password" placeholder="Chiave Google Maps 2"><button class="key-eye" type="button" data-target="mapsKey2" aria-label="Mostra chiave">◉</button></div>
+  <div class="key-input-wrap"><input id="mapsKey3" type="password" placeholder="Chiave Google Maps 3"><button class="key-eye" type="button" data-target="mapsKey3" aria-label="Mostra chiave">◉</button></div>
+  <div class="key-actions">
+    <button id="mapsSave" class="secondary" type="button">Salva</button>
+    <button id="mapsNext" class="secondary" type="button">Passa alla successiva</button>
+  </div>
+  <small id="mapsKeyActive">Chiave attiva: —</small>
+  <small id="mapsState">Google Maps è la mappa principale quando almeno una chiave valida è configurata.</small>
+</div>
+<div class="key-box">
+  <b>Gemini AI</b>
+  <div class="key-input-wrap"><input id="geminiKey" type="password" placeholder="Chiave Gemini API"><button class="key-eye" type="button" data-target="geminiKey" aria-label="Mostra chiave">◉</button></div>
+  <div class="key-actions">
+    <button id="geminiSave" class="secondary" type="button">Salva</button>
+  </div>
+  <small id="geminiState">Chiave non configurata.</small>
+</div>
+<div class="key-box">
+  <b>YouTube Data API</b>
+  <div class="key-input-wrap"><input id="youtubeKey" type="password" placeholder="Chiave YouTube Data API v3"><button class="key-eye" type="button" data-target="youtubeKey" aria-label="Mostra chiave">◉</button></div>
+  <div class="key-actions">
+    <button id="youtubeSave" class="secondary" type="button">Salva</button>
+  </div>
+  <label class="key-toggle"><input id="youtubeInternal" type="checkbox"> Apri i video dentro GeoVision</label>
+  <small id="youtubeState">Chiave non configurata. Il comportamento YouTube attuale resta invariato finché l'opzione è disattivata.</small>
+</div>
+<div class="keys-footer">
+  <button id="keysDiagnosticsOpen" class="secondary keys-diagnostic-btn" type="button">Diagnostica servizi</button>
+</div>
+<div class="hidden-key-tests" aria-hidden="true">
+  <button id="geminiTest" type="button" tabindex="-1">Test Gemini</button>
+  <button id="youtubeTest" type="button" tabindex="-1">Test YouTube</button>
+</div>
+</div></div><div id="macroPanel" class="macro-panel"><div class="macro-title"><span id="macroStatus">Macroaree nel cerchio</span><button id="macroClose" class="secondary">×</button></div><div id="macroChips" class="chips"></div></div><div id="sheet" class="sheet"><div class="sheet-head"><button id="voice" class="voice" aria-label="Audio" title="Audio">🔊</button><button id="sheetVideo" class="sheet-video" type="button" aria-label="Esplora" title="Esplora"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3.8 12h16.4M12 3.5c2.4 2.5 3.5 5.3 3.5 8.5S14.4 18 12 20.5C9.6 18 8.5 15.2 8.5 12S9.6 6 12 3.5Z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button><div class="drag"></div><button id="sheetPhotosVisual" class="sheet-photos-visual" type="button" aria-label="Foto" title="Foto" tabindex="-1"><svg class="sheet-photos-svg" viewBox="0 0 64 64" aria-hidden="true">
+  <path fill="#EA4335" d="M32 4a14 14 0 0 1 14 14v14H32V4z"/>
+  <path fill="#4285F4" d="M60 32a14 14 0 0 1-14 14H32V32h28z"/>
+  <path fill="#34A853" d="M32 60a14 14 0 0 1-14-14V32h14v28z"/>
+  <path fill="#FBBC04" d="M4 32a14 14 0 0 1 14-14h14v14H4z"/>
+</svg></button><button id="sheetClose" class="close-sheet" aria-label="Chiudi">×</button></div><div id="videoPicker" class="video-picker"><button data-vp="youtube">▶ YouTube</button><button data-vp="facebook">f Facebook</button><button data-vp="instagram">◎ Instagram</button><button data-vp="tiktok">♪ TikTok</button><button data-vp="web">⌕ Google</button><button data-vp="ai">AI AI</button><button data-vp="images">▧ Immagini</button><button data-vp="shopping">Shopping</button></div><div id="sheetBody" class="sheet-body"></div></div><div id="photoGallery" class="photo-gallery"><div class="photo-gallery-head"><button id="photoGalleryClose" class="photo-gallery-close" type="button" aria-label="Chiudi immagini">×</button><div><b id="photoGalleryTitle">Immagini</b><small id="photoGalleryCount"></small></div></div><div id="photoGalleryBody" class="photo-gallery-body"></div></div><div id="audioDock" class="audio-dock"><button id="nativeVoice" class="voice" aria-label="Audioguida">🔊</button><div class="audio-dock-copy"><b id="nativeAudioName">Audioguida</b><span id="nativeAudioText">Preparo il racconto…</span></div><button id="nativeClose" class="panel-close" aria-label="Chiudi audioguida">×</button></div><div id="toast" class="toast"></div></div>`;
+const map = L.map('map', { zoomControl: false, attributionControl: true }).setView([40.6824, 14.7681], 12);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, crossOrigin: true, attribution: '© OpenStreetMap' }).addTo(map);
+let current = null, macroPrimary = '', speaking = false, marker = null, gpsMarker = null, gpsGoogleMarker = null, gpsWatchId = null, gpsEnabled = false, googleMap = null, googleReady = false, googleMarker = null, googleKey = '', macroMode = false, macroProbeTimer = 0, macroProbeSeq = 0, macroProbeKey = '', macroAreas = [], sheetDragStart = 0, sheetDragging = false, liveLocalitySeq = 0, liveLocalityTimer = 0, speechToken = 0, speechPumpRunning = false, speechUtteranceSeq = 0, speechWatchdog = 0, narrationRun = 0;
+const speechQueue = [], richLocalityCache = new Map(), googlePhotoCache = new Map();
+let googleMapKeys=['','',''],googleMapKeyIndex=0;
+try {
+    const legacy=localStorage.getItem('geovision_google_maps_api_key')||'';
+    googleMapKeys=[
+      localStorage.getItem('geovision_google_maps_api_key_1')||legacy||'',
+      localStorage.getItem('geovision_google_maps_api_key_2')||'',
+      localStorage.getItem('geovision_google_maps_api_key_3')||''
+    ];
+    googleMapKeyIndex=Math.max(0,Math.min(2,Number(localStorage.getItem('geovision_google_maps_active_index')||0)||0));
+    googleKey=googleMapKeys[googleMapKeyIndex]||googleMapKeys.find(Boolean)||'';
+    if(googleKey && !googleMapKeys[googleMapKeyIndex]){
+      googleMapKeyIndex=Math.max(0,googleMapKeys.findIndex(Boolean));
+    }
+    macroMode = localStorage.getItem('geovision_macro_mode') === '1';
+}
+catch { }
+let geminiKey='',youtubeKey='',youtubeInternal=false;
+let geminiAiState='idle',geminiAiDetail='';
+try{
+  geminiKey=localStorage.getItem('geovision_gemini_api_key')||'';
+  youtubeKey=localStorage.getItem('geovision_youtube_api_key')||'';
+  youtubeInternal=localStorage.getItem('geovision_youtube_internal')==='1';
+}catch{}
+
+function saveActiveGoogleMapKeyIndex(){
+    try{localStorage.setItem('geovision_google_maps_active_index',String(googleMapKeyIndex))}catch{}
+}
+function refreshActiveGoogleMapKey(){
+    googleKey=googleMapKeys[googleMapKeyIndex]||'';
+    saveActiveGoogleMapKeyIndex();
+}
+function findNextConfiguredGoogleKey(from=googleMapKeyIndex){
+    for(let step=1;step<=3;step++){
+        const i=(from+step)%3;
+        if(googleMapKeys[i]) return i;
+    }
+    return -1;
+}
+function switchGoogleMapKey(reason='manuale',reload=true){
+    const next=findNextConfiguredGoogleKey(googleMapKeyIndex);
+    if(next<0 || next===googleMapKeyIndex) return false;
+    googleMapKeyIndex=next;
+    refreshActiveGoogleMapKey();
+    try{localStorage.setItem('geovision_google_maps_last_switch_reason',reason)}catch{}
+    if(reload) location.reload();
+    return true;
+}
+function isGoogleQuotaLimitError(err){
+    const s=String(err?.message||err||'').toUpperCase();
+    return /OVER_QUERY_LIMIT|RESOURCE_EXHAUSTED|QUOTA|RATE_LIMIT|429/.test(s);
+}
+function setGoogleKeyState(state) { const el = document.getElementById('keyStatus'); if (!el)
+    return; el.className = `key-status ${state}`; el.title = state === 'ok' ? 'Chiave Google attiva' : state === 'error' ? 'Chiave Google non disponibile o richiesta negata' : 'Verifico chiave Google'; }
+setGoogleKeyState(googleKey ? 'checking' : 'error');
+async function runGoogleDiagnostics() {
+    const old = document.getElementById('googleDiagPanel');
+    if (old)
+        old.remove();
+    const panel = document.createElement('div');
+    panel.id = 'googleDiagPanel';
+    panel.style.cssText = 'position:fixed;inset:0;z-index:25000;background:rgba(15,23,42,.52);display:flex;align-items:center;justify-content:center;padding:18px';
+    panel.innerHTML = '<div style="width:min(430px,94vw);max-height:84vh;overflow:auto;background:#fff;border-radius:22px;box-shadow:0 20px 60px rgba(0,0,0,.3);padding:20px;font:14px/1.45 system-ui;color:#0f172a"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px"><div><b style="font-size:20px">Diagnostica Google</b><div style="color:#64748b;margin-top:2px">Maps · Places · Schede · Foto</div></div><button id="googleDiagClose" type="button" style="border:0;border-radius:50%;width:42px;height:42px;background:#0f172a;color:#fff;font-size:24px">×</button></div><div id="googleDiagRows" style="display:grid;gap:10px;margin-top:18px"></div></div>';
+    document.body.appendChild(panel);
+    document.getElementById('googleDiagClose').onclick = () => panel.remove();
+    panel.onclick = e => { if (e.target === panel)
+        panel.remove(); };
+    const rows = document.getElementById('googleDiagRows');
+    let bad = 0, warn = 0;
+    const add = (name, state, detail) => { const c = state === 'ok' ? '#16a34a' : state === 'warn' ? '#f59e0b' : '#dc2626', icon = state === 'ok' ? '✓' : state === 'warn' ? '!' : '×'; rows.insertAdjacentHTML('beforeend', `<div style="display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start;padding:11px 12px;border:1px solid #e2e8f0;border-radius:14px"><div style="width:26px;height:26px;border-radius:50%;background:${c};color:#fff;display:grid;place-items:center;font-weight:800">${icon}</div><div><b>${esc(name)}</b><div style="color:#64748b;margin-top:2px">${esc(detail)}</div></div></div>`); };
+    add('Chiave API', googleKey ? 'ok' : 'bad', googleKey ? `Chiave Maps ${googleMapKeyIndex+1} attiva` : 'Chiave non configurata');
+    if (!googleKey)
+        bad++;
+    add('Maps JavaScript', googleReady && googleMap ? 'ok' : 'bad', googleReady && googleMap ? 'Mappa caricata e attiva' : 'Mappa Google non disponibile');
+    if (!(googleReady && googleMap))
+        bad++;
+    let lib = null;
+    try {
+        lib = await google.maps.importLibrary('places');
+        add('Places API', 'ok', 'Libreria Places caricata');
+    }
+    catch (e) {
+        bad++;
+        add('Places API', 'bad', clean(e?.message || 'Places non disponibile'));
+    }
+    let found = null;
+    if (lib) {
+        try {
+            const P = lib.Place, c = currentCenter(), q = clean(document.getElementById('place')?.value || 'Salerno') || 'Salerno', res = await P.searchByText({ textQuery: q, fields: ['id', 'displayName', 'location', 'photos'], locationBias: { lat: c.lat, lng: c.lng }, language: 'it', region: 'IT', maxResultCount: 3 });
+            found = (res.places || [])[0];
+            if (found?.id)
+                add('Ricerca Places', 'ok', `Risultato: ${clean(found.displayName || q)}`);
+            else {
+                warn++;
+                add('Ricerca Places', 'warn', 'API attiva, nessun risultato di prova');
+            }
+        }
+        catch (e) {
+            bad++;
+            add('Ricerca Places', 'bad', clean(e?.message || 'Ricerca fallita'));
+        }
+    }
+    if (found?.id && lib) {
+        try {
+            const P = lib.Place, p = new P({ id: String(found.id) });
+            await p.fetchFields({ fields: ['displayName', 'photos'] });
+            add('Place Details / scheda', 'ok', `Dettagli disponibili: ${clean(p.displayName || found.displayName || 'luogo')}`);
+            const n = Array.isArray(p.photos) ? p.photos.length : 0;
+            if (n)
+                add('Foto Google Places', 'ok', `${n} foto disponibili`);
+            else {
+                warn++;
+                add('Foto Google Places', 'warn', 'Dettagli disponibili, nessuna foto restituita');
+            }
+        }
+        catch (e) {
+            bad++;
+            add('Place Details / scheda', 'bad', clean(e?.message || 'Dettagli non disponibili'));
+            warn++;
+            add('Foto Google Places', 'warn', 'Non verificabili');
+        }
+    }
+    else if (lib) {
+        warn += 2;
+        add('Place Details / scheda', 'warn', 'Non verificata: manca un luogo valido');
+        add('Foto Google Places', 'warn', 'Non verificate: manca un luogo valido');
+    }
+    const el = document.getElementById('keyStatus');
+    if (el) {
+        el.className = `key-status ${bad ? 'error' : warn ? 'checking' : 'ok'}`;
+        el.title = bad ? 'Google: uno o più servizi non funzionano' : warn ? 'Google: funzionamento parziale' : 'Google: tutti i servizi verificati';
+    }
+}
+const esc = (s) => String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] || c));
+const clean = (s) => String(s || '').replace(/\s+/g, ' ').trim();
+const norm = (s) => clean(s).toLocaleLowerCase('it').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const toast = (s) => { const e = $('#toast'); e.textContent = s; e.classList.add('show'); setTimeout(() => e.classList.remove('show'), 2200); };
+async function getJson(url, timeout = 9000) { const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), timeout); try {
+    const r = await fetch(url, { signal: ctrl.signal, headers: { 'Accept-Language': 'it' } });
+    if (!r.ok)
+        throw new Error(String(r.status));
+    return await r.json();
+}
+finally {
+    clearTimeout(t);
+} }
+function currentCenter() { if (googleReady && googleMap) {
+    const c = googleMap.getCenter();
+    return { lat: c.lat(), lng: c.lng() };
+} const c = map.getCenter(); return { lat: c.lat, lng: c.lng }; }
+function currentZoom() { return googleReady && googleMap ? Number(googleMap.getZoom()) || 12 : map.getZoom(); }
+function zoomBand(z = currentZoom()) { return z >= 15 ? { name: 'Quartieri · frazioni · borghi', color: '#16a34a', fill: 'rgba(22,163,74,.07)' } : z >= 11 ? { name: 'Città · comuni · paesi', color: '#5846e8', fill: 'rgba(88,70,232,.07)' } : z >= 8 ? { name: 'Province · aree', color: '#f59e0b', fill: 'rgba(245,158,11,.07)' } : { name: 'Regioni · nazioni', color: '#ef4444', fill: 'rgba(239,68,68,.07)' }; }
+function updateReticleUi(save = false) { const ring = $('#ring'), dot = $('#reticleDot'), mb = $('#macro'), band = zoomBand(), found = macroAreas.length > 0; ring.classList.toggle('off', !macroMode); dot.classList.add('off'); mb.classList.toggle('active', macroMode); ring.style.borderColor = macroMode ? (found ? '#16a34a' : '#38bdf8') : band.color; if (!ring.classList.contains('scanning'))
+    ring.style.background = macroMode ? (found ? 'rgba(22,163,74,.10)' : 'rgba(56,189,248,.06)') : band.fill; $('#zoomMode').textContent = macroMode ? (found ? `Macroarea trovata · ${band.name}` : `Cerco macroaree · ${band.name}`) : band.name; if (save)
+    try {
+        localStorage.setItem('geovision_macro_mode', macroMode ? '1' : '0');
+    }
+    catch { } }
+function hideSelectionMarker() { if (marker) {
+    map.removeLayer(marker);
+    marker = null;
+} if (googleMarker) {
+    googleMarker.setMap(null);
+    googleMarker = null;
+} }
+function setMacroMode(on, scan = false) { macroMode = on; macroAreas = []; macroProbeKey = ''; clearTimeout(macroProbeTimer); updateReticleUi(true); const poi = document.getElementById('poi'), place = document.getElementById('place'); if (macroMode) {
+    hideSelectionMarker();
+    poi.value = '';
+    place.value = '';
+    place.placeholder = 'Territorio sotto il cerchio…';
+    liveLocalitySeq++;
+    scheduleLiveLocality(0);
+    if (scan)
+        scheduleMacroProbe(80, true);
+}
+else {
+    macroPrimary = '';
+    $('#macroPanel').classList.remove('show');
+    place.placeholder = 'Località…';
+    if (current) {
+        setFields(current);
+        setSelectionMarker(current);
+    }
+    else
+        scheduleLiveLocality(0);
+} }
+
+window.gm_authFailure = function(){
+    setGoogleKeyState('error');
+    try{
+      const switched=switchGoogleMapKey('auth-failure',false);
+      if(switched){
+        const i=googleMapKeyIndex+1;
+        toast(`Chiave Google Maps non valida · provo la ${i}`);
+        setTimeout(()=>location.reload(),650);
+      }
+    }catch{}
+};
+async function loadGoogleMaps() {
+    if (window.google?.maps) return;
+    if (!googleKey) throw new Error('missing-key');
+
+    try{
+        await new Promise((resolve,reject)=>{
+            const cb='__gvGoogleReady';
+            let done=false;
+            const finish=(ok,err)=>{
+                if(done)return;
+                done=true;
+                clearTimeout(timer);
+                try{delete window[cb]}catch{}
+                ok?resolve():reject(err||new Error('google-load'));
+            };
+            window[cb]=()=>finish(true);
+            const s=document.createElement('script');
+            s.async=true;
+            s.defer=true;
+            s.dataset.gvGoogleMaps='1';
+            s.src='https://maps.googleapis.com/maps/api/js?key='+encodeURIComponent(googleKey)+'&libraries=places&language=it&region=IT&v=weekly&callback='+cb;
+            s.onerror=()=>finish(false,new Error('google-load'));
+            document.head.appendChild(s);
+            const timer=setTimeout(()=>finish(false,new Error('google-timeout')),15000);
+        });
+    }catch(err){
+        /* Failover solo per chiave mancante/negata/caricamento fallito.
+           NON ruotiamo automaticamente per quota/rate limit. */
+        if(!isGoogleQuotaLimitError(err) && switchGoogleMapKey('load-failure',false)){
+            throw new Error('google-key-switched');
+        }
+        throw err;
+    }
+}
+function resultScore(r, zoom = currentZoom()) { const t = r.types || []; if (t.some((x) => ['route', 'street_address', 'premise', 'subpremise', 'intersection'].includes(x)))
+    return 0; if (zoom >= 15) {
+    if (t.includes('sublocality_level_1'))
+        return 118;
+    if (t.includes('sublocality'))
+        return 114;
+    if (t.includes('neighborhood'))
+        return 112;
+    if (t.includes('locality'))
+        return 108;
+    if (t.includes('postal_town'))
+        return 106;
+    if (t.includes('administrative_area_level_3'))
+        return 94;
+}
+else if (zoom >= 11) {
+    if (t.includes('locality'))
+        return 120;
+    if (t.includes('postal_town'))
+        return 118;
+    if (t.includes('administrative_area_level_3'))
+        return 112;
+    if (t.includes('sublocality_level_1'))
+        return 92;
+    if (t.includes('sublocality'))
+        return 88;
+}
+else if (zoom >= 8) {
+    if (t.includes('administrative_area_level_2'))
+        return 122;
+    if (t.includes('administrative_area_level_3'))
+        return 114;
+    if (t.includes('administrative_area_level_1'))
+        return 102;
+    if (t.includes('locality'))
+        return 90;
+}
+else {
+    if (t.includes('administrative_area_level_1'))
+        return 124;
+    if (t.includes('country'))
+        return 118;
+    if (t.includes('administrative_area_level_2'))
+        return 100;
+} return 0; }
+function componentName(r, zoom = currentZoom()) { const order = zoom >= 15 ? ['neighborhood', 'sublocality_level_5', 'sublocality_level_4', 'sublocality_level_3', 'sublocality_level_2', 'sublocality_level_1', 'sublocality', 'administrative_area_level_4', 'locality', 'postal_town', 'administrative_area_level_3'] : zoom >= 11 ? ['locality', 'postal_town', 'administrative_area_level_3', 'sublocality_level_1', 'sublocality', 'neighborhood'] : zoom >= 8 ? ['administrative_area_level_2', 'administrative_area_level_3', 'administrative_area_level_1', 'locality'] : ['administrative_area_level_1', 'country', 'administrative_area_level_2']; for (const ty of order) {
+    const c = (r.address_components || []).find((x) => (x.types || []).includes(ty));
+    if (c?.long_name)
+        return clean(c.long_name);
+} return clean(r.formatted_address || 'Località'); }
+function componentParent(r, name) { const types = ['administrative_area_level_2', 'administrative_area_level_1', 'country']; const vals = []; for (const ty of types) {
+    const c = (r.address_components || []).find((x) => (x.types || []).includes(ty));
+    if (c?.long_name && norm(c.long_name) !== norm(name) && !vals.includes(c.long_name))
+        vals.push(c.long_name);
+} return vals.slice(0, 2).join(', '); }
+async function googleLocalityAt(lat, lng) { if (!googleReady)
+    return null; try {
+    const geocoder = new google.maps.Geocoder(), zoom = currentZoom(), rr = await geocoder.geocode({ location: { lat, lng } }), results = rr.results || [], ranked = results.map((r) => ({ r, s: resultScore(r, zoom) })).filter((x) => x.s > 0).sort((a, b) => b.s - a.s), source = ranked[0]?.r || results[0];
+    if (!source)
+        return null;
+    const candidate = componentName(source, zoom), parent = componentParent(source, candidate), query = [candidate, parent].filter(Boolean).join(', ');
+    let r = source;
+    if (candidate) {
+        try {
+            const fr = await geocoder.geocode({ address: query }), cands = (fr.results || []).map((x) => ({ x, s: resultScore(x, zoom) + (norm(componentName(x, zoom)) === norm(candidate) ? 55 : 0) + (norm(x.formatted_address || '').includes(norm(parent.split(',')[0] || '')) ? 12 : 0) })).sort((a, b) => b.s - a.s);
+            if (cands[0]?.x)
+                r = cands[0].x;
+        }
+        catch { }
+    }
+    const loc = r.geometry?.location, name = componentName(r, zoom) || candidate, parent2 = componentParent(r, name) || parent, types = r.types || [], components = r.address_components || [], localPart = types.some((x) => x.startsWith('sublocality') || x === 'neighborhood') || components.some((c) => (c.types || []).some((x) => x.startsWith('sublocality') || x === 'neighborhood' || x === 'administrative_area_level_4')), kind = types.includes('locality') || types.includes('postal_town') ? 'Città / Paese' : localPart ? 'Quartiere / Rione / Frazione' : 'Comune / Territorio';
+    return { name, kind, lat: loc ? loc.lat() : lat, lon: loc ? loc.lng() : lng, address: clean(r.formatted_address || source.formatted_address || ''), parent: parent2, isPoi: false, source: 'Google Maps', placeId: r.place_id || source.place_id };
+}
+catch {
+    return null;
+} }
+async function googlePoiLocalityAt(lat, lng) { if (!googleReady)
+    return ''; try {
+    /* Per l'audioguida dei POI scegliamo prima il quartiere/frazione e solo
+       in assenza di un nome piu preciso ripieghiamo su citta o comune. */
+    const geocoder = new google.maps.Geocoder(), rr = await geocoder.geocode({ location: { lat, lng } }), results = rr.results || [], types = ['neighborhood', 'sublocality_level_5', 'sublocality_level_4', 'sublocality_level_3', 'sublocality_level_2', 'sublocality_level_1', 'sublocality', 'locality', 'postal_town', 'administrative_area_level_3'];
+    for (const ty of types) {
+        for (const r of results) {
+            const c = (r.address_components || []).find((x) => (x.types || []).includes(ty)), v = clean(c?.long_name || '');
+            if (v)
+                return v;
+        }
+    }
+    return '';
+}
+catch {
+    return '';
+} }
+async function poiLocalityName(lat, lng) { const g = await googlePoiLocalityAt(lat, lng); if (g)
+    return g; try {
+    /* zoom 16 conserva quartieri come Torrione e Pastena; zoom 10 li
+       riduceva sempre al solo comune di Salerno. */
+    const d = await getJson(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=16&addressdetails=1&accept-language=it`), a = d.address || {};
+    return clean(a.neighbourhood || a.suburb || a.quarter || a.city_district || a.hamlet || a.village || a.locality || a.town || a.city || a.municipality || a.county || '');
+}
+catch {
+    return '';
+} }
+function poiFamily(types, kind, name) { const s = `${types.join(' ')} ${kind} ${name}`.toLowerCase(); if (/park|national_park|nature_reserve|natural_feature|hiking_area|trail|beach|lake|mountain|peak|valley|forest|botanical|garden|river|marina|campground|parc|riserva|natura|mont|spiaggia|lago|valle|bosco|sentier/.test(s))
+    return 'nature'; if (/museum|art_gallery|church|place_of_worship|historical_landmark|cultural_landmark|monument|archaeolog|castle|cathedral|basilica|theat|opera|muse|chies|castell|cattedral|stor/.test(s))
+    return 'culture'; if (/restaurant|cafe|bar|store|shop|shopping|pharmacy|lodging|hotel|supermarket|bakery|hair|beauty|bank|gas_station|car_repair|doctor|dentist|veterinary|ristor|caff|farmac|negoz|albergo|tabacc|supermerc|parrucch/.test(s))
+    return 'commercial'; return 'other'; }
+function isGenericPlaceName(name) {
+    const n = norm(name || '');
+    return !n || n === 'punto di interesse' || n === 'point of interest' || n === 'localita' || n === 'area selezionata';
+}
+async function geographicNameFallback(pos) {
+    try {
+        const area = await googleLocalityAt(pos.lat, pos.lng) || await reverseFallback(pos.lat, pos.lng);
+        if (area && !isGenericPlaceName(area.name)) {
+            area.isPoi = false;
+            return area;
+        }
+    }
+    catch { }
+    return null;
+}
+async function exactGooglePoi(placeId, pos) { let knownName = ''; try {
+    const lib = await google.maps.importLibrary('places'), P = lib.Place, Rank = lib.SearchNearbyRankPreference, res = await P.searchNearby({ fields: ['id', 'displayName', 'location'], locationRestriction: { center: pos, radius: 140 }, maxResultCount: 20, rankPreference: Rank.DISTANCE, language: 'it', region: 'IT' }), exact = (res.places || []).find((x) => String(x.id) === placeId);
+    knownName = clean(exact?.displayName || '');
+}
+catch { } const p = await googlePlaceById(placeId, pos, knownName); if (p.isPoi) {
+    const locality = await poiLocalityName(p.lat, p.lon);
+    if (locality)
+        p.parent = locality;
+} return p; }
+async function legacyGooglePlaceName(placeId) { return await new Promise(resolve => { try {
+    const S = google.maps.places?.PlacesService;
+    if (!S)
+        return resolve('');
+    const svc = new S(googleMap || document.createElement('div'));
+    svc.getDetails({ placeId, fields: ['name'] }, (r, status) => resolve(status === google.maps.places.PlacesServiceStatus.OK ? clean(r?.name || '') : ''));
+}
+catch {
+    resolve('');
+} }); }
+async function googlePlaceById(placeId, pos, knownName = '') { let stableName = clean(knownName); try {
+    const lib = await google.maps.importLibrary('places'), P = lib.Place, pl = new P({ id: placeId });
+    try {
+        await pl.fetchFields({ fields: ['displayName', 'formattedAddress', 'location', 'types'] });
+    }
+    catch {
+        try {
+            await pl.fetchFields({ fields: ['displayName'] });
+        }
+        catch { }
+    }
+    stableName = clean(pl.displayName || stableName);
+    if (!stableName || norm(stableName) === 'punto di interesse')
+        stableName = await legacyGooglePlaceName(placeId);
+    if (!stableName)
+        stableName = 'Punto di interesse';
+    try {
+        await pl.fetchFields({ fields: ['primaryTypeDisplayName', 'addressComponents', 'photos'] });
+    }
+    catch { }
+    const loc = pl.location ? { lat: typeof pl.location.lat === 'function' ? pl.location.lat() : Number(pl.location.lat), lng: typeof pl.location.lng === 'function' ? pl.location.lng() : Number(pl.location.lng) } : pos, types = (pl.types || []), road = types.some(t => ['route', 'street_address', 'premise', 'subpremise', 'intersection'].includes(t));
+    if (road) {
+        const area = await googleLocalityAt(pos.lat, pos.lng);
+        if (area)
+            return area;
+    }
+    const componentTypes = (pl.addressComponents || []).flatMap(c => c.types || []), geo = types.some(t => t === 'locality' || t === 'postal_town' || t === 'administrative_area_level_1' || t === 'administrative_area_level_2' || t === 'administrative_area_level_3' || t === 'administrative_area_level_4' || t === 'country' || t === 'sublocality' || t.startsWith('sublocality_') || t === 'neighborhood' || t === 'political') || componentTypes.some(t => t === 'locality' || t === 'postal_town' || t === 'administrative_area_level_4' || t === 'sublocality' || t.startsWith('sublocality_') || t === 'neighborhood'), name = stableName;
+    if (isGenericPlaceName(name)) {
+        const area = await geographicNameFallback(pos);
+        if (area)
+            return area;
+    }
+    let parent = '';
+    if (Array.isArray(pl.addressComponents)) {
+        const vals = [], parentTypes = geo ? ['administrative_area_level_2', 'administrative_area_level_1', 'country'] : ['locality', 'postal_town', 'administrative_area_level_3', 'sublocality_level_1'];
+        for (const ty of parentTypes) {
+            const c = pl.addressComponents.find((x) => (x.types || []).includes(ty));
+            const v = clean(c?.longText || c?.long_name || '');
+            if (v && norm(v) !== norm(name) && !vals.includes(v))
+                vals.push(v);
+        }
+        parent = vals.slice(0, geo ? 2 : 1).join(', ');
+    }
+    const kind = types.includes('country') ? 'Nazione' : types.includes('administrative_area_level_1') ? 'Regione' : types.includes('administrative_area_level_2') ? 'Provincia / Area' : types.includes('locality') || types.includes('postal_town') ? 'Città / Paese' : types.some(t => t.startsWith('sublocality') || t === 'neighborhood') ? 'Frazione / Quartiere' : geo ? 'Comune / Territorio' : clean(pl.primaryTypeDisplayName?.text || pl.primaryTypeDisplayName || 'Punto di interesse');
+    let photo = '';
+    try {
+        const ph = Array.isArray(pl.photos) ? pl.photos[0] : null;
+        if (ph && typeof ph.getURI === 'function')
+            photo = ph.getURI({ maxWidth: 1200, maxHeight: 720 }) || '';
+    }
+    catch { }
+    return { name, kind, lat: loc.lat, lon: loc.lng, address: clean(pl.formattedAddress || ''), parent, isPoi: !geo && !road, source: 'Google Maps', placeId, photo, family: !geo && !road ? poiFamily(types, kind, name) : undefined };
+}
+catch {
+    const name = stableName || await legacyGooglePlaceName(placeId) || '';
+    if (isGenericPlaceName(name)) {
+        const area = await geographicNameFallback(pos);
+        if (area)
+            return area;
+    }
+    return { name, kind: 'Punto di interesse', lat: pos.lat, lon: pos.lng, address: '', parent: '', isPoi: true, source: 'Google Maps', placeId };
+} }
+async function enrichPlaceNarrationMeta(p) { if (!p.placeId || !p.isPoi || !googleReady)
+    return; try {
+    const lib = await google.maps.importLibrary('places'), P = lib.Place, pl = new P({ id: p.placeId });
+    try {
+        await pl.fetchFields({ fields: ['rating', 'userRatingCount'] });
+        p.rating = Number(pl.rating) || undefined;
+        p.ratingCount = Number(pl.userRatingCount) || undefined;
+    }
+    catch { }
+    try {
+        await pl.fetchFields({ fields: ['editorialSummary'] });
+        p.summary = clean(pl.editorialSummary?.text || pl.editorialSummary || '') || undefined;
+    }
+    catch { }
+}
+catch { } }
+async function liveLocality() { const seq = ++liveLocalitySeq, c = currentCenter(); let p = null; try {
+    p = googleReady ? await googleLocalityAt(c.lat, c.lng) : await reverseFallback(c.lat, c.lng);
+}
+catch { } if (seq !== liveLocalitySeq || !p)
+    return; const field = document.getElementById('place'); field.value = [p.name, p.parent].filter(Boolean).join(', '); field.placeholder = 'Località…'; field.title = `${p.kind}: ${field.value}`; }
+function scheduleLiveLocality(delay = 420) { window.clearTimeout(liveLocalityTimer); if (macroMode) {
+    const field = document.getElementById('place');
+    field.value = '';
+    field.placeholder = 'Territorio sotto il cerchio…';
+} liveLocalityTimer = window.setTimeout(() => liveLocality(), delay); }
+async function googlePhotoForPlaceId(placeId) { if (!placeId || !googleReady)
+    return ''; try {
+    const lib = await google.maps.importLibrary('places'), P = lib.Place, pl = new P({ id: placeId });
+    await pl.fetchFields({ fields: ['photos'] });
+    const ph = Array.isArray(pl.photos) ? pl.photos[0] : null;
+    return ph && typeof ph.getURI === 'function' ? ph.getURI({ maxWidth: 1200, maxHeight: 720 }) || '' : '';
+}
+catch {
+    return '';
+} }
+async function legacyGooglePhotos(placeId) { return await new Promise(resolve => { try {
+    const S = google.maps.places?.PlacesService;
+    if (!S)
+        return resolve([]);
+    const svc = new S(googleMap || document.createElement('div'));
+    svc.getDetails({ placeId, fields: ['photos'] }, (r, status) => resolve(status === google.maps.places.PlacesServiceStatus.OK && Array.isArray(r?.photos) ? r.photos : []));
+}
+catch {
+    resolve([]);
+} }); }
+function renderedGooglePhotoUrls() { const urls = [], seen = new Set(); const walk = (root) => { if (!root || seen.has(root) || urls.length >= 30)
+    return; seen.add(root); try {
+    root.querySelectorAll?.('img').forEach((img) => { const u = clean(img.currentSrc || img.src || ''); if (u && !u.startsWith('data:') && !urls.includes(u))
+        urls.push(u); });
+    root.querySelectorAll?.('*').forEach((el) => { try {
+        if (el.shadowRoot)
+            walk(el.shadowRoot);
+    }
+    catch { } });
+}
+catch { } }; walk(document.getElementById('googleCityPhotos')); walk(document.getElementById('googleCardHost')); return urls.slice(0, 30); }
+async function legacyGoogleTextPhotos(q, p) { return await new Promise(resolve => { try {
+    const S = google.maps.places?.PlacesService;
+    if (!S)
+        return resolve([]);
+    const svc = new S(googleMap || document.createElement('div'));
+    svc.textSearch({ query: q, location: new google.maps.LatLng(p.lat, p.lon), radius: 4500 }, (results, status) => resolve(status === google.maps.places.PlacesServiceStatus.OK ? results || [] : []));
+}
+catch {
+    resolve([]);
+} }); }
+async function googleGalleryPhotos(p) { if (!googleReady || !p.placeId)
+    return []; const urls = []; for (const u of googlePhotoCache.get(p.placeId) || [])
+    if (u && !urls.includes(u))
+        urls.push(u); const addUrl = (u) => { u = clean(u || ''); if (u && !u.startsWith('data:') && !urls.includes(u) && urls.length < 30)
+    urls.push(u); }; const add = (photos) => { for (const ph of photos || []) {
+    if (urls.length >= 30)
+        break;
+    try {
+        addUrl(typeof ph?.getURI === 'function' ? ph.getURI({ maxWidth: 1600, maxHeight: 1600 }) || '' : typeof ph?.getUrl === 'function' ? ph.getUrl({ maxWidth: 1600, maxHeight: 1600 }) || '' : '');
+    }
+    catch { }
+} }; for (const u of renderedGooglePhotoUrls())
+    addUrl(u); try {
+    const lib = await google.maps.importLibrary('places'), P = lib.Place;
+    try {
+        const direct = new P({ id: p.placeId });
+        await direct.fetchFields({ fields: ['photos'] });
+        add(Array.isArray(direct.photos) ? direct.photos : []);
+    }
+    catch { }
+    if (urls.length < 10) {
+        try {
+            add(await legacyGooglePhotos(p.placeId));
+        }
+        catch { }
+    }
+    if (isOfficialCityLocality(p) && urls.length < 24) {
+        const base = [p.name, p.parent].filter(Boolean).join(' '), queries = [`${base} attrazioni turistiche`, `${base} monumenti`, `${base} luoghi da visitare`];
+        for (const textQuery of queries) {
+            if (urls.length >= 30)
+                break;
+            try {
+                const res = await P.searchByText({ textQuery, fields: ['id', 'displayName', 'location', 'photos', 'types'], locationBias: { lat: p.lat, lng: p.lon }, language: 'it', region: 'IT', maxResultCount: 10 });
+                for (const pl of res.places || []) {
+                    if (!pl.location)
+                        continue;
+                    const lat = typeof pl.location.lat === 'function' ? pl.location.lat() : Number(pl.location.lat), lng = typeof pl.location.lng === 'function' ? pl.location.lng() : Number(pl.location.lng);
+                    if (metersBetween({ lat: p.lat, lng: p.lon }, { lat, lng }) > 4500)
+                        continue;
+                    add(Array.isArray(pl.photos) ? pl.photos : []);
+                }
+            }
+            catch { }
+            if (urls.length < 12) {
+                try {
+                    for (const r of await legacyGoogleTextPhotos(textQuery, p)) {
+                        const loc = r.geometry?.location;
+                        if (loc && metersBetween({ lat: p.lat, lng: p.lon }, { lat: loc.lat(), lng: loc.lng() }) > 4500)
+                            continue;
+                        add(Array.isArray(r.photos) ? r.photos : []);
+                    }
+                }
+                catch { }
+            }
+        }
+        if (!urls.length) {
+            try {
+                for (const u of await googleLocalityPhotos(p))
+                    addUrl(u);
+            }
+            catch { }
+        }
+    }
+    else if (!urls.length) {
+        try {
+            const res = await P.searchByText({ textQuery: [p.name, p.parent].filter(Boolean).join(', '), fields: ['id', 'displayName', 'location', 'photos'], locationBias: { lat: p.lat, lng: p.lon }, language: 'it', region: 'IT', maxResultCount: 5 });
+            for (const pl of res.places || []) {
+                if (!pl.location || norm(pl.displayName || '') !== norm(p.name))
+                    continue;
+                const lat = typeof pl.location.lat === 'function' ? pl.location.lat() : Number(pl.location.lat), lng = typeof pl.location.lng === 'function' ? pl.location.lng() : Number(pl.location.lng);
+                if (metersBetween({ lat: p.lat, lng: p.lon }, { lat, lng }) > 5000)
+                    continue;
+                add(Array.isArray(pl.photos) ? pl.photos : []);
+                if (urls.length)
+                    break;
+            }
+        }
+        catch { }
+    }
+}
+catch { } for (const u of renderedGooglePhotoUrls())
+    addUrl(u); if (urls.length)
+    googlePhotoCache.set(p.placeId, urls.slice(0, 30)); return urls; }
+function closePhotoGallery() { const g = $('#photoGallery'); g.classList.remove('show'); $('#photoGalleryBody').innerHTML = ''; }
+async function renderGoogleUiMediaFallback(p, body) { try {
+    await google.maps.importLibrary('places');
+    if (isOfficialCityLocality(p)) {
+        await Promise.race([customElements.whenDefined('gmp-place-search'), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 8000))]);
+        const search = document.createElement('gmp-place-search'), request = document.createElement('gmp-place-text-search-request'), config = document.createElement('gmp-place-content-config'), media = document.createElement('gmp-place-media'), attr = document.createElement('gmp-place-attribution');
+        search.setAttribute('orientation', 'vertical');
+        search.setAttribute('selectable', '');
+        request.setAttribute('text-query', [p.name, p.parent, 'attrazioni'].filter(Boolean).join(' '));
+        media.setAttribute('lightbox-preferred', '');
+        config.appendChild(media);
+        config.appendChild(attr);
+        search.appendChild(request);
+        search.appendChild(config);
+        body.innerHTML = '';
+        body.appendChild(search);
+        $('#photoGalleryCount').textContent = 'Foto Google del territorio';
+        return;
+    }
+    await Promise.race([customElements.whenDefined('gmp-place-details'), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 8000))]);
+    const details = document.createElement('gmp-place-details'), request = document.createElement('gmp-place-details-place-request'), config = document.createElement('gmp-place-content-config'), media = document.createElement('gmp-place-media'), attr = document.createElement('gmp-place-attribution');
+    request.setAttribute('place', p.placeId || '');
+    media.setAttribute('lightbox-preferred', '');
+    config.appendChild(media);
+    config.appendChild(attr);
+    details.appendChild(request);
+    details.appendChild(config);
+    body.innerHTML = '';
+    body.appendChild(details);
+    $('#photoGalleryCount').textContent = 'Foto Google';
+}
+catch {
+    body.innerHTML = '<div class="photo-gallery-empty">Le foto Google non sono disponibili in questa modalità.</div>';
+    $('#photoGalleryCount').textContent = 'Foto non disponibili';
+} }
+async function openPhotoGallery() { const p = current; if (!p)
+    return toast('Seleziona prima un luogo'); if (!googleReady || !p.placeId)
+    return toast('Foto Google non disponibili per questo luogo'); const g = $('#photoGallery'), body = $('#photoGalleryBody'); $('#photoGalleryTitle').textContent = p.name; $('#photoGalleryCount').textContent = 'Carico le foto Google…'; body.innerHTML = '<div class="photo-gallery-loading">Carico le foto del luogo…</div>'; g.classList.add('show'); const urls = await googleGalleryPhotos(p); if (current !== p || !g.classList.contains('show'))
+    return; if (!urls.length) {
+    await renderGoogleUiMediaFallback(p, body);
+    return;
+} $('#photoGalleryCount').textContent = `${urls.length} foto Google`; body.innerHTML = urls.map((u, i) => `<button class="photo-tile" type="button" data-photo="${i}"><img src="${esc(u)}" alt="${esc(p.name)} · foto ${i + 1}" loading="lazy"></button>`).join(''); document.querySelectorAll('[data-photo]').forEach(el => el.onclick = () => { const i = Number(el.dataset.photo), u = urls[i]; if (!u)
+    return; body.innerHTML = `<button id="photoBackGrid" class="photo-focus-back" type="button">‹ Tutte le foto</button><div class="photo-focus"><img src="${esc(u)}" alt="${esc(p.name)}"></div>`; document.getElementById('photoBackGrid').onclick = () => openPhotoGallery(); }); }
+async function googleLocalityPhotos(p) { if (!googleReady || !isOfficialCityLocality(p))
+    return []; const urls = []; const add = (photos) => { for (const ph of photos || []) {
+    if (urls.length >= 3)
+        break;
+    try {
+        const u = typeof ph?.getURI === 'function' ? clean(ph.getURI({ maxWidth: 1200, maxHeight: 720 }) || '') : '';
+        if (u && !urls.includes(u))
+            urls.push(u);
+    }
+    catch { }
+} }; try {
+    const lib = await google.maps.importLibrary('places'), P = lib.Place;
+    if (p.placeId) {
+        try {
+            const direct = new P({ id: p.placeId });
+            await direct.fetchFields({ fields: ['photos'] });
+            add(Array.isArray(direct.photos) ? direct.photos : []);
+        }
+        catch { }
+    }
+    if (urls.length < 3) {
+        const res = await P.searchByText({ textQuery: [p.name, p.parent].filter(Boolean).join(', '), fields: ['id', 'displayName', 'location', 'photos'], includedType: 'locality', useStrictTypeFiltering: true, locationBias: { lat: p.lat, lng: p.lon }, language: 'it', region: 'IT', maxResultCount: 5 }), ranked = (res.places || []).filter((x) => x.id).map((x) => { const loc = x.location, lat = loc ? (typeof loc.lat === 'function' ? loc.lat() : Number(loc.lat)) : p.lat, lng = loc ? (typeof loc.lng === 'function' ? loc.lng() : Number(loc.lng)) : p.lon; return { x, s: (norm(x.displayName || '') === norm(p.name) ? 220 : 0) + (norm(x.displayName || '').includes(norm(p.name)) ? 80 : 0) + Math.max(0, 80 - Math.min(80, metersBetween({ lat: p.lat, lng: p.lon }, { lat, lng }) / 800)) }; }).sort((a, b) => b.s - a.s);
+        for (const item of ranked) {
+            add(Array.isArray(item.x.photos) ? item.x.photos : []);
+            if (urls.length >= 3)
+                break;
+        }
+    }
+}
+catch { } if (p.placeId && urls.length)
+    googlePhotoCache.set(p.placeId, urls.slice()); return urls; }
+async function reverseFallback(lat, lon) { try {
+    const z = currentZoom(), nz = z >= 15 ? 16 : z >= 11 ? 10 : z >= 8 ? 7 : 5, d = await getJson(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=${nz}&addressdetails=1&accept-language=it`), a = d.address || {};
+    let name = '', kind = 'Territorio';
+    if (z >= 15) {
+        name = clean(a.neighbourhood || a.suburb || a.quarter || a.city_district || a.hamlet || a.locality || a.village || a.town || a.city || a.municipality || 'Località');
+        kind = a.neighbourhood || a.suburb || a.quarter || a.city_district ? 'Quartiere / Rione' : a.hamlet || a.locality ? 'Frazione / Borgo' : 'Località';
+    }
+    else if (z >= 11) {
+        name = clean(a.city || a.town || a.village || a.municipality || a.county || 'Località');
+        kind = a.village ? 'Paese' : 'Città / Comune';
+    }
+    else if (z >= 8) {
+        name = clean(a.county || a.state_district || a.state || 'Area');
+        kind = 'Provincia / Area';
+    }
+    else {
+        name = clean(a.state || a.country || 'Regione');
+        kind = a.state ? 'Regione' : 'Nazione';
+    }
+    const parent = clean([a.county, a.state, a.country].filter(Boolean).filter((x) => norm(x) !== norm(name)).slice(0, 2).join(', '));
+    return { name, kind, lat, lon, address: clean(d.display_name || ''), parent, isPoi: false, source: 'OpenStreetMap' };
+}
+catch {
+    return { name: 'Area selezionata', kind: 'Territorio', lat, lon, address: '', parent: '', isPoi: false, source: 'Coordinate mappa' };
+} }
+async function wikiInfo(p) { for (const host of ['it.wikipedia.org', 'en.wikipedia.org']) {
+    try {
+        const query = [`"${p.name}"`, p.parent].filter(Boolean).join(' '), s = await getJson(`https://${host}/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=8&format=json&origin=*`), hits = s.query?.search || [], scored = hits.map((h) => { const t = norm(h.title), n = norm(p.name), sn = norm(String(h.snippet || '').replace(/<[^>]+>/g, ' ')), par = norm(p.parent); return { h, s: (t === n ? 100 : t.startsWith(n) || n.startsWith(t) ? 65 : t.includes(n) || n.includes(t) ? 45 : 0) + (par && sn.includes(par.split(',')[0]) ? 20 : 0) }; }).sort((a, b) => b.s - a.s), hit = scored[0]?.s >= 40 ? scored[0].h : hits[0];
+        if (hit) {
+            const j = await getJson(`https://${host}/w/api.php?action=query&prop=extracts|pageimages|info&exintro=1&explaintext=1&inprop=url&pithumbsize=1200&redirects=1&titles=${encodeURIComponent(hit.title)}&format=json&origin=*`), pg = Object.values(j.query?.pages || {})[0];
+            if (pg && clean(pg.extract || '').length > 80)
+                return { extract: clean(pg.extract || ''), photo: pg.thumbnail?.source || '', url: pg.fullurl || '' };
+        }
+    }
+    catch { }
+} return { extract: '', photo: '', url: '' }; }
+function speechText(s) { return clean(s).replace(/https?:\/\/\S+|www\.\S+/gi, ' ').replace(/\bPOI\b/gi, 'punto di interesse').replace(/\b(?:API|URL|JSON|HTTP|HTTPS|GPS|PLACE ID|PLACE_ID|HTML)\b/gi, ' ').replace(/\b[A-Z]{2,8}\b/g, ' ').replace(/\b[A-Za-z0-9_-]{16,}\b/g, ' ').replace(/[{}\[\]_*#<>|]/g, ' ').replace(/\s{2,}/g, ' ').trim(); }
+function instantNarrationIntro(p) {
+    const k = `${p.kind || ''} ${p.name || ''} ${p.summary || ''}`.toLowerCase();
+    const food = /restaurant|ristor|pizzer|trattor|oster|tavern|cafe|caff|bar\b|pub\b|bistrot|bistro|gelater|pasticcer|bakery|panific|street food|gastronom|enotec|steakhouse|sushi|hamburger|burger|friggitor|rosticcer|pescheria con cucina/.test(k);
+    if (food)
+        return `Iniziamo questo viaggio all'insegna del gusto. Mettetevi comodi, si comincia.`;
+    if (p.family === 'culture' || /monument|muse|chies|castell|palazz|sito arche|rovine|tempio|cattedral|basilic|teatro|anfiteatro|stor/.test(k))
+        return `Mettetevi comodi, si comincia. Iniziamo questo viaggio alla scoperta dell’arte.`;
+    if (p.family === 'nature' || /parc|giardin|natura|lago|mont|spiaggia|baia|golfo|valle|riserva/.test(k))
+        return `Mettetevi comodi, si comincia. Iniziamo questo viaggio alla scoperta della natura.`;
+    if (p.isPoi)
+        return `Ci troviamo ${p.parent ? `a ${p.parent} ` : ''}al ${p.name}. Qui ci raccontano la loro passione. Mettetevi comodi, si comincia.`;
+    return `Siamo a ${p.name}. Iniziamo a scoprirne storia, tradizioni e curiosità. Mettetevi comodi, si comincia.`;
+}
+function preferredItalianVoice() { try {
+    return window.speechSynthesis.getVoices().find(v => /^it(?:-|$)/i.test(v.lang)) || null;
+}
+catch {
+    return null;
+} }
+function speechParts(text) { const t = speechText(text); if (!t)
+    return []; const sentences = t.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [t], out = []; for (let part of sentences) {
+    part = clean(part);
+    if (!part)
+        continue;
+    if (part.length <= 220) {
+        out.push(part);
+        continue;
+    }
+    let rest = part;
+    while (rest.length > 220) {
+        let cut = -1;
+        for (const sep of ['; ', ', ', ': ']) {
+            const i = rest.lastIndexOf(sep, 220);
+            if (i > 90) {
+                cut = i + sep.length;
+                break;
+            }
+        }
+        if (cut < 0) {
+            const space = rest.lastIndexOf(' ', 220);
+            cut = space > 120 ? space : 220;
+        }
+        out.push(clean(rest.slice(0, cut)));
+        rest = clean(rest.slice(cut));
+    }
+    if (rest)
+        out.push(rest);
+} return out; }
+function pumpSpeech() { if (speechPumpRunning || !('speechSynthesis' in window))
+    return; let item = speechQueue.shift(); while (item && item.token !== speechToken)
+    item = speechQueue.shift(); if (!item) {
+    speaking = false;
+    $('#voice').classList.remove('active');
+    $('#nativeVoice').classList.remove('active');
+    return;
+} const currentItem = item, seq = ++speechUtteranceSeq; speechPumpRunning = true; window.clearTimeout(speechWatchdog); const u = new SpeechSynthesisUtterance(currentItem.text), voice = preferredItalianVoice(); u.lang = 'it-IT'; if (voice)
+    u.voice = voice; u.rate = 1.02; u.pitch = 1; const finish = (retry = false) => { if (seq !== speechUtteranceSeq)
+    return; window.clearTimeout(speechWatchdog); speechPumpRunning = false; if (currentItem.token !== speechToken)
+    return; if (retry && (currentItem.retries || 0) < 2)
+    speechQueue.unshift({ ...currentItem, retries: (currentItem.retries || 0) + 1 }); setTimeout(pumpSpeech, retry ? 120 : 35); }; u.onstart = () => { if (seq === speechUtteranceSeq && currentItem.token === speechToken) {
+    speaking = true;
+    $('#voice').classList.add('active');
+    $('#nativeVoice').classList.add('active');
+} }; u.onend = () => finish(false); u.onerror = () => finish(true); speechWatchdog = window.setTimeout(() => { if (seq !== speechUtteranceSeq || currentItem.token !== speechToken)
+    return; speechUtteranceSeq++; window.clearTimeout(speechWatchdog); speechPumpRunning = false; if ((currentItem.retries || 0) < 2)
+    speechQueue.unshift({ ...currentItem, retries: (currentItem.retries || 0) + 1 }); try {
+    window.speechSynthesis.cancel();
+}
+catch { } setTimeout(pumpSpeech, 160); }, Math.max(16000, Math.min(26000, 9000 + currentItem.text.length * 90))); try {
+    window.speechSynthesis.resume();
+}
+catch { } window.speechSynthesis.speak(u); }
+function stopSpeech() { speechToken++; speechQueue.length = 0; speechUtteranceSeq++; window.clearTimeout(speechWatchdog); speechPumpRunning = false; speaking = false; try {
+    window.speechSynthesis.cancel();
+}
+catch { } $('#voice').classList.remove('active'); $('#nativeVoice').classList.remove('active'); }
+function speak(text, append = false) { if (!('speechSynthesis' in window))
+    return; if (!append) {
+    stopSpeech();
+    try {
+        window.speechSynthesis.resume();
+    }
+    catch { }
+} const token = speechToken; for (const part of speechParts(text))
+    speechQueue.push({ text: part, token, retries: 0 }); pumpSpeech(); }
+
+async function aiNarration(p, mode, extract = '', previous = '', depth = 0) {
+    try {
+        if (!geminiKey) {
+            geminiAiState = 'missing_key';
+            geminiAiDetail = 'Chiave Gemini non configurata';
+            return '';
+        }
+        if (geminiAiState === 'invalid_key') return '';
+
+        const k = `${p.kind || ''} ${p.name || ''} ${p.summary || ''}`.toLowerCase();
+        const food = /restaurant|ristor|pizzer|trattor|oster|tavern|cafe|caff|bar\b|pub\b|bistrot|gelater|pasticcer|bakery|gastronom|enotec|sushi|burger|steakhouse/.test(k);
+        const culture = p.family === 'culture' || /monument|muse|chies|castell|palazz|stor|teatro|basilic|cattedral|archeolog/.test(k);
+        const nature = p.family === 'nature' || /parc|giardin|natura|lago|mont|spiaggia|valle|riserva|baia|golfo/.test(k);
+
+        let task = '';
+        if (mode === 'deepen') {
+            task = `Sei l'approfondimento AI separato di GeoVision. Continua senza ripetere. Scrivi circa 220-280 parole, fluide e piacevoli da ascoltare. Approfondisci storia, persone, trasformazioni, tradizioni, curiosità, cultura materiale, architettura, paesaggio o gastronomia in base al luogo. Non fare una nuova introduzione. Chiudi con una curiosità nuova introdotta esattamente da "Lo sapevi che?". Testo già raccontato: ${previous.slice(-7000)}`;
+        } else if (!p.isPoi) {
+            task = `Sei l'audioguida AI principale di GeoVision per una città o un paese. Scrivi un testo breve e conciso, circa 90-120 parole, senza titoli o elenchi. Ordine: brevissima introduzione; per che cosa è famoso il luogo; eventuali monumenti principali; specialità culinarie o prodotti tipici; una tradizione o usanza locale; artigianato locale se realmente noto; chiudi SEMPRE con "Lo sapevi che?" seguito da una curiosità breve. Non inventare informazioni.`;
+        } else if (food) {
+            task = `Sei l'audioguida AI di GeoVision per un ristorante o locale gastronomico. Scrivi circa 80-110 parole. Spiega dove si trova, che tipo di locale è, cosa propone, specialità o elementi distintivi affidabili e reputazione/recensioni solo se disponibili. Non inventare piatti. Chiudi con "Lo sapevi che?" e una curiosità breve, se affidabile.`;
+        } else if (culture) {
+            task = `Sei l'audioguida AI di GeoVision per un monumento o luogo culturale. Scrivi circa 90-120 parole. Spiega dove si trova, origine e periodo, autore o committente se noto, perché fu realizzato, trasformazioni principali e caratteristiche artistiche o architettoniche. Chiudi con "Lo sapevi che?" e una curiosità breve e affidabile.`;
+        } else if (nature) {
+            task = `Sei l'audioguida AI di GeoVision per un luogo naturale. Scrivi circa 90-120 parole. Spiega dove si trova, paesaggio, caratteristiche naturali, perché è noto e cosa merita attenzione. Chiudi con "Lo sapevi che?" e una curiosità breve e affidabile.`;
+        } else {
+            task = `Sei l'audioguida AI di GeoVision per un punto d'interesse. Scrivi circa 80-110 parole. Spiega che luogo è, dove si trova, perché è interessante o noto e gli elementi distintivi affidabili. Chiudi con "Lo sapevi che?" e una curiosità breve, se disponibile.`;
+        }
+
+        const prompt =
+`Luogo: ${p.name}
+Tipo: ${p.kind || 'luogo'}
+Area: ${p.parent || p.address || ''}
+Indirizzo: ${p.address || ''}
+Sintesi disponibile: ${p.summary || ''}
+Valutazione: ${p.rating || ''}
+Numero recensioni: ${p.ratingCount || ''}
+Contesto disponibile: ${extract.slice(0,3500)}
+
+Regole:
+- Rispondi esclusivamente in italiano naturale.
+- Niente titoli, elenchi, markdown, URL o citazioni.
+- Non copiare Wikipedia.
+- Non inventare dati mancanti.
+- Evita ripetizioni.
+- Produci solo il testo dell'audioguida.
+
+${task}`;
+
+        const models = ['gemini-3.5-flash', 'gemini-2.5-flash'];
+        geminiAiState = 'checking';
+        geminiAiDetail = '';
+        for (const model of models) {
+          const ctrl = new AbortController();
+          const timer = setTimeout(()=>ctrl.abort(), 14000);
+          try {
+            const r = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(geminiKey)}`,
+              {
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({
+                  contents:[{role:'user',parts:[{text:prompt}]}],
+                  generationConfig:{temperature:.25,maxOutputTokens:700}
+                }),
+                signal:ctrl.signal
+              }
+            );
+            if (r.status === 401 || r.status === 403) {
+                geminiAiState = 'invalid_key';
+                geminiAiDetail = `Chiave rifiutata (${r.status})`;
+                return '';
+            }
+            if (!r.ok) {
+                geminiAiState = r.status === 429 ? 'quota' : 'error';
+                geminiAiDetail = `${model}: errore ${r.status}`;
+                continue;
+            }
+            const data = await r.json();
+            const text = clean(data?.candidates?.[0]?.content?.parts?.map(x=>x?.text||'').join(' ')||'');
+            if (text) {
+                geminiAiState = 'active';
+                geminiAiDetail = model;
+                return text;
+            }
+            geminiAiState = 'empty';
+            geminiAiDetail = `${model}: risposta vuota`;
+          }
+          catch (err) {
+            geminiAiState = err?.name === 'AbortError' ? 'timeout' : 'network';
+            geminiAiDetail = err?.name === 'AbortError' ? `${model}: tempo scaduto` : `${model}: rete non disponibile`;
+          }
+          finally {
+            clearTimeout(timer);
+          }
+        }
+        return '';
+    } catch {
+        geminiAiState = 'error';
+        geminiAiDetail = 'Errore interno AI';
+        return '';
+    }
+}
+async function aiNarrationRetry(p, mode, extract = '', previous = '', depth = 0, attempts = 4) {
+    for (let i = 0; i < attempts; i++) {
+        const text = await aiNarration(p, mode, extract, previous, depth);
+        if (text) return text;
+        if (geminiAiState === 'missing_key' || geminiAiState === 'invalid_key' || geminiAiState === 'quota') return '';
+        await new Promise(r => setTimeout(r, i === 0 ? 1200 : 2600));
+        if (current !== p) return '';
+    }
+    return '';
+}
+
+function smartLocalContinuation(p, extract = '') {
+    const k = `${p.kind || ''} ${p.name || ''} ${p.summary || ''}`.toLowerCase();
+    const food = /restaurant|ristor|pizzer|trattor|oster|tavern|cafe|caff|bar\b|pub\b|bistrot|gelater|pasticcer|bakery|gastronom|enotec|sushi|burger|steakhouse/.test(k);
+    const place = p.parent || p.address || '';
+    const bits = [];
+    if (food) {
+        bits.push(`${p.name} è ${p.kind ? `un luogo dedicato a ${p.kind.toLowerCase()}` : 'un locale'}${place ? ` a ${place}` : ''}.`);
+        if (p.summary) bits.push(clean(p.summary));
+        if (p.rating) bits.push(`La valutazione disponibile è di ${String(p.rating).replace('.', ',')} su 5${p.ratingCount ? `, basata su ${p.ratingCount} recensioni` : ''}.`);
+        bits.push(`Per capirne davvero l'identità, vale la pena osservare cucina, specialità proposte, ingredienti del territorio e ciò che i clienti apprezzano maggiormente.`);
+    } else if (p.family === 'culture' || /monument|muse|chies|castell|palazz|stor|teatro|basilic|cattedral/.test(k)) {
+        bits.push(`${p.name}${place ? ` si trova a ${place}` : ''}.`);
+        if (p.summary) bits.push(clean(p.summary));
+        bits.push(`Il suo interesse nasce dalla storia del luogo, dalle trasformazioni subite nel tempo e dagli elementi artistici o architettonici che lo caratterizzano.`);
+    } else if (p.family === 'nature' || /parc|giardin|natura|lago|mont|spiaggia|valle|riserva/.test(k)) {
+        bits.push(`${p.name}${place ? ` si trova a ${place}` : ''}.`);
+        if (p.summary) bits.push(clean(p.summary));
+        bits.push(`Qui il racconto passa soprattutto dal paesaggio, dagli elementi naturali e dal rapporto tra questo ambiente e il territorio circostante.`);
+    } else {
+        bits.push(`${p.name}${place ? ` si trova a ${place}` : ''}.`);
+        if (p.summary) bits.push(clean(p.summary));
+    }
+    if (extract) {
+        const e = clean(extract).split(/(?<=[.!?])\s+/).slice(0, 4).join(' ');
+        if (e) bits.push(e);
+    }
+    return clean(bits.join(' ')).slice(0, 1500);
+}
+function conciseGeoPair(name,parent='') {
+    name=clean(name||'');
+    const parts=String(parent||'').split(',').map(clean).filter(Boolean);
+    const seen=new Set([norm(name)]);
+    let second='';
+
+    for(const part of parts){
+        const n=norm(part);
+        if(!n || seen.has(n)) continue;
+        /* Il paese/città/frazione prende sempre il primo livello geografico utile.
+           Niente terzo o quarto nome. */
+        second=part;
+        break;
+    }
+
+    return [name,second].filter(Boolean).join(', ');
+}
+function conciseGeoParent(parent='',fallbackName='') {
+    const parts=String(parent||'').split(',').map(clean).filter(Boolean);
+    const result=[],seen=new Set();
+    for(const part of parts){
+        const n=norm(part);
+        if(!n || seen.has(n) || n===norm(fallbackName)) continue;
+        seen.add(n);
+        result.push(part);
+        if(result.length===2) break;
+    }
+    return result.join(', ');
+}
+function setFields(p) {
+    const poi=$('#poi'),place=$('#place');
+
+    if(p.isPoi){
+        poi.value=p.name;
+        /* Anche per i POI la località resta corta: massimo due livelli geografici. */
+        place.value=conciseGeoParent(p.parent||'',p.name);
+    } else {
+        poi.value='';
+        /* Regola GeoVision: SEMPRE massimo due nomi.
+           Es.: Mercato San Severino, Salerno
+                Salerno, Campania
+                Ortolorito, Sant'Egidio del Monte Albino
+                Torrione, Salerno */
+        place.value=conciseGeoPair(p.name,p.parent||'');
+    }
+
+    place.title=`${p.kind}: ${place.value}`;
+}
+function closeSheet() { setTopbarForSheet(false); narrationRun++; stopSpeech(); $('#videoPicker').classList.remove('show'); const sheet = $('#sheet'); sheet.style.transition = ''; sheet.style.transform = ''; sheet.classList.remove('show'); sheetDragging = false; setTimeout(() => { $('#sheetBody').innerHTML = ''; }, 220); }
+function googlePlaceUrl(p) { return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([p.name, p.parent || p.address].filter(Boolean).join(' '))}${p.placeId ? '&query_place_id=' + encodeURIComponent(p.placeId) : ''}`; }
+function isOfficialCityLocality(p) { return !p.isPoi && /città|paese|comune/i.test(p.kind || ''); }
+function fallbackGeoCard(p, photo = '') { return `${photo ? `<img class="geo-photo" src="${esc(photo)}" alt="${esc(p.name)}">` : ''}<div class="place-copy"><div class="meta">Scheda GeoVision</div><h2>${esc(p.name)}</h2><div class="meta">${esc(p.address || p.kind)}</div><div class="actions"><button id="openGoogleCard" class="primary">Apri in Google Maps</button></div></div>`; }
+async function renderOfficialGoogleCard(p) { const body = $('#sheetBody'); body.innerHTML = '<div id="googleCityPhotos" class="google-city-photos"></div><div id="googleCardHost" class="google-card-host"><div class="loading">Carico la scheda Google…</div></div><div id="audioGuide" class="audio-guide"><div class="loading">Preparo l’audioguida…</div></div>'; $('#sheet').classList.add('show'); const host = $('#googleCardHost'), cityLocality = isOfficialCityLocality(p), photoHost = $('#googleCityPhotos'); if (cityLocality) {
+    void googleLocalityPhotos(p).then(urls => { if (current !== p || !photoHost?.isConnected || !urls.length)
+        return; photoHost.innerHTML = `<div class="google-photo-strip">${urls.map(u => `<img src="${esc(u)}" alt="${esc(p.name)}">`).join('')}</div>`; });
+} if (!p.placeId) {
+    if (cityLocality) {
+        host.innerHTML = '<div class="loading">Carico la scheda Google…</div>';
+        return;
+    }
+    const w = await wikiInfo(p);
+    host.innerHTML = fallbackGeoCard(p, w.photo || '');
+    const b = document.getElementById('openGoogleCard');
+    if (b)
+        b.onclick = () => openUrl(googlePlaceUrl(p));
+    return;
+} let extraPhoto = ''; if (!p.isPoi && !cityLocality) {
+    extraPhoto = p.photo || await googlePhotoForPlaceId(p.placeId);
+    if (!extraPhoto) {
+        const w = await wikiInfo(p);
+        extraPhoto = w.photo || '';
+    }
+} try {
+    await google.maps.importLibrary('places');
+    await Promise.race([customElements.whenDefined('gmp-place-details'), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 8000))]);
+    host.innerHTML = extraPhoto ? `<img class="geo-photo" src="${esc(extraPhoto)}" alt="${esc(p.name)}">` : '';
+    const details = document.createElement('gmp-place-details'), request = document.createElement('gmp-place-details-place-request'), all = document.createElement('gmp-place-all-content');
+    request.setAttribute('place', p.placeId);
+    details.appendChild(request);
+    details.appendChild(all);
+    details.addEventListener('gmp-error', () => setGoogleKeyState('error'), { once: true });
+    host.appendChild(details);
+}
+catch {
+    if (host.querySelector('gmp-place-details'))
+        return;
+    if (p.placeId) {
+        if (!host.querySelector('.geo-photo'))
+            host.innerHTML = '<div class="loading">Carico la scheda Google…</div>';
+        return;
+    }
+    host.innerHTML = fallbackGeoCard(p, extraPhoto);
+    const b = document.getElementById('openGoogleCard');
+    if (b)
+        b.onclick = () => openUrl(googlePlaceUrl(p));
+} }
+async function enrichNarration(p) {
+    const run = ++narrationRun;
+    try { window.speechSynthesis?.resume(); } catch {}
+
+    const guide = $('#audioGuide');
+    if (!guide) return;
+
+    guide.innerHTML =
+        '<div id="guideAiState" class="audio-title">Audioguida AI · verifica in corso</div>' +
+        '<div id="guideScroll" class="guide-scroll"><div id="guideTranscript"></div></div>' +
+        '<button id="deepenGuide" class="deepen-guide" type="button" disabled>Voglio saperne di più</button>';
+
+    const transcript = $('#guideTranscript');
+    const button = $('#deepenGuide');
+    const aiState = $('#guideAiState');
+    const paintAiState = (fallback = false) => {
+        if (!aiState) return;
+        if (geminiAiState === 'active') {
+            aiState.textContent = 'Audioguida AI · Gemini attiva';
+            aiState.title = geminiAiDetail || '';
+        } else if (geminiAiState === 'missing_key') {
+            aiState.textContent = 'AI non configurata · inserire la chiave Gemini';
+            aiState.title = geminiAiDetail || '';
+        } else if (fallback) {
+            aiState.textContent = 'AI non disponibile · testo informativo di riserva';
+            aiState.title = geminiAiDetail || '';
+        } else {
+            aiState.textContent = 'Audioguida AI · collegamento in corso';
+            aiState.title = geminiAiDetail || '';
+        }
+    };
+    let told = instantNarrationIntro(p);
+    let firstContinuation = '';
+
+    /* Stato separato dell'approfondimento AI:
+       viene preparato in background e NON usa il fallback locale. */
+    let deepenDepth = 0;
+    let deepenCache = '';
+    let deepenLoading = null;
+    let deepenBasis = '';
+
+    transcript.innerHTML = `<div class="narration narration-stage">${esc(told)}</div>`;
+
+    /* La richiesta AI principale parte PRIMA del TTS iniziale. */
+    const aiImmediate = aiNarrationRetry(p, 'guide', '', told, 0, 2);
+    const metaPromise = enrichPlaceNarrationMeta(p).catch(() => null);
+    const wikiPromise = wikiInfo(p).catch(() => ({ extract:'', photo:'', url:'' }));
+
+    async function prefetchDeepen() {
+        if (run !== narrationRun || current !== p) return '';
+        if (deepenLoading) return deepenLoading;
+        const basis = told;
+        deepenBasis = basis;
+        const nextDepth = deepenDepth + 1;
+
+        deepenLoading = (async () => {
+            let w = { extract:'', photo:'', url:'' };
+            try { w = await wikiPromise || w; } catch {}
+            if (run !== narrationRun || current !== p) return '';
+
+            const text = await aiNarrationRetry(
+                p,
+                'deepen',
+                w.extract || '',
+                basis,
+                nextDepth,
+                3
+            );
+
+            if (run !== narrationRun || current !== p) return '';
+
+            /* Salva solo se il racconto non è cambiato mentre preparavamo. */
+            if (text && deepenBasis === basis) {
+                deepenCache = text;
+                button.disabled = false;
+            }
+            return text;
+        })();
+
+        try {
+            return await deepenLoading;
+        } finally {
+            deepenLoading = null;
+        }
+    }
+
+    function appendAndSpeak(text, cssClass='narration narration-stage') {
+        if (!text || run !== narrationRun || current !== p) return;
+        told += ' ' + text;
+        transcript.insertAdjacentHTML('beforeend', `<div class="${cssClass}">${esc(text)}</div>`);
+        speak(text, true);
+    }
+
+    /* Solo ora parte la frase iniziale: l'AI principale sta già lavorando. */
+    speak(told);
+
+    void (async () => {
+        const quick = await Promise.race([
+            aiImmediate,
+            new Promise(resolve => setTimeout(() => resolve(''), 5200))
+        ]);
+
+        if (run !== narrationRun || current !== p) return;
+
+        if (quick) {
+            paintAiState(false);
+            firstContinuation = quick;
+            appendAndSpeak(quick);
+            /* appena parte la parte AI principale, preparo già il primo approfondimento */
+            void prefetchDeepen();
+            return;
+        }
+
+        /* Se l'AI principale non risponde in tempo, evitiamo silenzi.
+           Questa continuità NON è l'approfondimento: è solo ponte della guida base. */
+        let w = { extract:'', photo:'', url:'' };
+        try { await metaPromise; } catch {}
+        try { w = await wikiPromise || w; } catch {}
+        if (run !== narrationRun || current !== p) return;
+
+        const bridge = smartLocalContinuation(p, w.extract || '');
+        paintAiState(true);
+        if (bridge) {
+            firstContinuation = bridge;
+            appendAndSpeak(bridge);
+        }
+
+        /* La vera AI principale continua a essere cercata in background. */
+        let late = await aiNarrationRetry(p, 'guide', w.extract || '', told, 0, 3);
+        if (run !== narrationRun || current !== p) return;
+
+        if (late && norm(late) !== norm(firstContinuation)) {
+            paintAiState(false);
+            appendAndSpeak(late);
+        } else if (!bridge) {
+            transcript.insertAdjacentHTML(
+                'beforeend',
+                '<div class="narration narration-stage">Audioguida intelligente temporaneamente non disponibile.</div>'
+            );
+        }
+
+        /* L'approfondimento resta un canale AI separato e viene caricato ora in background. */
+        void prefetchDeepen();
+    })();
+
+    button.onclick = async () => {
+        if (run !== narrationRun || current !== p) return;
+
+        /* Il comportamento normale è immediato perché deepenCache è già pronta. */
+        let extra = deepenCache;
+        deepenCache = '';
+
+        if (!extra) {
+            button.disabled = true;
+            button.textContent = 'Sto preparando…';
+            extra = deepenLoading ? await deepenLoading : await prefetchDeepen();
+        }
+
+        if (run !== narrationRun || current !== p) return;
+
+        if (extra) {
+            deepenDepth++;
+            appendAndSpeak(extra, 'narration narration-deep');
+
+            const sc = $('#guideScroll');
+            sc.scrollTop = sc.scrollHeight;
+
+            /* mentre l'utente ascolta questo approfondimento,
+               preparo già il successivo in background */
+            button.textContent = 'Voglio saperne di più';
+            button.disabled = true;
+            void prefetchDeepen();
+        } else {
+            button.textContent = 'Voglio saperne di più';
+            button.disabled = false;
+            toast('Approfondimento AI non disponibile in questo momento');
+        }
+    };
+}
+function setSelectionMarker(p) { hideSelectionMarker(); if (macroMode)
+    return; marker = L.circleMarker([p.lat, p.lon], { radius: 5, color: '#fff', weight: 2, fillColor: '#38bdf8', fillOpacity: 1 }).addTo(map); if (googleReady && googleMap)
+    googleMarker = new google.maps.Marker({ map: googleMap, position: { lat: p.lat, lng: p.lon }, title: p.name, clickable: false, icon: { path: google.maps.SymbolPath.CIRCLE, scale: 6, fillColor: '#38bdf8', fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2 } }); }
+function closeNativeAudio() { stopSpeech(); $('#audioDock').classList.remove('show'); }
+async function openNativeGooglePoi(p) { return openPlace(p); }
+
+function setTopbarForSheet(open){
+    const topbar=document.querySelector('.topbar');
+    const trigger=document.getElementById('apiKeysTrigger');
+    if(!topbar) return;
+    topbar.classList.toggle('sheet-hidden', !!open);
+    if(trigger) trigger.classList.toggle('sheet-hidden', !!open);
+}
+async function openPlace(p) { setTopbarForSheet(true); macroPrimary = ''; current = p; closeNativeAudio(); setFields(p); setSelectionMarker(p); const cardPromise = renderOfficialGoogleCard(p); void enrichNarration(p); await cardPromise; }
+async function canonicalGeoPlace(p) { if (!googleReady || !p.name)
+    return p; try {
+    const geocoder = new google.maps.Geocoder(), q = [p.name, p.parent].filter(Boolean).join(', '), rr = await geocoder.geocode({ address: q }), geoTypes = ['locality', 'postal_town', 'neighborhood', 'country', 'political'], cands = (rr.results || []).map((r) => { const types = (r.types || []), geo = types.some((t) => geoTypes.includes(t) || t.startsWith('administrative_area_') || t.startsWith('sublocality')), same = norm(componentName(r, currentZoom())) === norm(p.name); return { r, s: resultScore(r, currentZoom()) + (same ? 90 : 0) + (geo ? 45 : -200) }; }).filter((x) => x.s > 0).sort((a, b) => b.s - a.s), r = cands[0]?.r;
+    if (!r?.place_id)
+        return p;
+    const loc = r.geometry?.location, name = componentName(r, currentZoom()) || p.name;
+    return { ...p, name, lat: loc ? loc.lat() : p.lat, lon: loc ? loc.lng() : p.lon, address: clean(r.formatted_address || p.address), parent: componentParent(r, name) || p.parent, placeId: r.place_id, isPoi: false, source: 'Google Maps' };
+}
+catch {
+    return p;
+} }
+async function richLocalityPlace(p) { const z = currentZoom(), cityLike = /città|paese|comune/i.test(p.kind || ''); if (!googleReady || !p.name || z >= 15 || !cityLike)
+    return p; const ck = norm([p.name, p.parent].filter(Boolean).join('|')); const cached = richLocalityCache.get(ck); if (cached)
+    return cached; try {
+    const lib = await google.maps.importLibrary('places'), P = lib.Place, { places } = await P.searchByText({ textQuery: [p.name, p.parent].filter(Boolean).join(', '), fields: ['id', 'displayName', 'location', 'formattedAddress', 'types', 'photos'], includedType: 'locality', useStrictTypeFiltering: true, locationBias: { lat: p.lat, lng: p.lon }, language: 'it', region: 'IT', maxResultCount: 8 });
+    const ranked = (places || []).filter((pl) => pl.id && pl.location).map((pl) => { const lat = typeof pl.location.lat === 'function' ? pl.location.lat() : Number(pl.location.lat), lng = typeof pl.location.lng === 'function' ? pl.location.lng() : Number(pl.location.lng), same = norm(pl.displayName || '') === norm(p.name), near = Math.max(0, 80 - Math.min(80, metersBetween({ lat: p.lat, lng: p.lon }, { lat, lng }) / 800)), photos = Array.isArray(pl.photos) ? Math.min(40, pl.photos.length * 8) : 0; return { pl, lat, lng, s: (same ? 160 : 0) + near + photos }; }).sort((a, b) => b.s - a.s), best = ranked[0];
+    if (!best)
+        return p;
+    const rich = { ...p, name: clean(best.pl.displayName || p.name), lat: best.lat, lon: best.lng, address: clean(best.pl.formattedAddress || p.address), placeId: String(best.pl.id), isPoi: false, source: 'Google Places' };
+    richLocalityCache.set(ck, rich);
+    return rich;
+}
+catch {
+    return p;
+} }
+async function resolveLocality(lat, lng) { toast('Identifico città o paese…'); const found = await googleLocalityAt(lat, lng) || await reverseFallback(lat, lng), canonical = await canonicalGeoPlace(found), p = await richLocalityPlace(canonical); return openPlace(p); }
+function metersBetween(a, b) { const R = 6371000, dLat = (b.lat - a.lat) * Math.PI / 180, dLng = (b.lng - a.lng) * Math.PI / 180, la1 = a.lat * Math.PI / 180, la2 = b.lat * Math.PI / 180, s = Math.sin(dLat / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin(dLng / 2) ** 2; return 2 * R * Math.asin(Math.min(1, Math.sqrt(s))); }
+function nearbyPoiRadius(z = currentZoom()) { return z >= 18 ? 38 : z >= 17 ? 58 : z >= 16 ? 82 : z >= 15 ? 110 : 0; }
+async function nearbyGooglePoi(pos) { const radius = nearbyPoiRadius(); if (!googleReady || radius <= 0)
+    return null; try {
+    const lib = await google.maps.importLibrary('places'), P = lib.Place, Rank = lib.SearchNearbyRankPreference, res = await P.searchNearby({ fields: ['id', 'displayName', 'location', 'formattedAddress', 'primaryTypeDisplayName', 'types', 'addressComponents'], locationRestriction: { center: pos, radius }, maxResultCount: 5, rankPreference: Rank.DISTANCE, language: 'it', region: 'IT' }), places = (res.places || []).filter((pl) => { const t = (pl.types || []); return pl.id && pl.location && !t.some(x => x === 'route' || x === 'street_address' || x === 'premise' || x === 'subpremise' || x === 'intersection' || x === 'locality' || x === 'postal_town' || x === 'country' || x === 'political' || x.startsWith('administrative_area_') || x.startsWith('sublocality')); });
+    if (!places.length)
+        return null;
+    const pl = places.map((x) => { const lat = typeof x.location.lat === 'function' ? x.location.lat() : Number(x.location.lat), lng = typeof x.location.lng === 'function' ? x.location.lng() : Number(x.location.lng); return { x, lat, lng, d: metersBetween(pos, { lat, lng }) }; }).sort((a, b) => a.d - b.d)[0];
+    if (!pl || pl.d > radius * .82)
+        return null;
+    const p = await googlePlaceById(String(pl.x.id), { lat: pl.lat, lng: pl.lng }, clean(pl.x.displayName || ''));
+    if (p.isPoi) {
+        const locality = await poiLocalityName(p.lat, p.lon);
+        if (locality)
+            p.parent = locality;
+    }
+    return p.isPoi ? p : null;
+}
+catch {
+    return null;
+} }
+async function initGoogleMaps() { if (!googleKey) {
+    setGoogleKeyState('error');
+    return;
+} setGoogleKeyState('checking'); try {
+    await loadGoogleMaps();
+    const c = map.getCenter();
+    googleMap = new google.maps.Map(document.getElementById('gmap'), { center: { lat: c.lat, lng: c.lng }, zoom: map.getZoom(), clickableIcons: true, disableDefaultUI: true, streetViewControl: true, streetViewControlOptions: { position: google.maps.ControlPosition.RIGHT_BOTTOM }, gestureHandling: 'greedy', mapTypeId: 'roadmap' });
+    googleReady = true;
+    setGoogleKeyState('ok');
+    document.querySelector('.app')?.classList.add('google-active');
+    googleMap.addListener('click', (e) => { if (macroMode) {
+        scheduleMacroProbe(120, false);
+        return;
+    } const pos = { lat: e.latLng.lat(), lng: e.latLng.lng() }; if (e.placeId) {
+        if (typeof e.stop === 'function')
+            e.stop();
+        try {
+            window.speechSynthesis?.resume();
+        }
+        catch { }
+        const placeId = String(e.placeId);
+        window.setTimeout(async () => { const p = await exactGooglePoi(placeId, pos); return openPlace(p); }, 80);
+        return;
+    } window.setTimeout(async () => { const near = await nearbyGooglePoi(pos); if (near)
+        return openPlace(near); closeNativeAudio(); return resolveLocality(pos.lat, pos.lng); }, 40); });
+    googleMap.addListener('center_changed', () => { scheduleLiveLocality(macroMode ? 160 : 520); if (macroMode) {
+        macroAreas = [];
+        updateReticleUi(false);
+        scheduleMacroProbe(360, false);
+    } });
+    googleMap.addListener('idle', () => { const c2 = googleMap.getCenter(), z = Number(googleMap.getZoom()) || 12; map.setView([c2.lat(), c2.lng()], z, { animate: false }); updateReticleUi(false); scheduleLiveLocality(macroMode ? 20 : 80); if (macroMode)
+        scheduleMacroProbe(180, false); });
+    $('#mapsState').textContent = `Google Maps attiva · chiave ${googleMapKeyIndex+1} · POI Google cliccabili`;
+    toast('Google Maps attiva');
+}
+catch (err) {
+    setGoogleKeyState('error');
+    if(String(err?.message||err)==='google-key-switched'){
+        $('#mapsState').textContent=`Provo la chiave Google Maps ${googleMapKeyIndex+1}…`;
+        setTimeout(()=>location.reload(),450);
+        return;
+    }
+    $('#mapsState').textContent = 'Google Maps non disponibile · mappa di riserva attiva';
+    googleReady = false;
+    document.querySelector('.app')?.classList.remove('google-active');
+} }
+map.on('click', (e) => { if (macroMode) {
+    scheduleMacroProbe(120, false);
+    return;
+} if (!googleReady)
+    resolveLocality(e.latlng.lat, e.latlng.lng); });
+map.on('move zoom', () => { if (!googleReady)
+    scheduleLiveLocality(macroMode ? 160 : 520); if (macroMode) {
+    macroAreas = [];
+    updateReticleUi(false);
+    scheduleMacroProbe(360, false);
+} });
+map.on('moveend zoomend', () => { updateReticleUi(false); if (!googleReady)
+    scheduleLiveLocality(macroMode ? 20 : 80); if (macroMode)
+    scheduleMacroProbe(180, false); });
+async function search() { const q = clean(document.getElementById('manual').value); if (!q)
+    return toast('Scriva una località'); if (googleReady) {
+    try {
+        const geocoder = new google.maps.Geocoder(), rr = await geocoder.geocode({ address: q }), r = (rr.results || []).map((x) => ({ x, s: resultScore(x) })).sort((a, b) => b.s - a.s)[0]?.x || rr.results?.[0];
+        if (!r)
+            return toast('Località non trovata');
+        const loc = r.geometry.location, base = { name: componentName(r), kind: 'Città / Paese', lat: loc.lat(), lon: loc.lng(), address: clean(r.formatted_address || ''), parent: componentParent(r, componentName(r)), isPoi: false, source: 'Google Maps', placeId: r.place_id };
+        googleMap.setCenter({ lat: base.lat, lng: base.lon });
+        googleMap.setZoom(13);
+        const p = await richLocalityPlace(base);
+        return openPlace(p);
+    }
+    catch { }
+} try {
+    const j = await getJson(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&addressdetails=1&accept-language=it&q=${encodeURIComponent(q)}`);
+    if (!j.length)
+        return toast('Località non trovata');
+    const r = j[0];
+    map.setView([+r.lat, +r.lon], 13);
+    return resolveLocality(+r.lat, +r.lon);
+}
+catch {
+    toast('Ricerca temporaneamente non disponibile');
+} }
+$('#search').onclick = search;
+document.getElementById('manual').addEventListener('keydown', e => { if (e.key === 'Enter')
+    search(); });
+function query() { const a = clean(document.getElementById('manual').value); if (macroPrimary)
+    return [a, macroPrimary].filter(Boolean).join(' '); const b = clean(document.getElementById('poi').value), c = clean(document.getElementById('place').value); return [a, b, c].filter(Boolean).join(' '); }
+function socialQueryText(q) { return clean(q.replace(/[#@]+/g, ' ').replace(/[|/\\,;:!?]+/g, ' ').replace(/\s+/g, ' ')); }
+function copyInstagramQuery(t) { try {
+    const el = document.createElement('textarea');
+    el.value = t;
+    el.style.position = 'fixed';
+    el.style.opacity = '0';
+    document.body.appendChild(el);
+    el.focus();
+    el.select();
+    document.execCommand('copy');
+    el.remove();
+}
+catch { } try {
+    void navigator.clipboard?.writeText(t);
+}
+catch { } }
+function openUrl(u) { const a = document.createElement('a'); a.href = u; a.target = '_blank'; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove(); }
+function openIntent(u) { window.location.href = u; }
+
+function openYouTubeInternalPlayer(videoId,title='YouTube'){
+    let modal=document.getElementById('youtubeInternalModal');
+    if(!modal){
+        modal=document.createElement('div');
+        modal.id='youtubeInternalModal';
+        modal.style.cssText='position:fixed;inset:0;z-index:24000;background:rgba(9,16,28,.72);display:flex;align-items:center;justify-content:center;padding:16px';
+        modal.innerHTML='<div style="width:min(760px,96vw);background:#fff;border-radius:20px;overflow:hidden;border:1px solid #e5e7eb"><div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #eef2f7"><b id="ytModalTitle" style="flex:1;font-size:13px;color:#475569"></b><button id="ytModalClose" type="button" style="width:36px;height:36px;border:1px solid #e5e7eb;border-radius:50%;background:#fff;color:#64748b;font-size:22px">×</button></div><div style="aspect-ratio:16/9;background:#000"><iframe id="ytModalFrame" style="width:100%;height:100%;border:0" allow="autoplay;encrypted-media;picture-in-picture" allowfullscreen></iframe></div></div>';
+        document.body.appendChild(modal);
+        document.getElementById('ytModalClose').onclick=()=>{document.getElementById('ytModalFrame').src='';modal.remove()};
+        modal.onclick=e=>{if(e.target===modal){document.getElementById('ytModalFrame').src='';modal.remove()}};
+    }
+    document.getElementById('ytModalTitle').textContent=title;
+    document.getElementById('ytModalFrame').src=`https://www.youtube.com/embed/${encodeURIComponent(videoId)}?autoplay=1&playsinline=1`;
+}
+async function launchYouTubeInternal(q){
+    if(!youtubeKey) return false;
+    try{
+        const u=`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=${encodeURIComponent(q)}&key=${encodeURIComponent(youtubeKey)}`;
+        const r=await fetch(u);
+        if(!r.ok) return false;
+        const d=await r.json();
+        const item=d?.items?.[0],id=item?.id?.videoId;
+        if(!id) return false;
+        openYouTubeInternalPlayer(id,item?.snippet?.title||q);
+        return true;
+    }catch{return false}
+}
+
+function launchPlatform(p) { if (p === 'images')
+    return void openPhotoGallery(); const q = query(); if (!q)
+    return toast('Niente da cercare'); if(p==='youtube'&&youtubeInternal&&youtubeKey){void launchYouTubeInternal(q).then(ok=>{if(!ok)openUrl(`https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`)});return;} const social = socialQueryText(q), enc = encodeURIComponent(social); if (p === 'shopping') { const shopQuery = clean(q + ' prodotti tipici artigianali'); return openUrl(`https://www.google.com/search?q=${encodeURIComponent(shopQuery)}&tbm=shop&udm=28`); } if (p === 'instagram') {
+    copyInstagramQuery(social);
+    return openIntent(`instagram://search?query=${enc}`);
+} if (p === 'tiktok') {
+    const web = `https://www.tiktok.com/search?q=${enc}`, intent = `intent://search/?keyword=${enc}#Intent;scheme=snssdk1233;package=com.zhiliaoapp.musically;S.browser_fallback_url=${encodeURIComponent(web)};end`;
+    return openIntent(intent);
+} const u = p === 'youtube' ? `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}` : p === 'facebook' ? `https://www.facebook.com/watch/search/?q=${encodeURIComponent(q)}` : p === 'ai' ? `https://www.google.com/search?udm=50&q=${encodeURIComponent(q)}` : p === 'maps' ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}` : `https://www.google.com/search?q=${encodeURIComponent(q)}`; openUrl(u); }
+document.querySelectorAll('[data-p]').forEach(el => el.onclick = () => launchPlatform(el.dataset.p));
+document.querySelectorAll('[data-vp]').forEach(el => el.onclick = () => { $('#videoPicker').classList.remove('show'); launchPlatform(el.dataset.vp); });
+$('#photoGalleryClose').onclick = closePhotoGallery;
+const keyStatusEl = document.getElementById('keyStatus');
+keyStatusEl.style.cursor = 'pointer';
+keyStatusEl.setAttribute('role', 'button');
+keyStatusEl.setAttribute('aria-label', 'Apri diagnostica Google');
+
+
+document.addEventListener('click', e => {
+    const eye = e.target.closest('.key-eye');
+    if (!eye) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const input = document.getElementById(eye.dataset.target);
+    if (!input) return;
+    const show = input.type === 'password';
+    input.type = show ? 'text' : 'password';
+    eye.classList.toggle('showing', show);
+    eye.setAttribute('aria-label', show ? 'Nascondi chiave' : 'Mostra chiave');
+});
+function fillKeysPanel(){
+    document.getElementById('mapsKey1').value = googleMapKeys[0]||'';
+    document.getElementById('mapsKey2').value = googleMapKeys[1]||'';
+    document.getElementById('mapsKey3').value = googleMapKeys[2]||'';
+    document.getElementById('mapsKeyActive').textContent = googleKey ? `Chiave attiva: ${googleMapKeyIndex+1}` : 'Chiave attiva: —';
+    document.getElementById('geminiKey').value = geminiKey;
+    document.getElementById('youtubeKey').value = youtubeKey;
+    document.getElementById('youtubeInternal').checked = youtubeInternal;
+    document.getElementById('geminiState').textContent = geminiKey ? 'Chiave Gemini salvata.' : 'Chiave non configurata.';
+    document.getElementById('youtubeState').textContent = youtubeKey ? 'Chiave YouTube salvata.' : 'Chiave non configurata.';
+}
+function toggleKeysPanelFromStatus(e){
+    if(e){
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    fillKeysPanel();
+    $('#mapsSettings').classList.toggle('show');
+}
+
+
+/* v104: pannello API indipendente dal drawer e pulsante ricostruito da zero */
+const mapsSettingsEl = document.getElementById('mapsSettings');
+
+/* PROBLEMA TROVATO:
+   mapsSettings era fisicamente dentro il drawer laterale.
+   Anche se riceveva .show, poteva rimanere intrappolato nel drawer chiuso.
+   Lo spostiamo fuori, direttamente nel body. */
+if (mapsSettingsEl && mapsSettingsEl.parentElement !== document.body) {
+    document.body.appendChild(mapsSettingsEl);
+}
+
+const apiKeysTrigger = document.createElement('button');
+apiKeysTrigger.id = 'apiKeysTrigger';
+apiKeysTrigger.type = 'button';
+apiKeysTrigger.setAttribute('aria-label', 'Apri pannello chiavi API');
+apiKeysTrigger.setAttribute('title', 'Chiavi API');
+document.querySelector('.topbar')?.appendChild(apiKeysTrigger);
+
+function syncApiKeysTriggerState() {
+    apiKeysTrigger.className = '';
+    if (keyStatusEl.classList.contains('ok')) apiKeysTrigger.classList.add('ok');
+    else if (keyStatusEl.classList.contains('error')) apiKeysTrigger.classList.add('error');
+    else apiKeysTrigger.classList.add('checking');
+}
+new MutationObserver(syncApiKeysTriggerState)
+    .observe(keyStatusEl, {attributes:true, attributeFilter:['class']});
+syncApiKeysTriggerState();
+
+let gvApiLastTouch = 0;
+function openApiKeysPanel(e) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    fillKeysPanel();
+    $('#videoPicker')?.classList.remove('show');
+
+    const isOpen = mapsSettingsEl.classList.contains('show');
+    if (isOpen) {
+        mapsSettingsEl.classList.remove('show');
+    } else {
+        mapsSettingsEl.classList.add('show');
+    }
+}
+
+apiKeysTrigger.addEventListener('pointerup', e => {
+    if (e.pointerType === 'touch') {
+        gvApiLastTouch = Date.now();
+        openApiKeysPanel(e);
+    }
+});
+apiKeysTrigger.addEventListener('click', e => {
+    if (Date.now() - gvApiLastTouch < 650) return;
+    openApiKeysPanel(e);
+});
+
+keyStatusEl.onclick = null;
+keyStatusEl.onpointerup = null;
+$('#mapsSetup').onclick = null;
+
+$('#nativeClose').onclick = closeNativeAudio;
+$('#nativeVoice').onclick = () => { if (speaking) {
+    speechSynthesis.cancel();
+    return;
+} const t = $('#nativeAudioText').textContent || ''; if (t && t !== 'Preparo il racconto…')
+    speak(t); };
+$('#menu').onclick = () => $('#drawer').classList.toggle('show');
+$('#drawerClose').onclick = () => $('#drawer').classList.remove('show');
+$('#mapsSetup').onclick = null;
+$('#mapsSave').onclick = () => {
+    const vals=[
+      document.getElementById('mapsKey1').value.trim(),
+      document.getElementById('mapsKey2').value.trim(),
+      document.getElementById('mapsKey3').value.trim()
+    ];
+    googleMapKeys=vals;
+    if(!googleMapKeys[googleMapKeyIndex]){
+      const first=googleMapKeys.findIndex(Boolean);
+      googleMapKeyIndex=first>=0?first:0;
+    }
+    refreshActiveGoogleMapKey();
+    try{
+      vals.forEach((v,i)=>{
+        const k=`geovision_google_maps_api_key_${i+1}`;
+        if(v)localStorage.setItem(k,v); else localStorage.removeItem(k);
+      });
+      if(vals[0])localStorage.setItem('geovision_google_maps_api_key',vals[0]);
+      else localStorage.removeItem('geovision_google_maps_api_key');
+    }catch{}
+    location.reload();
+};
+$('#mapsNext').onclick = () => {
+    if(!switchGoogleMapKey('manuale',false)){
+      toast('Nessun’altra chiave Google Maps configurata');
+      return;
+    }
+    location.reload();
+};
+
+function openKeysDiagnostics(){
+    const old=document.getElementById('keysDiagFloat');
+    if(old){old.remove();return}
+
+    const wrap=document.createElement('div');
+    wrap.id='keysDiagFloat';
+    wrap.className='keys-diag-float';
+    wrap.innerHTML=`
+      <div class="keys-diag-card">
+        <div class="keys-diag-head">
+          <div><b>Diagnostica servizi</b><small>Controllo rapido delle chiavi</small></div>
+          <button id="keysDiagClose" type="button" aria-label="Chiudi">×</button>
+        </div>
+        <div class="keys-diag-actions">
+          <button id="diagGoogleBtn" type="button">Google Maps</button>
+          <span id="diagGoogleStatus">Pronto</span>
+          <button id="diagGeminiBtn" type="button">Gemini AI</button>
+          <span id="diagGeminiStatus">Pronto</span>
+          <button id="diagYoutubeBtn" type="button">YouTube</button>
+          <span id="diagYoutubeStatus">Pronto</span>
+        </div>
+      </div>`;
+    document.body.appendChild(wrap);
+
+    document.getElementById('keysDiagClose').onclick=()=>wrap.remove();
+    wrap.onclick=e=>{if(e.target===wrap)wrap.remove()};
+
+    document.getElementById('diagGoogleBtn').onclick=()=>{
+      wrap.remove();
+      void runGoogleDiagnostics();
+    };
+
+    document.getElementById('diagGeminiBtn').onclick=async()=>{
+      const s=document.getElementById('diagGeminiStatus');
+      const v=document.getElementById('geminiKey').value.trim()||geminiKey;
+      if(!v){s.textContent='Chiave assente';return}
+      s.textContent='Verifico…';
+      try{
+        const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(v)}`,{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({contents:[{parts:[{text:'Rispondi solo con OK'}]}],generationConfig:{maxOutputTokens:8}})
+        });
+        s.textContent=r.ok?'Operativa ✓':`Errore ${r.status}`;
+      }catch{s.textContent='Non raggiungibile'}
+    };
+
+    document.getElementById('diagYoutubeBtn').onclick=async()=>{
+      const s=document.getElementById('diagYoutubeStatus');
+      const v=document.getElementById('youtubeKey').value.trim()||youtubeKey;
+      if(!v){s.textContent='Chiave assente';return}
+      s.textContent='Verifico…';
+      try{
+        const r=await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=GeoVision&key=${encodeURIComponent(v)}`);
+        s.textContent=r.ok?'Operativa ✓':`Errore ${r.status}`;
+      }catch{s.textContent='Non raggiungibile'}
+    };
+}
+$('#keysDiagnosticsOpen').onclick=openKeysDiagnostics;
+
+$('#geminiSave').onclick = () => {
+    const v=document.getElementById('geminiKey').value.trim();
+    try{
+      if(v)localStorage.setItem('geovision_gemini_api_key',v);
+      else localStorage.removeItem('geovision_gemini_api_key');
+    }catch{}
+    geminiKey=v;
+    document.getElementById('geminiState').textContent=v?'Chiave Gemini salvata.':'Chiave rimossa.';
+};
+$('#geminiTest').onclick = async () => {
+    const state=document.getElementById('geminiState'),v=document.getElementById('geminiKey').value.trim();
+    if(!v){state.textContent='Inserisci prima una chiave Gemini.';return}
+    state.textContent='Verifico Gemini…';
+    try{
+      const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(v)}`,{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({contents:[{parts:[{text:'Rispondi solo con: OK'}]}],generationConfig:{maxOutputTokens:8}})
+      });
+      state.textContent=r.ok?'Gemini operativo ✓':`Gemini non disponibile (${r.status})`;
+    }catch{state.textContent='Gemini non raggiungibile.'}
+};
+$('#youtubeSave').onclick = () => {
+    const v=document.getElementById('youtubeKey').value.trim();
+    youtubeInternal=!!document.getElementById('youtubeInternal').checked;
+    try{
+      if(v)localStorage.setItem('geovision_youtube_api_key',v);
+      else localStorage.removeItem('geovision_youtube_api_key');
+      localStorage.setItem('geovision_youtube_internal',youtubeInternal?'1':'0');
+    }catch{}
+    youtubeKey=v;
+    document.getElementById('youtubeState').textContent=v?'Chiave YouTube salvata.':'Chiave rimossa.';
+};
+$('#youtubeInternal').onchange = () => {
+    youtubeInternal=!!document.getElementById('youtubeInternal').checked;
+    try{localStorage.setItem('geovision_youtube_internal',youtubeInternal?'1':'0')}catch{}
+};
+$('#youtubeTest').onclick = async () => {
+    const state=document.getElementById('youtubeState'),v=document.getElementById('youtubeKey').value.trim();
+    if(!v){state.textContent='Inserisci prima una chiave YouTube.';return}
+    state.textContent='Verifico YouTube…';
+    try{
+      const r=await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=GeoVision&key=${encodeURIComponent(v)}`);
+      state.textContent=r.ok?'YouTube Data API operativa ✓':`YouTube API non disponibile (${r.status})`;
+    }catch{state.textContent='YouTube API non raggiungibile.'}
+};
+
+$('#sheetClose').onclick = e => { e.preventDefault(); e.stopPropagation(); closeSheet(); };
+$('#voice').onclick = () => { if (speaking) {
+    stopSpeech();
+    return;
+} const n = $('#guideTranscript'); if (n)
+    speak(n.textContent || ''); };
+$('#sheetVideo').onclick = e => {
+ e.preventDefault();e.stopPropagation();
+ $('#mapsSettings').classList.remove('show');
+ $('#videoPicker').classList.toggle('show');
+};
+const sheet = $('#sheet'), sheetHead = $('#sheet .sheet-head');
+let sheetDragLastY = 0, sheetDragLastT = 0, sheetDragVelocity = 0, sheetDragRaf = 0, sheetDragDy = 0;
+const paintSheetDrag = () => {
+    sheetDragRaf = 0;
+    sheet.style.transform = `translate(-50%,${Math.max(0, sheetDragDy)}px)`;
+};
+sheetHead.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('button,select')) return;
+    sheetDragStart = e.clientY;
+    sheetDragLastY = e.clientY;
+    sheetDragLastT = performance.now();
+    sheetDragVelocity = 0;
+    sheetDragDy = 0;
+    sheetDragging = true;
+    sheet.style.transition = 'none';
+    try { sheetHead.setPointerCapture(e.pointerId); } catch {}
+});
+sheetHead.addEventListener('pointermove', (e) => {
+    if (!sheetDragging) return;
+    const now = performance.now();
+    const dt = Math.max(1, now - sheetDragLastT);
+    const delta = e.clientY - sheetDragLastY;
+    sheetDragVelocity = (sheetDragVelocity * .72) + ((delta / dt) * .28);
+    sheetDragLastY = e.clientY;
+    sheetDragLastT = now;
+    sheetDragDy = Math.max(0, e.clientY - sheetDragStart);
+    if (!sheetDragRaf) sheetDragRaf = requestAnimationFrame(paintSheetDrag);
+});
+const finishSheetDrag = (e) => {
+    if (!sheetDragging) return;
+    sheetDragging = false;
+    if (sheetDragRaf) {
+        cancelAnimationFrame(sheetDragRaf);
+        sheetDragRaf = 0;
+    }
+    const dy = Math.max(0, e.clientY - sheetDragStart);
+    const fastDown = sheetDragVelocity > .45;
+    sheet.style.transition = 'transform .24s cubic-bezier(.22,.75,.2,1)';
+    if (dy > 92 || fastDown) {
+        closeSheet();
+    } else {
+        sheet.style.transform = '';
+        setTimeout(() => {
+            if (!sheetDragging) sheet.style.transition = '';
+        }, 260);
+    }
+};
+sheetHead.addEventListener('pointerup', finishSheetDrag);
+sheetHead.addEventListener('pointercancel', finishSheetDrag);
+updateReticleUi(false);
+
+
+
+
+
+/* v111 — GPS: ritorno al metodo diretto che nelle versioni precedenti funzionava.
+   NESSUN pre-check Permissions API: chiediamo direttamente la posizione a Chrome. */
+let gpsBestAccuracy=Infinity;
+let gpsBestPosition=null;
+let gpsFirstCentered=false;
+
+function removeGpsMarker(){
+    if(gpsMarker){
+        try{map.removeLayer(gpsMarker)}catch{}
+        gpsMarker=null;
+    }
+    if(gpsGoogleMarker){
+        try{gpsGoogleMarker.setMap(null)}catch{}
+        gpsGoogleMarker=null;
+    }
+}
+
+function drawGpsMarker(lat,lng){
+    removeGpsMarker();
+
+    try{
+        gpsMarker=L.circleMarker([lat,lng],{
+            radius:6,
+            color:'#ffffff',
+            weight:2,
+            fillColor:'#38bdf8',
+            fillOpacity:1,
+            interactive:false
+        }).addTo(map);
+    }catch{}
+
+    if(googleReady && googleMap){
+        try{
+            gpsGoogleMarker=new google.maps.Marker({
+                map:googleMap,
+                position:{lat,lng},
+                clickable:false,
+                zIndex:999999,
+                icon:{
+                    path:google.maps.SymbolPath.CIRCLE,
+                    scale:6,
+                    fillColor:'#38bdf8',
+                    fillOpacity:1,
+                    strokeColor:'#ffffff',
+                    strokeWeight:2
+                }
+            });
+        }catch{}
+    }
+}
+
+async function updateGpsLocality(lat,lng){
+    try{
+        const found=await googleLocalityAt(lat,lng) || await reverseFallback(lat,lng);
+        if(found){
+            current=found;
+            setFields(found);
+        }
+    }catch{}
+}
+
+function applyGpsFix(pos,center=true){
+    const lat=Number(pos?.coords?.latitude);
+    const lng=Number(pos?.coords?.longitude);
+    const acc=Number(pos?.coords?.accuracy);
+
+    if(!Number.isFinite(lat)||!Number.isFinite(lng))return false;
+
+    const accuracy=Number.isFinite(acc)&&acc>0?acc:Infinity;
+    gpsBestPosition=pos;
+    gpsBestAccuracy=accuracy;
+
+    drawGpsMarker(lat,lng);
+
+    if(center){
+        if(googleReady&&googleMap){
+            googleMap.setCenter({lat,lng});
+            if((Number(googleMap.getZoom())||0)<17)googleMap.setZoom(17);
+        }else{
+            map.setView([lat,lng],17,{animate:true});
+        }
+        gpsFirstCentered=true;
+    }
+
+    void updateGpsLocality(lat,lng);
+    return true;
+}
+
+function stopGpsTracking(){
+    gpsEnabled=false;
+    if(gpsWatchId!==null){
+        try{navigator.geolocation?.clearWatch(gpsWatchId)}catch{}
+        gpsWatchId=null;
+    }
+    gpsBestAccuracy=Infinity;
+    gpsBestPosition=null;
+    gpsFirstCentered=false;
+    removeGpsMarker();
+    $('#locate')?.classList.remove('active');
+}
+
+function startGpsTracking(){
+    if(!navigator.geolocation){
+        return;
+    }
+
+    gpsEnabled=true;
+    gpsBestAccuracy=Infinity;
+    gpsBestPosition=null;
+    gpsFirstCentered=false;
+    $('#locate')?.classList.add('active');
+
+    /* STEP 1 — metodo diretto storico: nessuna Permissions API prima della richiesta. */
+    navigator.geolocation.getCurrentPosition(
+        pos=>{
+            applyGpsFix(pos,true);
+
+            /* STEP 2 — dopo il fix iniziale, raffina SOLO se arriva una posizione migliore. */
+            try{
+                gpsWatchId=navigator.geolocation.watchPosition(
+                    next=>{
+                        const acc=Number(next?.coords?.accuracy);
+                        if(!gpsBestPosition || (Number.isFinite(acc)&&acc>0&&acc<gpsBestAccuracy)){
+                            applyGpsFix(next,false);
+                        }
+                    },
+                    ()=>{},
+                    {enableHighAccuracy:true,timeout:20000,maximumAge:0}
+                );
+            }catch{}
+        },
+        err=>{
+            /* Niente toast nero. Se Chrome rifiuta davvero, mostriamo una diagnostica
+               solo in caso di errore effettivo, non basata su Permissions API. */
+            gpsEnabled=false;
+            $('#locate')?.classList.remove('active');
+
+            const old=document.getElementById('gpsDirectError');
+            if(old)old.remove();
+
+            const box=document.createElement('div');
+            box.id='gpsDirectError';
+            box.style.cssText='position:fixed;inset:0;z-index:29000;background:rgba(15,23,42,.28);display:flex;align-items:center;justify-content:center;padding:18px';
+            const code=Number(err?.code)||0;
+            const label=code===1?'Chrome ha negato il permesso posizione':
+                        code===2?'Posizione non disponibile':
+                        code===3?'Tempo di ricerca GPS scaduto':
+                        'Errore geolocalizzazione';
+            box.innerHTML=`
+              <div style="width:min(410px,94vw);background:#fff;border:1px solid #e4e8ee;border-radius:22px;padding:16px;font:14px/1.45 system-ui;color:#475467">
+                <div style="display:flex;gap:12px;align-items:flex-start">
+                  <div style="flex:1">
+                    <b style="display:block;font-size:16px;color:#344054">${esc(label)}</b>
+                    <div style="margin-top:6px;color:#667085">Codice errore: ${code} · protocollo: ${esc(location.protocol||'')}</div>
+                  </div>
+                  <button id="gpsDirectClose" type="button" style="width:36px;height:36px;border-radius:50%;border:1px solid #e4e8ee;background:#fff;color:#7a8491;font-size:22px">×</button>
+                </div>
+              </div>`;
+            document.body.appendChild(box);
+            document.getElementById('gpsDirectClose').onclick=()=>box.remove();
+            box.onclick=e=>{if(e.target===box)box.remove()};
+        },
+        {
+            enableHighAccuracy:true,
+            timeout:15000,
+            maximumAge:15000
+        }
+    );
+}
+
+$('#locate').onclick=()=>{
+    if(gpsEnabled)stopGpsTracking();
+    else startGpsTracking();
+};
+function mapRadius() { const z = currentZoom(); return Math.round(Math.max(1500, Math.min(160000, 120000 / Math.pow(1.55, z - 8)))); }
+function macroSearchRadius() { const z = currentZoom(), base = mapRadius(), factor = z >= 14 ? 3.4 : z >= 11 ? 2.7 : z >= 8 ? 2.0 : 1.35; return Math.round(Math.max(25000, Math.min(180000, base * factor))); }
+async function mapLabels() { const c = currentCenter(), r = Math.min(macroSearchRadius(), 70000), q = `[out:json][timeout:5];(nwr(around:${r},${c.lat},${c.lng})[name][place~"^(city|town|village|hamlet|region|district)$"];nwr(around:${r},${c.lat},${c.lng})[name][boundary=administrative][admin_level~"^(4|5|6|7|8)$"];nwr(around:${r},${c.lat},${c.lng})[name][natural~"^(peak|ridge|valley|bay|peninsula|basin|plateau|cape|beach)$"];nwr(around:${r},${c.lat},${c.lng})[name][waterway=river];nwr(around:${r},${c.lat},${c.lng})[name][tourism];nwr(around:${r},${c.lat},${c.lng})[name][historic];nwr(around:${r},${c.lat},${c.lng})[name][leisure~"^(park|nature_reserve)$"];nwr(around:${r},${c.lat},${c.lng})[name][amenity~"^(place_of_worship|theatre|arts_centre|marketplace)$"];);out center tags 140;`; const ctrl = new AbortController(), timer = setTimeout(() => ctrl.abort(), 4800); try {
+    const rr = await fetch('https://overpass.kumi.systems/api/interpreter', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'data=' + encodeURIComponent(q), signal: ctrl.signal });
+    if (!rr.ok)
+        return [];
+    const j = await rr.json(), seen = new Set(), out = [];
+    for (const e of j.elements || []) {
+        const t = e.tags || {}, name = clean(t['name:it'] || t.name || '');
+        if (!name)
+            continue;
+        const k = norm(name);
+        if (!k || seen.has(k))
+            continue;
+        seen.add(k);
+        const kind = t.tourism ? `POI OSM · ${t.tourism}` : t.historic ? `POI OSM · storico ${t.historic}` : t.leisure ? `POI OSM · ${t.leisure}` : t.amenity ? `POI OSM · ${t.amenity}` : t.place ? `Etichetta mappa · ${t.place}` : t.boundary === 'administrative' ? 'Etichetta mappa · area amministrativa' : t.waterway === 'river' ? 'Etichetta mappa · fiume' : `Etichetta mappa · ${t.natural || 'territorio'}`;
+        out.push({ name, kind });
+        if (out.length >= 60)
+            break;
+    }
+    return out;
+}
+catch {
+    return [];
+}
+finally {
+    clearTimeout(timer);
+} }
+async function googleMacroPois() { if (!googleReady)
+    return []; try {
+    const c = currentCenter(), radius = Math.min(macroSearchRadius(), 50000), lib = await google.maps.importLibrary('places'), P = lib.Place, Rank = lib.SearchNearbyRankPreference, res = await P.searchNearby({ fields: ['id', 'displayName', 'location', 'primaryTypeDisplayName', 'types'], locationRestriction: { center: c, radius }, maxResultCount: 20, rankPreference: Rank.POPULARITY, language: 'it' }), seen = new Set(), out = [];
+    for (const pl of res.places || []) {
+        const name = clean(pl.displayName || '');
+        if (!name)
+            continue;
+        const k = norm(name);
+        if (!k || seen.has(k))
+            continue;
+        seen.add(k);
+        const kind = clean(pl.primaryTypeDisplayName || 'Punto di interesse');
+        out.push({ name, kind: `POI Google · ${kind}` });
+    }
+    return out;
+}
+catch {
+    return [];
+} }
+async function macroCandidates() { const c = currentCenter(), r = Math.min(macroSearchRadius(), 90000), q = `[out:json][timeout:6];(nwr(around:${r},${c.lat},${c.lng})[name][boundary~"^(national_park|protected_area)$"];nwr(around:${r},${c.lat},${c.lng})[name][natural~"^(bay|valley|mountain_range|peninsula|strait|cape|basin|plateau|archipelago|island|ridge|volcano|desert)$"];nwr(around:${r},${c.lat},${c.lng})[name][water~"^(lake|lagoon|reservoir)$"];nwr(around:${r},${c.lat},${c.lng})[name][place~"^(region|district|archipelago|island|sea)$"];);out center tags 100;`; let arr = []; const ctrl = new AbortController(), timer = setTimeout(() => ctrl.abort(), 5800); try {
+    const rr = await fetch('https://overpass.kumi.systems/api/interpreter', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'data=' + encodeURIComponent(q), signal: ctrl.signal });
+    if (rr.ok) {
+        const j = await rr.json();
+        arr = (j.elements || []).map((e) => { const t = e.tags || {}, name = clean(t['name:it'] || t.name || ''); if (!name)
+            return null; const kind = t.boundary === 'national_park' ? 'Parco nazionale' : t.boundary === 'protected_area' ? 'Area protetta' : t.natural === 'valley' ? 'Valle' : t.natural === 'bay' ? 'Golfo / Baia' : t.natural === 'mountain_range' || t.natural === 'ridge' ? 'Catena montuosa' : t.natural === 'peninsula' ? 'Penisola' : t.natural === 'archipelago' || t.place === 'archipelago' ? 'Arcipelago' : t.water === 'lake' ? 'Lago' : t.place === 'region' ? 'Regione geografica' : 'Macroarea'; return { name, kind }; }).filter(Boolean);
+    }
+}
+catch { }
+finally {
+    clearTimeout(timer);
+} const seen = new Set(); return arr.filter(x => { const k = norm(x.name); if (!k || seen.has(k))
+    return false; seen.add(k); return true; }).slice(0, 40); }
+async function verifyMacro(name) { for (const host of ['it.wikipedia.org', 'en.wikipedia.org']) {
+    try {
+        const j = await getJson(`https://${host}/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(name)}&srlimit=5&format=json&origin=*`), hit = (j.query?.search || []).find((x) => norm(x.title) === norm(name) || norm(x.title).includes(norm(name)) || norm(name).includes(norm(x.title)));
+        if (hit)
+            return true;
+    }
+    catch { }
+} return false; }
+function macroAreaKey() { const c = currentCenter(), z = Math.round(currentZoom()); return `${c.lat.toFixed(3)}:${c.lng.toFixed(3)}:${z}`; }
+function scheduleMacroProbe(ms = 900, showPanel = false) { if (!macroMode)
+    return; clearTimeout(macroProbeTimer); macroProbeTimer = window.setTimeout(() => scanMacro(showPanel), ms); }
+async function scanMacro(showPanel = true) { if (!macroMode)
+    return; const key = macroAreaKey(); if (!showPanel && key === macroProbeKey)
+    return; macroProbeKey = key; const seq = ++macroProbeSeq, ring = $('#ring'); macroAreas = []; ring.classList.add('scanning'); ring.style.borderColor = '#38bdf8'; ring.style.background = 'rgba(56,189,248,.06)'; updateReticleUi(false); if (showPanel)
+    $('#macroPanel').classList.add('show'); $('#macroStatus').textContent = 'Analizzo le macroaree…'; if (showPanel)
+    $('#macroChips').innerHTML = '<div class="loading">Cerco coste, valli, golfi, pianure, catene montuose e comprensori…</div>'; const c = currentCenter(), radius = macroSearchRadius(), ctxPromise = (async () => await googleLocalityAt(c.lat, c.lng) || await reverseFallback(c.lat, c.lng))(), labelsPromise = mapLabels(), candsPromise = macroCandidates(), ctx = await ctxPromise; if (seq !== macroProbeSeq || !macroMode)
+    return; const build = (areas, cands) => { const out = []; for (const a of [...areas, ...cands].slice(0, 24)) {
+    const n = norm(a?.name || '');
+    if (!n || n === norm(ctx.name) || n === norm(ctx.parent) || out.some(x => norm(x.name) === n))
+        continue;
+    if (/^(città|comune|paese|quartiere|frazione|municipio)$/i.test(clean(a.kind || '')))
+        continue;
+    out.push(a);
+    if (out.length >= 12)
+        break;
+} return out; }, paint = (out, status) => { if (seq !== macroProbeSeq || !macroMode)
+    return; macroAreas = out; ring.classList.remove('scanning'); updateReticleUi(false); $('#macroStatus').textContent = status; $('#macroChips').innerHTML = out.length ? out.map((a, i) => `<button class="chip" data-m="${i}"><b>${esc(a.name)}</b><small>${esc(a.kind || 'Macroarea')}</small></button>`).join('') : '<div class="loading">Nessuna macroarea riconosciuta nel cerchio.</div>'; document.querySelectorAll('[data-m]').forEach(el => el.onclick = () => { const a = out[Number(el.dataset.m)]; macroPrimary = a.name; $('#macroStatus').textContent = `Macroarea attiva: ${a.name}`; toast('Macroarea pronta per i video'); }); }; const googlePoisPromise = googleMacroPois(), osmLabels = await Promise.race([labelsPromise, new Promise(resolve => setTimeout(() => resolve([]), 2200))]), googlePois = await Promise.race([googlePoisPromise, new Promise(resolve => setTimeout(() => resolve([]), 2200))]), labelSeen = new Set(), labels = [...googlePois, ...osmLabels].filter((x) => { const k = norm(x?.name || ''); if (!k || labelSeen.has(k))
+    return false; labelSeen.add(k); return true; }).slice(0, 70); if (showPanel && labels.length)
+    $('#macroStatus').textContent = `Leggo ${labels.length} riferimenti del territorio…`; const aiRaw = api.post('/api/macro-lens', { lat: c.lat, lng: c.lng, radius, candidates: labels, context: { name: ctx.name, parent: ctx.parent, kind: ctx.kind, address: ctx.address } }).catch(() => ({ data: { areas: [] } })), aiResult = await Promise.race([aiRaw, new Promise(resolve => setTimeout(() => resolve({ data: { areas: [] } }), 6200))]); if (seq !== macroProbeSeq || !macroMode)
+    return; const areas = Array.isArray(aiResult.data?.areas) ? aiResult.data.areas : []; let out = build(areas, []); if (out.length) {
+    paint(out, `${out.length} macroaree riconosciute`);
+    if (!showPanel)
+        toast(`Macroarea trovata: ${out[0].name}`);
+} const cands = await candsPromise; if (seq !== macroProbeSeq || !macroMode)
+    return; out = build(areas, cands); paint(out, out.length ? `${out.length} macroaree riconosciute` : 'Nessuna macroarea riconosciuta'); if (out.length && !areas.length && !showPanel)
+    toast(`Macroarea trovata: ${out[0].name}`); }
+$('#macro').onclick = () => setMacroMode(!macroMode, !macroMode);
+$('#macroClose').onclick = () => $('#macroPanel').classList.remove('show');
+updateReticleUi(false);
+if (macroMode) {
+    hideSelectionMarker();
+    scheduleMacroProbe(300, false);
+}
+scheduleLiveLocality(120);
+initGoogleMaps().catch(() => { });
+</script>
+
+<script>
+/* v78: solo adattamento visivo della barra; nessuna logica di ricerca/social/API viene modificata */
+(function(){
+  const bar = document.querySelector('.topbar');
+  if(!bar) return;
+  const fields = Array.from(bar.querySelectorAll('input'));
+  function adaptTopbar(){
+    let worst = 0;
+    fields.forEach(el=>{
+      const txt=(el.value||el.placeholder||'').trim();
+      const usable=Math.max(1,el.clientWidth||100);
+      const ratio=Math.max(txt.length/18, (el.scrollWidth||0)/usable);
+      if(ratio>worst) worst=ratio;
+    });
+    bar.classList.remove('gv-bar-medium','gv-bar-tall');
+    if(worst>1.65) bar.classList.add('gv-bar-tall');
+    else if(worst>1.12) bar.classList.add('gv-bar-medium');
+  }
+  fields.forEach(el=>{
+    el.addEventListener('input',adaptTopbar,{passive:true});
+    el.addEventListener('change',adaptTopbar,{passive:true});
+  });
+  const obs=new MutationObserver(adaptTopbar);
+  obs.observe(bar,{subtree:true,attributes:true,characterData:true});
+  setInterval(adaptTopbar,700);
+  window.addEventListener('resize',adaptTopbar,{passive:true});
+  setTimeout(adaptTopbar,50);
+})();
+</script>
+</body>
+</html>
