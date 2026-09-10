@@ -19,8 +19,8 @@ android {
         applicationId 'it.geovision.test'
         minSdk 23
         targetSdk 35
-        versionCode 138
-        versionName '1.38-direct-narration-cache-fix'
+        versionCode 139
+        versionName '1.39-auto-google-photo-lightbox'
     }
 
     buildTypes {
