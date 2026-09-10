@@ -19,8 +19,8 @@ android {
         applicationId 'it.geovision.test'
         minSdk 23
         targetSdk 35
-        versionCode 139
-        versionName '1.39-auto-google-photo-lightbox'
+        versionCode 140
+        versionName '1.40-fullscreen-photo-viewer-fix'
     }
 
     buildTypes {
