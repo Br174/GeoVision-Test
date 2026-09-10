@@ -52,6 +52,7 @@ jobs:
             echo 'ERROR: source contains later v80 patch'
             exit 1
           fi
+          mkdir -p android-youtube-test/app/src/main/assets
           cp /tmp/GeoVision_MADRE_001_SOURCE.html android-youtube-test/app/src/main/assets/geovision.html
 
           python - <<'PY'
