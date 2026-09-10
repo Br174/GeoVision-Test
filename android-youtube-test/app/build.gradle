@@ -1,0 +1,20 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'it.geovision.test'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'it.geovision.test'
+        minSdk 23
+        targetSdk 35
+        versionCode 117
+        versionName '1.17-youtube-test'
+    }
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.12.1'
+}
