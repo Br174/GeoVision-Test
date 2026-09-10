@@ -16,11 +16,11 @@ android {
     }
 
     defaultConfig {
-        applicationId 'it.geovision.test'
+        applicationId 'it.geovision.test.photolab'
         minSdk 23
         targetSdk 35
-        versionCode 138
-        versionName '1.38-direct-narration-cache-fix'
+        versionCode 1
+        versionName '0.1-v138-photo-uri-lab'
     }
 
     buildTypes {
