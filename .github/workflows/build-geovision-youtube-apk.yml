@@ -1,4 +1,4 @@
-name: Build GeoVision v136 Exploration Visibility APK
+name: Build GeoVision v137 Direct Narration APK
 
 on:
   push:
@@ -23,6 +23,9 @@ jobs:
 
       - name: Apply v136 exploration visibility patch
         run: python android-youtube-test/patch_v136_exploration_visibility.py
+
+      - name: Apply v137 remove artificial narration intro
+        run: python android-youtube-test/patch_v137_remove_intro.py
 
       - name: Validate generated GeoVision JavaScript
         run: |
@@ -116,10 +119,10 @@ jobs:
           echo "Signing certificate SHA-256 OK: $ACTUAL"
 
       - name: Rename APK
-        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v136_EXPLORATION_VISIBILITY.apk
+        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v137_DIRECT_NARRATION.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: GeoVision_v136_EXPLORATION_VISIBILITY
-          path: GeoVision_v136_EXPLORATION_VISIBILITY.apk
+          name: GeoVision_v137_DIRECT_NARRATION
+          path: GeoVision_v137_DIRECT_NARRATION.apk
           if-no-files-found: error
