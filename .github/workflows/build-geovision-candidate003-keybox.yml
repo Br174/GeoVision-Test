@@ -1,0 +1,53 @@
+name: Build GeoVision CANDIDATA 003 KEYBOX IMPORT
+
+on:
+  push:
+    branches:
+      - candidate/madre-001-keybox-import
+    paths:
+      - 'android-youtube-test/madre001/**'
+      - 'android-keybox/**'
+      - '.github/workflows/build-geovision-candidate003-keybox.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prepare stable signer
+        run: |
+          base64 -d android-youtube-test/signing/geovision-debug-stable.keystore.b64 > android-youtube-test/signing/geovision-debug-stable.keystore
+          chmod 600 android-youtube-test/signing/geovision-debug-stable.keystore
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build KeyBox and isolated Candidate 003
+        run: bash android-youtube-test/madre001/build_candidate003_keybox.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GeoVision_KEYBOX_AND_CANDIDATE_003
+          path: |
+            GeoVision_KEYBOX_001.apk
+            GeoVision_KEYBOX_001.zip
+            GeoVision_CANDIDATA_003_KEYBOX_IMPORT.apk
+            GeoVision_CANDIDATA_003_KEYBOX_IMPORT.html
+            GeoVision_CANDIDATA_003_KEYBOX_IMPORT.zip
+            GeoVision_KEYBOX_IMPORT_KIT.zip
+            README_KEYBOX_001.txt
+            MANIFEST_CANDIDATA_003_KEYBOX_IMPORT.txt
+          if-no-files-found: error

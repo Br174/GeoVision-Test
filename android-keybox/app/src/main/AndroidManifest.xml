@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <permission
+        android:name="it.geovision.permission.KEYBOX_IMPORT"
+        android:protectionLevel="signature" />
+
+    <application
+        android:allowBackup="false"
+        android:label="GeoVision KeyBox"
+        android:icon="@drawable/ic_launcher"
+        android:roundIcon="@drawable/ic_launcher"
+        android:theme="@style/AppTheme">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ExportKeysActivity"
+            android:exported="true"
+            android:permission="it.geovision.permission.KEYBOX_IMPORT"
+            android:theme="@style/Theme.Transparent">
+            <intent-filter>
+                <action android:name="it.geovision.keybox.EXPORT_KEYS" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
