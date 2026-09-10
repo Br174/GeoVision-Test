@@ -1,0 +1,48 @@
+name: Build GeoVision CANDIDATA 002 NO FALLBACK
+
+on:
+  push:
+    branches:
+      - candidate/madre-001-no-fallback
+    paths:
+      - 'android-youtube-test/madre001/**'
+      - '.github/workflows/build-geovision-candidate002-nofallback.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prepare stable signer
+        run: |
+          base64 -d android-youtube-test/signing/geovision-debug-stable.keystore.b64 > android-youtube-test/signing/geovision-debug-stable.keystore
+          chmod 600 android-youtube-test/signing/geovision-debug-stable.keystore
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build and verify isolated candidate
+        run: bash android-youtube-test/madre001/build_candidate002_nofallback.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GeoVision_CANDIDATA_002_NO_FALLBACK
+          path: |
+            GeoVision_CANDIDATA_002_NO_FALLBACK.apk
+            GeoVision_CANDIDATA_002_NO_FALLBACK.html
+            GeoVision_CANDIDATA_002_NO_FALLBACK.zip
+            MANIFEST_CANDIDATA_002_NO_FALLBACK.txt
+          if-no-files-found: error
