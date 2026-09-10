@@ -1,4 +1,4 @@
-name: Build GeoVision v135 Fixed Launcher Icon APK
+name: Build GeoVision v136 Exploration Visibility APK
 
 on:
   push:
@@ -20,6 +20,9 @@ jobs:
 
       - name: Prepare GeoVision recovery HTML
         run: python android-youtube-test/prepare_v118.py
+
+      - name: Apply v136 exploration visibility patch
+        run: python android-youtube-test/patch_v136_exploration_visibility.py
 
       - name: Validate generated GeoVision JavaScript
         run: |
@@ -113,10 +116,10 @@ jobs:
           echo "Signing certificate SHA-256 OK: $ACTUAL"
 
       - name: Rename APK
-        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v135_FIXED_LAUNCHER_ICON.apk
+        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v136_EXPLORATION_VISIBILITY.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: GeoVision_v135_FIXED_LAUNCHER_ICON
-          path: GeoVision_v135_FIXED_LAUNCHER_ICON.apk
+          name: GeoVision_v136_EXPLORATION_VISIBILITY
+          path: GeoVision_v136_EXPLORATION_VISIBILITY.apk
           if-no-files-found: error
