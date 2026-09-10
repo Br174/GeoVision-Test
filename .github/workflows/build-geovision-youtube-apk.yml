@@ -1,4 +1,4 @@
-name: Build GeoVision v138 Direct Narration Cache Fix APK
+name: Build GeoVision Android Storage Isolation Proof
 
 on:
   push:
@@ -18,104 +18,6 @@ jobs:
           base64 -d android-youtube-test/signing/geovision-debug-stable.keystore.b64 > android-youtube-test/signing/geovision-debug-stable.keystore
           chmod 600 android-youtube-test/signing/geovision-debug-stable.keystore
 
-      - name: Prepare GeoVision recovery HTML
-        run: python android-youtube-test/prepare_v118.py
-
-      - name: Apply v136 exploration visibility patch
-        run: python android-youtube-test/patch_v136_exploration_visibility.py
-
-      - name: Apply v137 remove artificial narration intro
-        run: python android-youtube-test/patch_v137_remove_intro.py
-
-      - name: Assert artificial intro is absent and cache bust is active
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          html=Path('android-youtube-test/app/src/main/assets/geovision.html').read_text(encoding='utf-8')
-          java=Path('android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java').read_text(encoding='utf-8')
-          forbidden=[
-              'Mettetevi comodi',
-              'Iniziamo questo viaggio',
-              'Siamo a ${p.name}',
-              'speak(told);'
-          ]
-          found=[x for x in forbidden if x in html]
-          if found:
-              raise SystemExit('Artificial narration intro still present: '+repr(found))
-          if "function instantNarrationIntro(p) {\n    return '';\n}" not in html:
-              raise SystemExit('instantNarrationIntro was not neutralized')
-          if 'System.currentTimeMillis()' not in java or 'geovision.html?gv=' not in java:
-              raise SystemExit('WebView cache-busting URL is missing')
-          print('Narration intro absent: OK')
-          print('WebView cache bust active: OK')
-          PY
-
-      - name: Validate generated GeoVision JavaScript
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          import re
-          p=Path('android-youtube-test/app/src/main/assets/geovision.html')
-          s=p.read_text(encoding='utf-8')
-          blocks=re.findall(r'<script(?:\s+type="module")?[^>]*>([\s\S]*?)</script>',s)
-          Path('/tmp/geovision-check.js').write_text('\n'.join(blocks),encoding='utf-8')
-          print('HTML bytes:',p.stat().st_size,'script blocks:',len(blocks))
-          PY
-          node --check /tmp/geovision-check.js
-
-      - name: Rebuild launcher icon from repository Base64
-        run: |
-          python -m pip install --disable-pip-version-check --quiet pillow
-          python - <<'PY'
-          from pathlib import Path
-          from PIL import Image
-          import base64, re, io
-          b64_path=Path('android-youtube-test/icon/geovision_icon.png.b64')
-          raw=b64_path.read_text(encoding='utf-8-sig',errors='ignore')
-          clean=''.join(re.findall(r'[A-Za-z0-9+/=]',raw))
-          print('Base64 raw chars:',len(raw),'clean chars:',len(clean))
-          decoded=None
-          for trim in range(4):
-              candidate=clean[:-trim] if trim else clean
-              candidate=candidate.rstrip('=')
-              candidate += '='*((4-len(candidate)%4)%4)
-              try:
-                  data=base64.b64decode(candidate,validate=True)
-                  Image.open(io.BytesIO(data)).verify()
-                  decoded=data
-                  print('Recovered Base64 with tail trim:',trim,'decoded bytes:',len(data))
-                  break
-              except Exception as e:
-                  print('Decode attempt',trim,'failed:',type(e).__name__,str(e)[:140])
-          if decoded is None:
-              raise SystemExit('Repository Base64 icon is corrupted and cannot be decoded safely')
-          src=Image.open(io.BytesIO(decoded)).convert('RGBA')
-          print('Decoded source:',src.size,src.mode)
-          if src.size != (512,512):
-              src=src.resize((512,512),Image.Resampling.LANCZOS)
-          dst=Path('android-youtube-test/app/src/main/res/drawable-nodpi/ic_launcher.png')
-          dst.parent.mkdir(parents=True,exist_ok=True)
-          src.save(dst,format='PNG',optimize=True)
-          print('Launcher written:',src.size,src.mode,dst.stat().st_size,'bytes')
-          PY
-
-      - name: Validate launcher PNG before build
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          import struct, hashlib
-          from PIL import Image
-          p=Path('android-youtube-test/app/src/main/res/drawable-nodpi/ic_launcher.png')
-          b=p.read_bytes()
-          assert b[:8] == b'\x89PNG\r\n\x1a\n', 'Launcher icon is not a valid PNG'
-          assert b[12:16] == b'IHDR', 'PNG missing IHDR'
-          w,h=struct.unpack('>II',b[16:24])
-          assert (w,h)==(512,512), f'Unexpected launcher dimensions: {w}x{h}'
-          im=Image.open(p)
-          im.verify()
-          print('Launcher PNG OK:',w,h,len(b),'bytes SHA256',hashlib.sha256(b).hexdigest())
-          PY
-
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -125,42 +27,113 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Build APK
-        working-directory: android-youtube-test
-        run: gradle clean assembleDebug
-
-      - name: Verify icon packaged and signing certificate
+      - name: Build four controlled probe APKs
         run: |
-          set -e
-          APK=android-youtube-test/app/build/outputs/apk/debug/app-debug.apk
-          unzip -l "$APK" | grep -E 'res/.*/ic_launcher.*png'
-          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
-          "$APKSIGNER" verify --print-certs "$APK" | tee /tmp/apksigner.txt
-          EXPECTED='716c1a8a139ad956ef8a00f85f153eb0028d109c75b1b938bdf3bb3eb23c22b5'
-          ACTUAL=$(grep -i 'certificate SHA-256 digest:' /tmp/apksigner.txt | head -1 | awk '{print $NF}' | tr '[:upper:]' '[:lower:]' | tr -d ':')
-          test "$ACTUAL" = "$EXPECTED"
-          echo "Signing certificate SHA-256 OK: $ACTUAL"
+          set -euo pipefail
+          cp android-youtube-test/app/build.gradle /tmp/gv-build.gradle
+          cp android-youtube-test/app/src/main/AndroidManifest.xml /tmp/gv-manifest.xml
 
-      - name: Verify packaged HTML really has no artificial intro
-        run: |
-          python - <<'PY'
+          build_variant() {
+            MODE="$1"
+            APPID="$2"
+            LABEL="$3"
+            VCODE="$4"
+            OUT="$5"
+
+            cp /tmp/gv-build.gradle android-youtube-test/app/build.gradle
+            cp /tmp/gv-manifest.xml android-youtube-test/app/src/main/AndroidManifest.xml
+
+            python android-youtube-test/prepare_v118.py
+            python android-youtube-test/patch_v136_exploration_visibility.py
+            python android-youtube-test/patch_v137_remove_intro.py
+            GV_PROBE_MODE="$MODE" python android-youtube-test/patch_storage_isolation_probe.py
+
+            APPID="$APPID" LABEL="$LABEL" VCODE="$VCODE" MODE="$MODE" python - <<'PY'
           from pathlib import Path
-          import zipfile
-          apk=Path('android-youtube-test/app/build/outputs/apk/debug/app-debug.apk')
-          with zipfile.ZipFile(apk) as z:
-              html=z.read('assets/geovision.html').decode('utf-8')
-          forbidden=['Mettetevi comodi','Iniziamo questo viaggio','Siamo a ${p.name}','speak(told);']
-          found=[x for x in forbidden if x in html]
-          if found:
-              raise SystemExit('Packaged APK still contains intro strings: '+repr(found))
-          print('Packaged APK narration intro absent: OK')
+          import os,re
+          gradle=Path('android-youtube-test/app/build.gradle')
+          s=gradle.read_text(encoding='utf-8')
+          s=re.sub(r"applicationId '[^']+'", "applicationId '"+os.environ['APPID']+"'", s, count=1)
+          s=re.sub(r'versionCode\s+\d+', 'versionCode '+os.environ['VCODE'], s, count=1)
+          s=re.sub(r"versionName '[^']+'", "versionName 'storage-proof-"+os.environ['MODE'].lower()+"'", s, count=1)
+          gradle.write_text(s,encoding='utf-8')
+          manifest=Path('android-youtube-test/app/src/main/AndroidManifest.xml')
+          m=manifest.read_text(encoding='utf-8')
+          m=re.sub(r'android:label="[^"]+"', 'android:label="'+os.environ['LABEL']+'"', m, count=1)
+          manifest.write_text(m,encoding='utf-8')
           PY
 
-      - name: Rename APK
-        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v138_DIRECT_NARRATION_CACHE_FIX.apk
+            python - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('android-youtube-test/app/src/main/assets/geovision.html')
+          s=p.read_text(encoding='utf-8')
+          assert 'GV_STORAGE_ISOLATION_PROBE_20260910' in s
+          blocks=re.findall(r'<script(?:\s+type="module")?[^>]*>([\s\S]*?)</script>',s)
+          Path('/tmp/geovision-check.js').write_text('\n'.join(blocks),encoding='utf-8')
+          print('Probe HTML bytes:',p.stat().st_size,'script blocks:',len(blocks))
+          PY
+            node --check /tmp/geovision-check.js
+
+            (cd android-youtube-test && gradle clean assembleDebug)
+            cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk "$OUT"
+
+            APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
+            "$APKSIGNER" verify --print-certs "$OUT" | tee "/tmp/${MODE}-cert.txt"
+            EXPECTED='716c1a8a139ad956ef8a00f85f153eb0028d109c75b1b938bdf3bb3eb23c22b5'
+            ACTUAL=$(grep -i 'certificate SHA-256 digest:' "/tmp/${MODE}-cert.txt" | head -1 | awk '{print $NF}' | tr '[:upper:]' '[:lower:]' | tr -d ':')
+            test "$ACTUAL" = "$EXPECTED"
+
+            unzip -p "$OUT" assets/geovision.html | grep -q 'GV_STORAGE_ISOLATION_PROBE_20260910'
+            echo "Built $OUT · mode=$MODE · appId=$APPID · versionCode=$VCODE · signer OK"
+          }
+
+          build_variant A   it.geovision.storageproof.same     'GV TEST SAME A' 2101 GeoVision_STORAGE_TEST_A_CLEAN.apk
+          build_variant B   it.geovision.storageproof.same     'GV TEST SAME B' 2102 GeoVision_STORAGE_TEST_B_CONTAMINA.apk
+          build_variant C   it.geovision.storageproof.same     'GV TEST SAME C' 2103 GeoVision_STORAGE_TEST_C_VERIFICA.apk
+          build_variant ISO it.geovision.storageproof.isolated 'GV TEST ISOLATO' 2101 GeoVision_STORAGE_TEST_ISOLATO.apk
+
+      - name: Package test kit
+        run: |
+          cat > ISTRUZIONI_TEST_ISOLAMENTO.txt <<'TXT'
+          TEST CONTROLLO PERSISTENZA DATI ANDROID / WEBVIEW
+
+          IMPORTANTE: la normale GeoVision v138 non viene toccata: questi APK usano package di test separati.
+
+          ORDINE TEST STESSA FAMIGLIA:
+          1) Installa GeoVision_STORAGE_TEST_A_CLEAN.apk e aprila. Deve mostrare AMBIENTE PULITO.
+          2) Senza disinstallare A, installa GeoVision_STORAGE_TEST_B_CONTAMINA.apk. E' un aggiornamento dello stesso package. Aprila: scrive CONTAMINATO_DA_B.
+          3) Senza cancellare dati/disinstallare, installa GeoVision_STORAGE_TEST_C_VERIFICA.apk. E' un altro aggiornamento dello stesso package. Se mostra STATO EREDITATO: CONTAMINATO_DA_B, la persistenza tra versioni dello stesso package e' dimostrata.
+
+          TEST ISOLATO:
+          4) Installa GeoVision_STORAGE_TEST_ISOLATO.apk. Ha package diverso. Deve mostrare AMBIENTE PULITO anche se B/C hanno contaminato l'altra famiglia.
+
+          Per ripetere il test da zero, disinstalla le app GV TEST SAME e GV TEST ISOLATO prima di ricominciare.
+          TXT
+
+          zip -j GeoVision_STORAGE_TEST_A_CLEAN.zip GeoVision_STORAGE_TEST_A_CLEAN.apk
+          zip -j GeoVision_STORAGE_TEST_B_CONTAMINA.zip GeoVision_STORAGE_TEST_B_CONTAMINA.apk
+          zip -j GeoVision_STORAGE_TEST_C_VERIFICA.zip GeoVision_STORAGE_TEST_C_VERIFICA.apk
+          zip -j GeoVision_STORAGE_TEST_ISOLATO.zip GeoVision_STORAGE_TEST_ISOLATO.apk
+          zip -j GeoVision_STORAGE_ISOLATION_TEST_KIT.zip \
+            GeoVision_STORAGE_TEST_A_CLEAN.apk \
+            GeoVision_STORAGE_TEST_B_CONTAMINA.apk \
+            GeoVision_STORAGE_TEST_C_VERIFICA.apk \
+            GeoVision_STORAGE_TEST_ISOLATO.apk \
+            ISTRUZIONI_TEST_ISOLAMENTO.txt
 
       - uses: actions/upload-artifact@v4
         with:
-          name: GeoVision_v138_DIRECT_NARRATION_CACHE_FIX
-          path: GeoVision_v138_DIRECT_NARRATION_CACHE_FIX.apk
+          name: GeoVision_STORAGE_ISOLATION_TEST_KIT
+          path: |
+            GeoVision_STORAGE_TEST_A_CLEAN.apk
+            GeoVision_STORAGE_TEST_B_CONTAMINA.apk
+            GeoVision_STORAGE_TEST_C_VERIFICA.apk
+            GeoVision_STORAGE_TEST_ISOLATO.apk
+            GeoVision_STORAGE_TEST_A_CLEAN.zip
+            GeoVision_STORAGE_TEST_B_CONTAMINA.zip
+            GeoVision_STORAGE_TEST_C_VERIFICA.zip
+            GeoVision_STORAGE_TEST_ISOLATO.zip
+            GeoVision_STORAGE_ISOLATION_TEST_KIT.zip
+            ISTRUZIONI_TEST_ISOLAMENTO.txt
           if-no-files-found: error
