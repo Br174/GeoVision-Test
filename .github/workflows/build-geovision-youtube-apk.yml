@@ -1,4 +1,4 @@
-name: Build GeoVision v145 Flatten Photo Groups APK
+name: Build GeoVision v147 Territory Result Photos APK
 
 on:
   push:
@@ -45,40 +45,40 @@ jobs:
       - name: Apply v144 existing Google photo folder fullscreen
         run: python android-youtube-test/patch_v144_official_media_fullscreen.py
 
-      - name: Apply v145 flattened Google photo groups
+      - name: Apply v145 single-place/locality photo routing
         run: python android-youtube-test/patch_v145_flatten_photo_groups.py
 
-      - name: Assert v145 flattened photo groups and both controls
+      - name: Apply v147 territory result photo selection
+        run: python android-youtube-test/patch_v147_territory_result_photos.py
+
+      - name: Assert v147 territory result photo routing
         run: |
           python - <<'PY'
           from pathlib import Path
           html=Path('android-youtube-test/app/src/main/assets/geovision.html').read_text(encoding='utf-8')
           gradle=Path('android-youtube-test/app/build.gradle').read_text(encoding='utf-8')
+          required=[
+              'function gvV147OpenTerritorySelectedPlace(place)',
+              "search.addEventListener('gmp-select'",
+              'void gvV147OpenTerritorySelectedPlace(event?.place);',
+              "await place.fetchFields({fields:['displayName','photos']});",
+              'gvV144RenderPhotoFolder({name,placeId:id},urls);',
+              'function gvV145CollectSinglePlacePhotos(p)',
+              'function gvV145CollectGroupPhotos(p)'
+          ]
+          missing=[x for x in required if x not in html]
+          if missing:
+              raise SystemExit('v147 logic missing: '+repr(missing))
           forbidden=['Mettetevi comodi','Iniziamo questo viaggio','Siamo a ${p.name}','speak(told);']
           found=[x for x in forbidden if x in html]
           if found:
               raise SystemExit('Artificial narration intro still present: '+repr(found))
-          required=[
-              'function gvV145OpenFlattenedGroupGallery()',
-              'async function gvV145CollectGroupPhotos(p)',
-              "await detail.fetchFields({fields:['displayName','photos']});",
-              'gvV145AddPhotoUrl(out,ph,60)',
-              "gvV144PhotoButton.onclick=()=>void gvV145OpenFlattenedGroupGallery();",
-              'const gvV145ImagesMenuButton=document.querySelector',
-              'void gvV145OpenFlattenedGroupGallery();',
-              'function gvV144RenderPhotoFolder(p,urls)',
-              '#sheetPhotosVisual{pointer-events:auto!important;cursor:pointer!important;}'
-          ]
-          missing=[x for x in required if x not in html]
-          if missing:
-              raise SystemExit('v145 photo group logic missing: '+repr(missing))
           if 'async function renderOfficialGoogleCard(p) { void gvV143TapOfficialGooglePhoto(p);' in html:
               raise SystemExit('v143 automatic native tap is still active')
-          if 'versionCode 145' not in gradle:
-              raise SystemExit('Android versionCode is not 145')
-          print('v145 group -> place details -> photos flow present: OK')
-          print('v145 round Photo button route: OK')
-          print('v145 Images menu route: OK')
+          if 'versionCode 147' not in gradle or "versionName '1.47-territory-result-photos'" not in gradle:
+              raise SystemExit('Android version is not v147')
+          print('v147 gmp-select -> selected Place -> photos: OK')
+          print('v145 POI/locality separation retained: OK')
           print('v143 automatic tap disabled: OK')
           PY
 
@@ -132,15 +132,14 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-          import struct, hashlib
+          import struct
           from PIL import Image
           p=Path('android-youtube-test/app/src/main/res/drawable-nodpi/ic_launcher.png')
           b=p.read_bytes()
           assert b[:8] == b'\x89PNG\r\n\x1a\n'
-          w,h=struct.unpack('>II',b[16:24])
-          assert (w,h)==(512,512)
+          assert struct.unpack('>II',b[16:24]) == (512,512)
           Image.open(p).verify()
-          print('Launcher PNG OK SHA256',hashlib.sha256(b).hexdigest())
+          print('Launcher PNG OK')
           PY
 
       - uses: actions/setup-java@v5
@@ -168,7 +167,7 @@ jobs:
           test "$ACTUAL" = "$EXPECTED"
           echo "Signing certificate SHA-256 OK: $ACTUAL"
 
-      - name: Verify packaged APK contains v145 photo groups
+      - name: Verify packaged APK contains v147 logic
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -177,27 +176,22 @@ jobs:
           with zipfile.ZipFile(apk) as z:
               html=z.read('assets/geovision.html').decode('utf-8')
           required=[
-              'function gvV145OpenFlattenedGroupGallery()',
-              'async function gvV145CollectGroupPhotos(p)',
-              "await detail.fetchFields({fields:['displayName','photos']});",
-              "gvV144PhotoButton.onclick=()=>void gvV145OpenFlattenedGroupGallery();",
-              'gvV145ImagesMenuButton',
-              'gvV144FolderImage',
-              'gvV144FolderCounter'
+              'function gvV147OpenTerritorySelectedPlace(place)',
+              "search.addEventListener('gmp-select'",
+              'void gvV147OpenTerritorySelectedPlace(event?.place);',
+              'gvV144RenderPhotoFolder({name,placeId:id},urls);'
           ]
           missing=[x for x in required if x not in html]
           if missing:
-              raise SystemExit('Packaged APK missing v145 logic: '+repr(missing))
-          if 'async function renderOfficialGoogleCard(p) { void gvV143TapOfficialGooglePhoto(p);' in html:
-              raise SystemExit('Packaged APK still has active v143 auto tap')
-          print('Packaged APK v145 flattened photo groups present: OK')
+              raise SystemExit('Packaged APK missing v147 logic: '+repr(missing))
+          print('Packaged APK v147 territory result photo routing present: OK')
           PY
 
       - name: Rename APK
-        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v145_FLATTEN_PHOTO_GROUPS.apk
+        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v147_TERRITORY_RESULT_PHOTOS.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: GeoVision_v145_FLATTEN_PHOTO_GROUPS
-          path: GeoVision_v145_FLATTEN_PHOTO_GROUPS.apk
+          name: GeoVision_v147_TERRITORY_RESULT_PHOTOS
+          path: GeoVision_v147_TERRITORY_RESULT_PHOTOS.apk
           if-no-files-found: error
