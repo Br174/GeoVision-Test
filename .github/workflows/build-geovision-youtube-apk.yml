@@ -1,4 +1,4 @@
-name: Build GeoVision v130 Official Logo APK
+name: Build GeoVision v131 Mipmap Official Icon APK
 
 on:
   push:
@@ -48,10 +48,10 @@ jobs:
         run: gradle clean assembleDebug
 
       - name: Rename APK
-        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v130_OFFICIAL_LOGO.apk
+        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v131_MIPMAP_OFFICIAL_ICON.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: GeoVision_v130_OFFICIAL_LOGO
-          path: GeoVision_v130_OFFICIAL_LOGO.apk
+          name: GeoVision_v131_MIPMAP_OFFICIAL_ICON
+          path: GeoVision_v131_MIPMAP_OFFICIAL_ICON.apk
           if-no-files-found: error
