@@ -6,12 +6,27 @@ android {
     namespace 'it.geovision.test'
     compileSdk 35
 
+    signingConfigs {
+        stableDebug {
+            storeFile file('../signing/geovision-debug-stable.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+    }
+
     defaultConfig {
         applicationId 'it.geovision.test'
         minSdk 23
         targetSdk 35
-        versionCode 117
-        versionName '1.17-youtube-test'
+        versionCode 154
+        versionName '1.54-candidate-madre-001-core-keys'
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.stableDebug
+        }
     }
 }
 
