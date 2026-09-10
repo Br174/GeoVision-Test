@@ -1,0 +1,39 @@
+name: Build GeoVision MADRE 001 SOCIAL KEYBOX STABILE
+on:
+  push:
+    branches:
+      - madre/001-social-keybox-stabile
+    paths:
+      - 'android-youtube-test/madre001/build_madre001_social_keybox_stabile.sh'
+      - '.github/workflows/build-geovision-madre001-social-keybox-stabile.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Prepare stable signer
+        run: |
+          base64 -d android-youtube-test/signing/geovision-debug-stable.keystore.b64 > android-youtube-test/signing/geovision-debug-stable.keystore
+          chmod 600 android-youtube-test/signing/geovision-debug-stable.keystore
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Build frozen Mother 001
+        run: bash android-youtube-test/madre001/build_madre001_social_keybox_stabile.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GeoVision_MADRE_001_SOCIAL_KEYBOX_STABILE
+          path: |
+            GeoVision_MADRE_001_SOCIAL_KEYBOX_STABILE.apk
+            GeoVision_MADRE_001_SOCIAL_KEYBOX_STABILE.html
+            GeoVision_MADRE_001_SOCIAL_KEYBOX_STABILE.zip
+            MANIFEST_MADRE_001_SOCIAL_KEYBOX_STABILE.txt
+          if-no-files-found: error
