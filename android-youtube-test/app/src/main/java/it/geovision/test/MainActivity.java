@@ -2,30 +2,19 @@ package it.geovision.test;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.webkit.GeolocationPermissions;
 import android.webkit.ConsoleMessage;
-import android.webkit.WebResourceError;
-import android.webkit.WebResourceRequest;
-import android.widget.TextView;
-import android.graphics.Color;
+import android.webkit.GeolocationPermissions;
 import android.webkit.JavascriptInterface;
 import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.widget.FrameLayout;
 
 import androidx.webkit.WebViewAssetLoader;
 import androidx.webkit.WebViewClientCompat;
@@ -41,8 +30,6 @@ public class MainActivity extends Activity {
     private boolean ttsReady = false;
     private final Handler main = new Handler(Looper.getMainLooper());
     private final List<PendingSpeech> pendingSpeech = new ArrayList<>();
-    private View customView;
-    private WebChromeClient.CustomViewCallback customViewCallback;
 
     private static class PendingSpeech {
         final String text;
@@ -76,7 +63,6 @@ public class MainActivity extends Activity {
 
         initTts();
         webView.addJavascriptInterface(new NativeTtsBridge(), "GeoVisionTTS");
-        webView.addJavascriptInterface(new ExternalOpenBridge(), "GeoVisionExternal");
 
         final WebViewAssetLoader assetLoader =
                 new WebViewAssetLoader.Builder()
@@ -94,15 +80,17 @@ public class MainActivity extends Activity {
             @SuppressWarnings("deprecation")
             public android.webkit.WebResourceResponse shouldInterceptRequest(
                     WebView view, String url) {
-                return assetLoader.shouldInterceptRequest(Uri.parse(url));
+                return assetLoader.shouldInterceptRequest(android.net.Uri.parse(url));
             }
         });
 
         webView.setWebChromeClient(new WebChromeClient() {
-            @Override public boolean onConsoleMessage(ConsoleMessage cm) {
+            @Override
+            public boolean onConsoleMessage(ConsoleMessage cm) {
                 android.util.Log.e("GeoVisionJS", cm.message()+" @"+cm.lineNumber()+" "+cm.sourceId());
                 return true;
             }
+
             @Override
             public void onGeolocationPermissionsShowPrompt(
                     String origin, GeolocationPermissions.Callback callback) {
@@ -122,51 +110,9 @@ public class MainActivity extends Activity {
             public void onPermissionRequest(PermissionRequest request) {
                 runOnUiThread(() -> request.grant(request.getResources()));
             }
-
-            @Override
-            public void onShowCustomView(View view, CustomViewCallback callback) {
-                if (customView != null) {
-                    callback.onCustomViewHidden();
-                    return;
-                }
-                stopNative();
-                customView = view;
-                customViewCallback = callback;
-                FrameLayout decor = (FrameLayout) getWindow().getDecorView();
-                decor.addView(customView, new FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT));
-                webView.setVisibility(View.GONE);
-                getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-                getWindow().getDecorView().setSystemUiVisibility(
-                        View.SYSTEM_UI_FLAG_FULLSCREEN |
-                        View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
-                        View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
-            }
-
-            @Override
-            public void onHideCustomView() {
-                hideCustomView();
-            }
         });
 
         webView.loadUrl("https://appassets.androidplatform.net/assets/geovision.html");
-    }
-
-    private void hideCustomView() {
-        if (customView == null) return;
-        FrameLayout decor = (FrameLayout) getWindow().getDecorView();
-        decor.removeView(customView);
-        customView = null;
-        webView.setVisibility(View.VISIBLE);
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
-        if (customViewCallback != null) {
-            customViewCallback.onCustomViewHidden();
-            customViewCallback = null;
-        }
     }
 
     private void initTts() {
@@ -239,31 +185,10 @@ public class MainActivity extends Activity {
         @JavascriptInterface public boolean isReady() { return ttsReady; }
     }
 
-    private class ExternalOpenBridge {
-        @JavascriptInterface
-        public void openUrl(String url) {
-            if (url == null || url.trim().isEmpty()) return;
-            main.post(() -> {
-                try {
-                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                    intent.addCategory(Intent.CATEGORY_BROWSABLE);
-                    startActivity(intent);
-                } catch (Exception ignored) {
-                    try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))); }
-                    catch (Exception ignoredAgain) {}
-                }
-            });
-        }
-    }
-
     @Override
     public void onBackPressed() {
-        if (customView != null) {
-            hideCustomView();
-            return;
-        }
         webView.evaluateJavascript(
-                "(function(){var r=document.getElementById('youtubeResultsModal');if(r){var f=document.getElementById('ytModalFrame');if(f)f.src='';r.remove();return 'closed'};return 'none'})()",
+                "(function(){var p=document.getElementById('youtubeInternalModal');if(p){var f=document.getElementById('ytModalFrame');if(f)f.src='';p.remove();return 'closed'};var r=document.getElementById('youtubeResultsModal');if(r){r.remove();return 'closed'};return 'none'})()",
                 value -> {
                     if ("\"closed\"".equals(value)) return;
                     if (webView != null && webView.canGoBack()) webView.goBack();
