@@ -36,7 +36,7 @@ jobs:
           gradle-version: '8.9'
 
       - name: Build KeyBox and isolated Candidate 003
-        run: bash android-youtube-test/madre001/build_candidate003_keybox.sh
+        run: bash android-youtube-test/madre001/build_candidate003_keybox_v2.sh
 
       - uses: actions/upload-artifact@v4
         with:
