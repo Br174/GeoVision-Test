@@ -1,5 +1,4 @@
 from pathlib import Path
-import re
 
 src=Path("GeoVision_Nova_v114_AI_RAPIDA_APPROFONDIMENTO.html")
 dst=Path("android-youtube-test/app/src/main/assets/geovision.html")
@@ -11,48 +10,67 @@ if '<meta name="referrer"' not in s:
 
 start=s.index("function openYouTubeInternalPlayer(videoId,title='YouTube'){")
 end=s.index("\nfunction launchPlatform(p)", start)
-youtube_block=r"""function closeYouTubeInternalPlayer(){
-    const modal=document.getElementById('youtubeInternalModal');
+youtube_block=r"""let gvYoutubeItems=[];
+let gvYoutubeQuery='';
+function closeYouTubeExperience(){
+    const shell=document.getElementById('youtubeResultsModal');
     const frame=document.getElementById('ytModalFrame');
     if(frame) frame.src='';
-    modal?.remove();
+    shell?.remove();
+}
+function closeYouTubeInternalPlayer(){
+    const frame=document.getElementById('ytModalFrame');
+    const player=document.getElementById('ytPlayerArea');
+    if(frame) frame.src='';
+    if(player) player.style.display='none';
 }
 function openYouTubeInternalPlayer(videoId,title='YouTube'){
-    closeYouTubeInternalPlayer();
-    const modal=document.createElement('div');
-    modal.id='youtubeInternalModal';
-    modal.style.cssText='position:fixed;inset:0;z-index:25000;background:#000;display:flex;flex-direction:column';
-    modal.innerHTML=`
-      <div style="height:54px;flex:0 0 54px;display:flex;align-items:center;gap:10px;padding:7px 10px;background:#fff;border-bottom:1px solid #e7eaf0">
-        <b id="ytModalTitle" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:#475569"></b>
-        <button id="ytModalClose" type="button" aria-label="Chiudi" style="width:38px;height:38px;border:1px solid #e5e7eb;border-radius:50%;background:#fff;color:#64748b;font-size:24px">×</button>
-      </div>
-      <div style="flex:1;min-height:0;background:#000;display:flex;align-items:center;justify-content:center">
-        <iframe id="ytModalFrame" style="width:100%;height:100%;border:0;background:#000" referrerpolicy="strict-origin-when-cross-origin" allow="autoplay;encrypted-media;picture-in-picture;fullscreen" allowfullscreen></iframe>
-      </div>`;
-    document.body.appendChild(modal);
-    document.getElementById('ytModalTitle').textContent=title;
-    document.getElementById('ytModalClose').onclick=closeYouTubeInternalPlayer;
+    const shell=document.getElementById('youtubeResultsModal');
+    const player=document.getElementById('ytPlayerArea');
+    const frame=document.getElementById('ytModalFrame');
+    const titleEl=document.getElementById('ytNowTitle');
+    if(!shell||!player||!frame)return;
+    player.style.display='block';
+    if(titleEl) titleEl.textContent=title;
     const origin=(location.protocol==='https:'||location.protocol==='http:')?location.origin:'';
-    document.getElementById('ytModalFrame').src=`https://www.youtube.com/embed/${encodeURIComponent(videoId)}?autoplay=1&playsinline=1&rel=0${origin?`&origin=${encodeURIComponent(origin)}`:''}`;
+    frame.src=`https://www.youtube.com/embed/${encodeURIComponent(videoId)}?autoplay=1&playsinline=1&rel=0${origin?`&origin=${encodeURIComponent(origin)}`:''}`;
+    shell.scrollTop=0;
+    player.scrollIntoView({block:'start',behavior:'smooth'});
 }
-function closeYouTubeResults(){ document.getElementById('youtubeResultsModal')?.remove(); }
+function closeYouTubeResults(){ closeYouTubeExperience(); }
 function renderYouTubeResults(items,q){
-    closeYouTubeResults();
+    gvYoutubeItems=items; gvYoutubeQuery=q;
+    closeYouTubeExperience();
     const modal=document.createElement('div');
     modal.id='youtubeResultsModal';
-    modal.style.cssText='position:fixed;inset:0;z-index:24500;background:#fff;display:flex;flex-direction:column';
-    const rows=items.map((item,i)=>{
+    modal.style.cssText='position:fixed;inset:0;z-index:24500;background:#f7f8fa;display:flex;flex-direction:column;overflow:hidden';
+    const cards=items.map((item,i)=>{
         const sn=item?.snippet||{};
-        const thumb=sn?.thumbnails?.medium?.url||sn?.thumbnails?.high?.url||sn?.thumbnails?.default?.url||'';
-        return `<button type="button" data-yt-index="${i}" style="border:0;border-bottom:1px solid #eef1f4;background:#fff;padding:10px 12px;display:grid;grid-template-columns:142px 1fr;gap:11px;text-align:left;align-items:start">
-          <div style="aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#eef2f7">${thumb?`<img src="${esc(thumb)}" alt="" style="display:block;width:100%;height:100%;object-fit:cover">`:''}</div>
-          <div style="min-width:0"><b style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:13px;line-height:1.35;color:#344054">${esc(sn.title||'Video YouTube')}</b><small style="display:block;margin-top:6px;color:#8a94a3;font-size:11px">${esc(sn.channelTitle||'YouTube')}</small></div>
+        const thumb=sn?.thumbnails?.high?.url||sn?.thumbnails?.medium?.url||sn?.thumbnails?.default?.url||'';
+        return `<button type="button" data-yt-index="${i}" style="border:0;background:#fff;border-radius:18px;padding:0;overflow:hidden;text-align:left;box-shadow:0 1px 0 rgba(16,24,40,.04);border:1px solid #e9edf2">
+          <div style="aspect-ratio:16/9;background:#e9eef5;position:relative">${thumb?`<img src="${esc(thumb)}" alt="" style="display:block;width:100%;height:100%;object-fit:cover">`:''}<span style="position:absolute;right:10px;bottom:10px;width:42px;height:42px;border-radius:50%;background:rgba(0,0,0,.72);color:#fff;display:grid;place-items:center;font-size:18px">▶</span></div>
+          <div style="padding:12px 13px 14px"><b style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:15px;line-height:1.35;color:#283341">${esc(sn.title||'Video YouTube')}</b><small style="display:block;margin-top:7px;color:#8993a1;font-size:12px">${esc(sn.channelTitle||'YouTube')}</small></div>
         </button>`;
     }).join('');
-    modal.innerHTML=`<div style="height:58px;flex:0 0 58px;display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid #e7eaf0;background:#fff"><div style="flex:1;min-width:0"><b style="display:block;color:#344054;font-size:14px">Video trovati</b><small style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#8a94a3">${esc(q)}</small></div><button id="youtubeResultsClose" type="button" aria-label="Chiudi" style="width:38px;height:38px;border:1px solid #e5e7eb;border-radius:50%;background:#fff;color:#64748b;font-size:24px">×</button></div><div style="flex:1;overflow:auto;-webkit-overflow-scrolling:touch">${rows}</div>`;
+    modal.innerHTML=`
+      <div style="height:62px;flex:0 0 62px;display:flex;align-items:center;gap:10px;padding:9px 12px;background:#fff;border-bottom:1px solid #e6eaf0">
+        <div style="flex:1;min-width:0"><b style="display:block;color:#344054;font-size:15px">YouTube</b><small style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#8a94a3">${esc(q)}</small></div>
+        <button id="youtubeResultsClose" type="button" aria-label="Chiudi" style="width:40px;height:40px;border:1px solid #e5e7eb;border-radius:50%;background:#fff;color:#64748b;font-size:25px">×</button>
+      </div>
+      <div id="ytScrollArea" style="flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:0 0 18px">
+        <section id="ytPlayerArea" style="display:none;background:#000;position:sticky;top:0;z-index:3">
+          <div style="aspect-ratio:16/9;background:#000"><iframe id="ytModalFrame" style="width:100%;height:100%;border:0;background:#000" referrerpolicy="strict-origin-when-cross-origin" allow="autoplay;encrypted-media;picture-in-picture;fullscreen" allowfullscreen></iframe></div>
+          <div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:#fff;border-bottom:1px solid #e7eaf0">
+            <b id="ytNowTitle" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#46505d;font-size:13px"></b>
+            <button id="ytStopPlayer" type="button" style="border:1px solid #e5e7eb;background:#fff;color:#667085;border-radius:999px;padding:7px 11px;font-size:11px">Chiudi video</button>
+          </div>
+        </section>
+        <div style="padding:14px 12px 8px"><b style="font-size:13px;color:#667085">Risultati</b></div>
+        <div id="ytResultsGrid" style="display:grid;grid-template-columns:1fr;gap:12px;padding:0 12px">${cards}</div>
+      </div>`;
     document.body.appendChild(modal);
-    document.getElementById('youtubeResultsClose').onclick=closeYouTubeResults;
+    document.getElementById('youtubeResultsClose').onclick=closeYouTubeExperience;
+    document.getElementById('ytStopPlayer').onclick=closeYouTubeInternalPlayer;
     modal.querySelectorAll('[data-yt-index]').forEach(btn=>btn.onclick=()=>{
         const item=items[Number(btn.dataset.ytIndex)], id=item?.id?.videoId;
         if(id) openYouTubeInternalPlayer(id,item?.snippet?.title||'YouTube');
@@ -70,7 +88,6 @@ async function launchYouTubeInternal(q){
 """
 s=s[:start]+youtube_block+s[end:]
 
-# Social: TikTok, Instagram, Facebook -> specific search page, Android app/browser fallback.
 launch=s.index("function launchPlatform(p)")
 helper=r"""
 function openSocialSearch(platform,q){
@@ -105,7 +122,6 @@ s=s.replace("""if (p === 'tiktok') {
 }""","""if (p === 'tiktok') return openSocialSearch('tiktok',social);
 if (p === 'facebook') return openSocialSearch('facebook',social);""",1)
 
-# Native TTS bridge.
 needle="\nasync function aiNarration(p, mode,"
 idx=s.index(needle)
 tts_bridge=r"""
@@ -131,12 +147,10 @@ stopSpeech=function(){
 };
 """
 s=s[:idx]+"\n"+tts_bridge+s[idx:]
-
-# AI-first: read AI card text, not the generic intro.
 s=s.replace("""    /* Solo ora parte la frase iniziale: l'AI principale sta già lavorando. */
     speak(told);
 
-    void (async () => {""","""    /* Android v120: aspetta il contenuto AI della scheda prima di parlare. */
+    void (async () => {""","""    /* Android v121: aspetta il contenuto AI della scheda prima di parlare. */
     void (async () => {""",1)
 s=s.replace("""        if (quick) {
             paintAiState(false);
@@ -161,9 +175,9 @@ s=s.replace("""        const bridge = smartLocalContinuation(p, w.extract || '')
             speak(bridge, false);
         }""",1)
 
-# Sanity checks before build.
 assert 'maxResults=12' in s
-assert 'youtubeResultsModal' in s
+assert 'ytResultsGrid' in s
+assert 'position:sticky;top:0' in s
 assert "openSocialSearch('tiktok'" in s
 assert "openSocialSearch('instagram'" in s
 assert "openSocialSearch('facebook'" in s
@@ -171,4 +185,4 @@ assert 'x.com/search' not in s
 assert 'speak(quick, false)' in s
 assert 'window.GeoVisionTTS' in s
 dst.write_text(s,encoding="utf-8")
-print("Prepared v120 Android",dst,len(s))
+print("Prepared v121 Android",dst,len(s))
