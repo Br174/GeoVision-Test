@@ -1,4 +1,4 @@
-name: Build GeoVision v128 Recovery APK
+name: Build GeoVision v129 Recovery APK
 
 on:
   push:
@@ -48,10 +48,10 @@ jobs:
         run: gradle clean assembleDebug
 
       - name: Rename APK
-        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v128_RECOVERY.apk
+        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v129_ICON_ONLY.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: GeoVision_v128_RECOVERY
-          path: GeoVision_v128_RECOVERY.apk
+          name: GeoVision_v129_ICON_ONLY
+          path: GeoVision_v129_ICON_ONLY.apk
           if-no-files-found: error
