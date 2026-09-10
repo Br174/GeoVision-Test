@@ -82,9 +82,8 @@ s = s.replace(needle, insert, 1)
 
 assert 'googleDiagImportKeyBox' in s
 assert 'GeoVisionKeyBox' in s
-assert 'geovision_google_maps_api_key_1' in s
-assert 'geovision_google_maps_api_key_2' in s
-assert 'geovision_google_maps_api_key_3' in s
+assert 'geovision_google_maps_api_key_' in s
+assert 'geovision_google_maps_api_keys' in s
 assert 'geovision_ai_api_key' in s
 assert 'geovision_youtube_api_key' in s
 
