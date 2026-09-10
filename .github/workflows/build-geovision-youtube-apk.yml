@@ -1,4 +1,4 @@
-name: Build GeoVision v131 Mipmap Official Icon APK
+name: Build GeoVision v132 Verified PNG Launcher Icon APK
 
 on:
   push:
@@ -34,7 +34,33 @@ jobs:
           PY
           node --check /tmp/geovision-check.js
 
-      - uses: actions/setup-java@v4
+      - name: Validate launcher icon sources
+        run: |
+          set -e
+          file android-youtube-test/app/src/main/res/mipmap-*/ic_launcher.png
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          paths=sorted(Path('android-youtube-test/app/src/main/res').glob('mipmap-*/ic_launcher.png'))
+          assert paths, 'No PNG launcher icons found'
+          expected={
+            'mipmap-mdpi':48,
+            'mipmap-hdpi':72,
+            'mipmap-xhdpi':96,
+            'mipmap-xxhdpi':144,
+            'mipmap-xxxhdpi':192,
+          }
+          for p in paths:
+            im=Image.open(p)
+            im.verify()
+            im=Image.open(p)
+            side=expected.get(p.parent.name)
+            if side:
+              assert im.size==(side,side), f'{p}: expected {(side,side)}, got {im.size}'
+            print(p, im.size, im.mode)
+          PY
+
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -47,11 +73,19 @@ jobs:
         working-directory: android-youtube-test
         run: gradle clean assembleDebug
 
+      - name: Verify packaged launcher icons and signing
+        run: |
+          set -e
+          APK=android-youtube-test/app/build/outputs/apk/debug/app-debug.apk
+          unzip -l "$APK" | grep 'res/mipmap.*ic_launcher.*png'
+          apksigner verify --print-certs "$APK" | tee /tmp/apksigner.txt
+          grep -qi '71:6C:1A:8A:13:9A:D9:56:EF:8A:00:F8:5F:15:3E:B0:02:8D:10:9C:75:B1:B9:38:BD:F3:BB:3E:B2:3C:22:B5' /tmp/apksigner.txt
+
       - name: Rename APK
-        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v131_MIPMAP_OFFICIAL_ICON.apk
+        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v132_VERIFIED_PNG_ICON.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: GeoVision_v131_MIPMAP_OFFICIAL_ICON
-          path: GeoVision_v131_MIPMAP_OFFICIAL_ICON.apk
+          name: GeoVision_v132_VERIFIED_PNG_ICON
+          path: GeoVision_v132_VERIFIED_PNG_ICON.apk
           if-no-files-found: error
