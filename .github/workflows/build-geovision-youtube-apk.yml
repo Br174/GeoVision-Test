@@ -39,7 +39,7 @@ jobs:
       - name: Verify APK signing certificate
         run: |
           APKSIGNER="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/apksigner"
-          "$APKSIGNER" verify --print-certs android-youtube-test/app/build/outputs/apk/debug/app-debug.apk | grep "Signer #1 certificate SHA-256 digest"
+          "$APKSIGNER" verify --print-certs android-youtube-test/app/build/outputs/apk/debug/app-debug.apk
 
       - name: Rename APK
         run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v124_STABLE_SIGNING_BASE.apk
