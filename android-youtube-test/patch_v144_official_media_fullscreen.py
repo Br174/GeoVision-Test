@@ -6,6 +6,7 @@ s=p.read_text(encoding='utf-8')
 # v144: test isolato della CARTELLA FOTO gia esistente.
 # - disattiva l'auto-tap v143 durante questo test
 # - riattiva davvero il pulsante Google Foto vicino alla X
+# - collega anche il comando Immagini del menu Esplora allo stesso viewer
 # - riusa googleGalleryPhotos() gia presente (fino a 30 foto Google)
 # - mostra una foto per volta a tutto schermo con swipe/frecce
 # - NON aggiunge autoplay e NON modifica la scheda Google / storytelling
@@ -59,7 +60,6 @@ function gvV144RenderPhotoFolder(p,urls){
         img.src=urls[i];
         img.alt=`${p?.name||'Luogo'} · foto ${i+1}`;
         counter.textContent=`${i+1} / ${urls.length}`;
-        // Precarica la foto successiva per rendere lo swipe piu fluido.
         try{ const pre=new Image(); pre.src=urls[(i+1)%urls.length]; }catch(e){}
     };
 
@@ -98,7 +98,6 @@ async function gvV144OpenExistingPhotoFolder(){
 
     let urls=[];
     try{
-        // Riusa ESATTAMENTE il canale della cartella Foto gia esistente.
         urls=await googleGalleryPhotos(p);
     }catch(e){
         console.log('GeoVision v144 googleGalleryPhotos failed',e?.message||e);
@@ -106,8 +105,6 @@ async function gvV144OpenExistingPhotoFolder(){
 
     if(current!==p || !g.classList.contains('show')) return;
 
-    // Se il canale API non rende URL, prova le immagini che la scheda Google
-    // ha gia materializzato. Questo fallback non tocca la scheda.
     if((!urls || !urls.length) && typeof gvCollectRenderedPlacePhotosV141==='function'){
         try{ urls=gvCollectRenderedPlacePhotosV141(); }catch(e){}
     }
@@ -118,7 +115,6 @@ async function gvV144OpenExistingPhotoFolder(){
         return;
     }
 
-    // Ultimo fallback: mantieni il comportamento UI Kit gia presente nella cartella.
     count.textContent='Foto Google';
     try{
         await renderGoogleUiMediaFallback(p,body);
@@ -135,8 +131,6 @@ if 'function gvV144OpenExistingPhotoFolder()' not in s:
         raise SystemExit('v144 patch aborted: googlePlaceUrl anchor not found')
     s=s.replace(anchor,helper+'\n'+anchor,1)
 
-# CSS: il pulsante Foto era stato reso solo grafico con pointer-events:none.
-# Riattiviamolo e trasformiamo la cartella esistente in un viewer nero fullscreen.
 css=r'''
 <style id="gvV144PhotoFolderStyle">
 #sheetPhotosVisual{pointer-events:auto!important;cursor:pointer!important;}
@@ -166,12 +160,19 @@ if 'id="gvV144PhotoFolderStyle"' not in s:
         raise SystemExit('v144 patch aborted: head close not found')
     s=s.replace('</head>',css+'\n</head>',1)
 
-# Collega davvero il logo Foto vicino alla X alla cartella fullscreen.
+# Pulsante tondo vicino alla X.
 event_anchor="$('#photoGalleryClose').onclick = closePhotoGallery;"
 if event_anchor not in s:
     raise SystemExit('v144 patch aborted: photo gallery close anchor not found')
 binding="""$('#photoGalleryClose').onclick = () => { document.getElementById('photoGallery')?.classList.remove('gv-v144-fullscreen'); closePhotoGallery(); };\nconst gvV144PhotoButton=document.getElementById('sheetPhotosVisual');\nif(gvV144PhotoButton){\n    gvV144PhotoButton.tabIndex=0;\n    gvV144PhotoButton.onclick=()=>void gvV144OpenExistingPhotoFolder();\n}\n"""
 s=s.replace(event_anchor,binding,1)
 
+# Pulsante Immagini nel menu Esplora: stesso identico motore.
+images_anchor="function launchPlatform(p) { if (p === 'images')\n    return void openPhotoGallery();"
+images_replacement="function launchPlatform(p) { if (p === 'images')\n    return void gvV144OpenExistingPhotoFolder();"
+if images_anchor not in s:
+    raise SystemExit('v144 patch aborted: images launch anchor not found')
+s=s.replace(images_anchor,images_replacement,1)
+
 p.write_text(s,encoding='utf-8')
-print('Applied v144 existing Google photo folder fullscreen patch:',p,len(s))
+print('Applied v144 both photo controls to fullscreen gallery:',p,len(s))
