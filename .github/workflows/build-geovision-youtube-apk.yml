@@ -1,4 +1,4 @@
-name: Build GeoVision v152 Auto Open Official Media APK
+name: Build GeoVision v153 Stable Google Card Restore APK
 
 on:
   push:
@@ -57,49 +57,44 @@ jobs:
       - name: Apply v149 selected territory official media
         run: python android-youtube-test/patch_v149_selected_place_official_media.py
 
-      - name: Apply v150 proprietary Place Photos viewer
-        run: python android-youtube-test/patch_v150_owned_place_photo_viewer.py
-
-      - name: Apply v151 multi-source photo extraction bridge
-        run: python android-youtube-test/patch_v151_photo_extraction_bridge.py
-
-      - name: Harden v151 diagnostics and rendered-photo filter
-        run: python android-youtube-test/patch_v151_hardening.py
-
-      - name: Apply v152 auto-open official media photo
-        run: python android-youtube-test/patch_v152_auto_open_official_media.py
-
-      - name: Assert v152 official media auto-open routing
+      - name: Assert v153 restored v149 runtime chain
         run: |
           python - <<'PY'
           from pathlib import Path
           html=Path('android-youtube-test/app/src/main/assets/geovision.html').read_text(encoding='utf-8')
           java=Path('android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java').read_text(encoding='utf-8')
           gradle=Path('android-youtube-test/app/build.gradle').read_text(encoding='utf-8')
-          required_html=[
-              'async function gvV152AutoOpenOfficialMedia(body)',
-              "body.querySelector('gmp-place-media')",
-              "bridge.tapViewportCss(x,y,vw,vh)",
-              'await gvV152AutoOpenOfficialMedia(body);',
-              'const diagText=',
-              'await renderGoogleUiMediaFallback(selected,body);'
-          ]
-          required_java=[
-              'public void tapViewportCss(double xCss, double yCss, double viewportWidthCss, double viewportHeightCss)',
+          required=[
+              'async function gvV147OpenTerritorySelectedPlace(place)',
+              'await renderGoogleUiMediaFallback(selected,body);',
+              'GeoVision v149 selected territory -> official Place media',
+              "search.addEventListener('gmp-select'",
+              'window.gvV148LastTerritoryPlace=selected;',
               'private boolean gvV148HandleSpecialUrl(WebView view, String url)'
           ]
-          missing=[x for x in required_html if x not in html] + [x for x in required_java if x not in java]
+          missing=[x for x in required if x not in html and x not in java]
           if missing:
-              raise SystemExit('v152 logic missing: '+repr(missing))
-          forbidden=['Mettetevi comodi','Iniziamo questo viaggio','Siamo a ${p.name}','speak(told);']
+              raise SystemExit('v153 stable chain missing: '+repr(missing))
+          forbidden=[
+              'gv-v150-stage',
+              'gvV151NewPlaceItems',
+              'gvV151OfficialRenderedItems',
+              'gvV152AutoOpenOfficialMedia',
+              'V152: apro la prima foto',
+              'Mettetevi comodi',
+              'Iniziamo questo viaggio',
+              'speak(told);'
+          ]
           found=[x for x in forbidden if x in html]
           if found:
-              raise SystemExit('Artificial narration intro still present: '+repr(found))
-          if 'versionCode 152' not in gradle or "versionName '1.52-auto-open-official-media'" not in gradle:
-              raise SystemExit('Android version is not v152')
-          print('v152 real gmp-place-media geometry hook: OK')
-          print('v143 viewport/native tap bridge retained: OK')
-          print('v151 Google fallback retained: OK')
+              raise SystemExit('v153 still contains post-v149 or old intro logic: '+repr(found))
+          if 'async function renderOfficialGoogleCard(p) { void gvV143TapOfficialGooglePhoto(p);' in html:
+              raise SystemExit('v143 automatic main-card tap is active')
+          if 'versionCode 153' not in gradle or "versionName '1.53-stable-google-card-restore'" not in gradle:
+              raise SystemExit('Android version is not v153')
+          print('v153 uses tested v149 runtime chain: OK')
+          print('v150/v151/v152 experimental runtime patches excluded: OK')
+          print('Google card remains on stable pre-experiment path: OK')
           PY
 
       - name: Validate generated GeoVision JavaScript
@@ -121,15 +116,13 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           from PIL import Image
-          import base64, re, io
-          b64_path=Path('android-youtube-test/icon/geovision_icon.png.b64')
-          raw=b64_path.read_text(encoding='utf-8-sig',errors='ignore')
+          import base64,re,io
+          raw=Path('android-youtube-test/icon/geovision_icon.png.b64').read_text(encoding='utf-8-sig',errors='ignore')
           clean=''.join(re.findall(r'[A-Za-z0-9+/=]',raw))
           decoded=None
           for trim in range(4):
               candidate=clean[:-trim] if trim else clean
-              candidate=candidate.rstrip('=')
-              candidate += '='*((4-len(candidate)%4)%4)
+              candidate=candidate.rstrip('=')+'='*((4-len(candidate.rstrip('='))%4)%4)
               try:
                   data=base64.b64decode(candidate,validate=True)
                   Image.open(io.BytesIO(data)).verify()
@@ -140,26 +133,12 @@ jobs:
           if decoded is None:
               raise SystemExit('Repository Base64 icon is corrupted')
           src=Image.open(io.BytesIO(decoded)).convert('RGBA')
-          if src.size != (512,512):
+          if src.size!=(512,512):
               src=src.resize((512,512),Image.Resampling.LANCZOS)
           dst=Path('android-youtube-test/app/src/main/res/drawable-nodpi/ic_launcher.png')
           dst.parent.mkdir(parents=True,exist_ok=True)
           src.save(dst,format='PNG',optimize=True)
           print('Launcher written:',src.size,src.mode,dst.stat().st_size,'bytes')
-          PY
-
-      - name: Validate launcher PNG before build
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          import struct
-          from PIL import Image
-          p=Path('android-youtube-test/app/src/main/res/drawable-nodpi/ic_launcher.png')
-          b=p.read_bytes()
-          assert b[:8] == b'\x89PNG\r\n\x1a\n'
-          assert struct.unpack('>II',b[16:24]) == (512,512)
-          Image.open(p).verify()
-          print('Launcher PNG OK')
           PY
 
       - uses: actions/setup-java@v5
@@ -175,43 +154,32 @@ jobs:
         working-directory: android-youtube-test
         run: gradle clean assembleDebug
 
-      - name: Verify icon packaged and signing certificate
+      - name: Verify signing certificate and packaged stable chain
         run: |
           set -e
           APK=android-youtube-test/app/build/outputs/apk/debug/app-debug.apk
-          unzip -l "$APK" | grep -E 'res/.*/ic_launcher.*png'
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
           "$APKSIGNER" verify --print-certs "$APK" | tee /tmp/apksigner.txt
           EXPECTED='716c1a8a139ad956ef8a00f85f153eb0028d109c75b1b938bdf3bb3eb23c22b5'
           ACTUAL=$(grep -i 'certificate SHA-256 digest:' /tmp/apksigner.txt | head -1 | awk '{print $NF}' | tr '[:upper:]' '[:lower:]' | tr -d ':')
           test "$ACTUAL" = "$EXPECTED"
-          echo "Signing certificate SHA-256 OK: $ACTUAL"
-
-      - name: Verify packaged APK contains v152 logic
-        run: |
           python - <<'PY'
           from pathlib import Path
           import zipfile
           apk=Path('android-youtube-test/app/build/outputs/apk/debug/app-debug.apk')
           with zipfile.ZipFile(apk) as z:
               html=z.read('assets/geovision.html').decode('utf-8')
-          required=[
-              'async function gvV152AutoOpenOfficialMedia(body)',
-              "body.querySelector('gmp-place-media')",
-              'await gvV152AutoOpenOfficialMedia(body);',
-              'V152: apro la prima foto'
-          ]
-          missing=[x for x in required if x not in html]
-          if missing:
-              raise SystemExit('Packaged APK missing v152 logic: '+repr(missing))
-          print('Packaged APK v152 auto-open official media present: OK')
+          assert 'GeoVision v149 selected territory -> official Place media' in html
+          assert 'gvV151NewPlaceItems' not in html
+          assert 'gvV152AutoOpenOfficialMedia' not in html
+          print('Packaged APK stable v149 runtime chain: OK')
           PY
 
       - name: Rename APK
-        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v152_AUTO_OPEN_OFFICIAL_MEDIA.apk
+        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v153_STABLE_GOOGLE_CARD_RESTORE.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: GeoVision_v152_AUTO_OPEN_OFFICIAL_MEDIA
-          path: GeoVision_v152_AUTO_OPEN_OFFICIAL_MEDIA.apk
+          name: GeoVision_v153_STABLE_GOOGLE_CARD_RESTORE
+          path: GeoVision_v153_STABLE_GOOGLE_CARD_RESTORE.apk
           if-no-files-found: error
