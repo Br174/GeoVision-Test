@@ -2,7 +2,9 @@ package it.geovision.test;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -62,6 +64,7 @@ public class MainActivity extends Activity {
 
         initTts();
         webView.addJavascriptInterface(new NativeTtsBridge(), "GeoVisionTTS");
+        webView.addJavascriptInterface(new ExternalOpenBridge(), "GeoVisionExternal");
 
         final WebViewAssetLoader assetLoader =
                 new WebViewAssetLoader.Builder()
@@ -79,7 +82,7 @@ public class MainActivity extends Activity {
             @SuppressWarnings("deprecation")
             public android.webkit.WebResourceResponse shouldInterceptRequest(
                     WebView view, String url) {
-                return assetLoader.shouldInterceptRequest(android.net.Uri.parse(url));
+                return assetLoader.shouldInterceptRequest(Uri.parse(url));
             }
         });
 
@@ -190,6 +193,24 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public boolean isReady() {
             return ttsReady;
+        }
+    }
+
+    private class ExternalOpenBridge {
+        @JavascriptInterface
+        public void openUrl(String url) {
+            if (url == null || url.trim().isEmpty()) return;
+            main.post(() -> {
+                try {
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    intent.addCategory(Intent.CATEGORY_BROWSABLE);
+                    startActivity(intent);
+                } catch (Exception ignored) {
+                    try {
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+                    } catch (Exception ignoredAgain) {}
+                }
+            });
         }
     }
 
