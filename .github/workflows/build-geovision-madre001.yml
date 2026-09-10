@@ -1,0 +1,152 @@
+name: Build GeoVision MADRE 001 CORE STABILE
+
+on:
+  push:
+    branches:
+      - candidate/madre-001-v79-isolata
+    paths:
+      - 'android-youtube-test/madre001/**'
+      - '.github/workflows/build-geovision-madre001.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prepare stable signing keystore
+        run: |
+          base64 -d android-youtube-test/signing/geovision-debug-stable.keystore.b64 > android-youtube-test/signing/geovision-debug-stable.keystore
+          chmod 600 android-youtube-test/signing/geovision-debug-stable.keystore
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Restore clean v138 Android host and frozen Madre source
+        run: |
+          set -euo pipefail
+          HOST_SHA='a15e5192709be6dbafb0c5633e4d1ab9dd0cdd6b'
+          SOURCE_SHA='68dacd3854ff121bdab368c6f591a52d60a538b2e1a92a5545aadfe90ee45b33'
+
+          git show "$HOST_SHA:android-youtube-test/app/build.gradle" > android-youtube-test/app/build.gradle
+          git show "$HOST_SHA:android-youtube-test/app/src/main/AndroidManifest.xml" > android-youtube-test/app/src/main/AndroidManifest.xml
+          git show "$HOST_SHA:android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java" > android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java
+
+          base64 -d android-youtube-test/madre001/madre001_v79.html.gz.b64 | gzip -d > /tmp/GeoVision_MADRE_001_SOURCE.html
+          ACTUAL=$(sha256sum /tmp/GeoVision_MADRE_001_SOURCE.html | awk '{print $1}')
+          test "$ACTUAL" = "$SOURCE_SHA"
+          grep -q 'v79 SOLO GRAFICA' /tmp/GeoVision_MADRE_001_SOURCE.html
+          if grep -q 'v80 SOLO GRAFICA' /tmp/GeoVision_MADRE_001_SOURCE.html; then
+            echo 'ERROR: source contains later v80 patch'
+            exit 1
+          fi
+          cp /tmp/GeoVision_MADRE_001_SOURCE.html android-youtube-test/app/src/main/assets/geovision.html
+
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          g=Path('android-youtube-test/app/build.gradle')
+          s=g.read_text(encoding='utf-8')
+          s=re.sub(r"applicationId '[^']+'", "applicationId 'it.geovision.madre001'", s, count=1)
+          s=re.sub(r'versionCode\s+\d+', 'versionCode 1001', s, count=1)
+          s=re.sub(r"versionName '[^']+'", "versionName '1.0-madre-001-core-stabile'", s, count=1)
+          g.write_text(s,encoding='utf-8')
+
+          m=Path('android-youtube-test/app/src/main/AndroidManifest.xml')
+          x=m.read_text(encoding='utf-8')
+          x=re.sub(r'android:label="[^"]+"', 'android:label="GeoVision MADRE 001"', x, count=1)
+          m.write_text(x,encoding='utf-8')
+          PY
+
+          grep -q "applicationId 'it.geovision.madre001'" android-youtube-test/app/build.gradle
+          grep -q "versionCode 1001" android-youtube-test/app/build.gradle
+          grep -q 'android:label="GeoVision MADRE 001"' android-youtube-test/app/src/main/AndroidManifest.xml
+          grep -q 'System.currentTimeMillis()' android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java
+          grep -q 'geovision.html?gv=' android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java
+          echo "Frozen Madre source SHA256 OK: $ACTUAL"
+
+      - name: Validate JavaScript before build
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('android-youtube-test/app/src/main/assets/geovision.html')
+          s=p.read_text(encoding='utf-8')
+          blocks=re.findall(r'<script(?:\s+type="module")?[^>]*>([\s\S]*?)</script>',s)
+          Path('/tmp/geovision-check.js').write_text('\n'.join(blocks),encoding='utf-8')
+          print('HTML bytes:',p.stat().st_size,'script blocks:',len(blocks))
+          PY
+          node --check /tmp/geovision-check.js
+
+      - name: Build isolated Madre APK
+        working-directory: android-youtube-test
+        run: gradle clean assembleDebug
+
+      - name: Verify package signer and packaged HTML
+        run: |
+          set -euo pipefail
+          APK=android-youtube-test/app/build/outputs/apk/debug/app-debug.apk
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
+          AAPT=$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -V | tail -1)
+          "$APKSIGNER" verify --print-certs "$APK" | tee /tmp/apksigner.txt
+          EXPECTED_SIGNER='716c1a8a139ad956ef8a00f85f153eb0028d109c75b1b938bdf3bb3eb23c22b5'
+          ACTUAL_SIGNER=$(grep -i 'certificate SHA-256 digest:' /tmp/apksigner.txt | head -1 | awk '{print $NF}' | tr '[:upper:]' '[:lower:]' | tr -d ':')
+          test "$ACTUAL_SIGNER" = "$EXPECTED_SIGNER"
+
+          "$AAPT" dump badging "$APK" | tee /tmp/badging.txt
+          grep -q "package: name='it.geovision.madre001'" /tmp/badging.txt
+          grep -q "versionCode='1001'" /tmp/badging.txt
+          grep -q "application-label:'GeoVision MADRE 001'" /tmp/badging.txt
+
+          unzip -p "$APK" assets/geovision.html > /tmp/packaged.html
+          EXPECTED_SOURCE='68dacd3854ff121bdab368c6f591a52d60a538b2e1a92a5545aadfe90ee45b33'
+          ACTUAL_SOURCE=$(sha256sum /tmp/packaged.html | awk '{print $1}')
+          test "$ACTUAL_SOURCE" = "$EXPECTED_SOURCE"
+          echo "Package identity OK: it.geovision.madre001"
+          echo "Signer SHA256 OK: $ACTUAL_SIGNER"
+          echo "Packaged HTML SHA256 OK: $ACTUAL_SOURCE"
+
+      - name: Package Madre 001 delivery
+        run: |
+          set -euo pipefail
+          cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_MADRE_001_CORE_STABILE.apk
+          cp /tmp/GeoVision_MADRE_001_SOURCE.html GeoVision_MADRE_001_CORE_STABILE.html
+          APK_SHA=$(sha256sum GeoVision_MADRE_001_CORE_STABILE.apk | awk '{print $1}')
+          cat > MANIFEST_MADRE_001.txt <<EOF
+          GeoVision MADRE 001 CORE STABILE
+          Package Android isolato: it.geovision.madre001
+          Version code: 1001
+          Version name: 1.0-madre-001-core-stabile
+          Sorgente HTML SHA256: 68dacd3854ff121bdab368c6f591a52d60a538b2e1a92a5545aadfe90ee45b33
+          APK SHA256: $APK_SHA
+          Firma SHA256: 716c1a8a139ad956ef8a00f85f153eb0028d109c75b1b938bdf3bb3eb23c22b5
+          Host Android: v138 cache-bust pulito
+          Regola: questa Madre non deve essere usata come laboratorio. Ogni futura prova deve avere applicationId diverso.
+          EOF
+          zip -j GeoVision_MADRE_001_CORE_STABILE.zip \
+            GeoVision_MADRE_001_CORE_STABILE.apk \
+            GeoVision_MADRE_001_CORE_STABILE.html \
+            MANIFEST_MADRE_001.txt
+          sha256sum GeoVision_MADRE_001_CORE_STABILE.apk GeoVision_MADRE_001_CORE_STABILE.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GeoVision_MADRE_001_CORE_STABILE
+          path: |
+            GeoVision_MADRE_001_CORE_STABILE.apk
+            GeoVision_MADRE_001_CORE_STABILE.html
+            GeoVision_MADRE_001_CORE_STABILE.zip
+            MANIFEST_MADRE_001.txt
+          if-no-files-found: error
