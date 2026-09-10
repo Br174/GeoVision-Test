@@ -44,7 +44,7 @@ jobs:
           git show "$HOST_SHA:android-youtube-test/app/src/main/AndroidManifest.xml" > android-youtube-test/app/src/main/AndroidManifest.xml
           git show "$HOST_SHA:android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java" > android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java
 
-          base64 -d android-youtube-test/madre001/madre001_v79.html.gz.b64 | gzip -d > /tmp/GeoVision_MADRE_001_SOURCE.html
+          cat android-youtube-test/madre001/chunks/*.b64 | tr -d '\n\r ' | base64 -d | gzip -d > /tmp/GeoVision_MADRE_001_SOURCE.html
           ACTUAL=$(sha256sum /tmp/GeoVision_MADRE_001_SOURCE.html | awk '{print $1}')
           test "$ACTUAL" = "$SOURCE_SHA"
           grep -q 'v79 SOLO GRAFICA' /tmp/GeoVision_MADRE_001_SOURCE.html
