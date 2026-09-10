@@ -3,10 +3,11 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-
     <application
         android:allowBackup="true"
-        android:label="GeoVision YouTube Test"
+        android:label="GeoVision"
+        android:icon="@drawable/geovision_icon"
+        android:roundIcon="@drawable/geovision_icon"
         android:usesCleartextTraffic="true"
         android:theme="@style/AppTheme">
         <activity
