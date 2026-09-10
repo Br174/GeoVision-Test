@@ -1,4 +1,4 @@
-name: Build GeoVision v125 Stable Signing APK
+name: Build GeoVision v126 Stable Signing APK
 
 on:
   push:
@@ -42,10 +42,10 @@ jobs:
           "$APKSIGNER" verify --print-certs android-youtube-test/app/build/outputs/apk/debug/app-debug.apk
 
       - name: Rename APK
-        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v125_STABLE_SIGNING_BASE.apk
+        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v126_STABLE_SIGNING_BASE.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: GeoVision_v125_STABLE_SIGNING_BASE
-          path: GeoVision_v125_STABLE_SIGNING_BASE.apk
+          name: GeoVision_v126_STABLE_SIGNING_BASE
+          path: GeoVision_v126_STABLE_SIGNING_BASE.apk
           if-no-files-found: error
