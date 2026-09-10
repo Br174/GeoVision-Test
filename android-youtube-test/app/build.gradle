@@ -19,8 +19,8 @@ android {
         applicationId 'it.geovision.test'
         minSdk 23
         targetSdk 35
-        versionCode 147
-        versionName '1.47-territory-result-photos'
+        versionCode 148
+        versionName '1.48-territory-photo-intent-guard'
     }
 
     buildTypes {
