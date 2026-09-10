@@ -340,7 +340,10 @@ launchYouTubeInternal=async function(q){
     return true;
 };
 """
-s=s.replace("initGoogleMaps().catch(() => { });",v123_patch+"\ninitGoogleMaps().catch(() => { });",1)
+# v125: il raw string della patch v123 conservava i backslash davanti ai template literal JS.
+# In WebView questo produceva un errore di sintassi all'avvio e quindi la schermata vuota.
+v123_patch=v123_patch.replace(r'\\`','`').replace(r'\\\${','\${')
+s=s.replace("initGoogleMaps().catch(() => { });",v123_patch+"\\ninitGoogleMaps().catch(() => { });",1)
 
 assert 'maxResults=12' in s
 assert 'ytResultsGrid' in s
