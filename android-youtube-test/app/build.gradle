@@ -19,8 +19,8 @@ android {
         applicationId 'it.geovision.test'
         minSdk 23
         targetSdk 35
-        versionCode 146
-        versionName '1.46-ui-kit-photos-fullscreen'
+        versionCode 147
+        versionName '1.47-territory-result-photos'
     }
 
     buildTypes {
