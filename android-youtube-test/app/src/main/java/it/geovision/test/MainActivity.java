@@ -112,7 +112,12 @@ public class MainActivity extends Activity {
             }
         });
 
-        webView.loadUrl("https://appassets.androidplatform.net/assets/geovision.html");
+        // Il documento HTML è locale e leggero. Un parametro diverso a ogni avvio
+        // impedisce alla WebView di riutilizzare una vecchia copia dopo l'aggiornamento
+        // dell'APK, senza svuotare la cache delle risorse esterne.
+        String localPage = "https://appassets.androidplatform.net/assets/geovision.html?gv="
+                + System.currentTimeMillis();
+        webView.loadUrl(localPage);
     }
 
     private void initTts() {
