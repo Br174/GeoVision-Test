@@ -1,4 +1,4 @@
-name: Build GeoVision v123 Stable Update APK
+name: Build GeoVision v124 Stable Signing APK
 
 on:
   push:
@@ -25,25 +25,27 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Restore stable GeoVision debug signing key
-        uses: actions/cache@v4
-        with:
-          path: ~/.android/debug.keystore
-          key: geovision-android-debug-keystore-v1
+      - name: Install stable GeoVision test signing key
+        run: |
+          mkdir -p ~/.android
+          base64 -d android-youtube-test/signing/geovision-debug-stable.keystore.b64 > ~/.android/debug.keystore
+          chmod 600 ~/.android/debug.keystore
+          keytool -list -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey | grep "SHA256:"
 
       - name: Build debug APK
         working-directory: android-youtube-test
         run: gradle assembleDebug
 
-      - name: Verify signing certificate
+      - name: Verify APK signing certificate
         run: |
-          keytool -list -v -keystore ~/.android/debug.keystore -storepass android | grep -E "SHA256:|Alias name:" || true
+          APKSIGNER="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/apksigner"
+          "$APKSIGNER" verify --print-certs android-youtube-test/app/build/outputs/apk/debug/app-debug.apk | grep "Signer #1 certificate SHA-256 digest"
 
       - name: Rename APK
-        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v123_YOUTUBE_SEARCH_FULLSCREEN.apk
+        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v124_STABLE_SIGNING_BASE.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: GeoVision_v123_YOUTUBE_SEARCH_FULLSCREEN
-          path: GeoVision_v123_YOUTUBE_SEARCH_FULLSCREEN.apk
+          name: GeoVision_v124_STABLE_SIGNING_BASE
+          path: GeoVision_v124_STABLE_SIGNING_BASE.apk
           if-no-files-found: error
