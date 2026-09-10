@@ -1,4 +1,4 @@
-name: Build GeoVision v134 Verified Original Icon APK
+name: Build GeoVision v135 Verified Binary Icon APK
 
 on:
   push:
@@ -34,35 +34,33 @@ jobs:
           PY
           node --check /tmp/geovision-check.js
 
-      - name: Convert original launcher image to true PNG
-        run: |
-          python -m pip install --disable-pip-version-check --quiet pillow
-          python - <<'PY'
-          from PIL import Image
-          from pathlib import Path
-          p=Path('android-youtube-test/app/src/main/res/drawable-nodpi/ic_launcher.png')
-          im=Image.open(p)
-          print('Source detected as:', im.format, im.size, im.mode)
-          im=im.convert('RGBA')
-          im.save(p, format='PNG', optimize=True)
-          print('Converted to PNG:', im.size, im.mode)
-          PY
-
-      - name: Validate launcher PNG
+      - name: Validate committed launcher PNG byte-for-byte
         run: |
           python - <<'PY'
           from pathlib import Path
-          import struct
-          from PIL import Image
+          import hashlib, struct, zlib
           p=Path('android-youtube-test/app/src/main/res/drawable-nodpi/ic_launcher.png')
           b=p.read_bytes()
+          expected='c1025efdcb809b84586b6fd4bc33419069b9d408fcf870d2648ff2cbbac4b33e'
+          got=hashlib.sha256(b).hexdigest()
+          assert got == expected, f'SHA256 mismatch: {got}'
           assert b[:8] == b'\x89PNG\r\n\x1a\n', 'Launcher icon is not a valid PNG'
           assert b[12:16] == b'IHDR', 'PNG missing IHDR'
           w,h=struct.unpack('>II',b[16:24])
-          assert w == h and w >= 512, f'Unexpected launcher dimensions: {w}x{h}'
-          im=Image.open(p)
-          im.verify()
-          print('Launcher PNG OK:',w,h,len(b),'bytes')
+          assert (w,h)==(96,96), f'Unexpected dimensions: {w}x{h}'
+          pos=8
+          while pos < len(b):
+              ln=struct.unpack('>I',b[pos:pos+4])[0]
+              typ=b[pos+4:pos+8]
+              dat=b[pos+8:pos+8+ln]
+              crc_read=struct.unpack('>I',b[pos+8+ln:pos+12+ln])[0]
+              crc_calc=zlib.crc32(typ)
+              crc_calc=zlib.crc32(dat,crc_calc) & 0xffffffff
+              assert crc_read == crc_calc, f'Bad CRC in {typ!r}'
+              pos += 12 + ln
+              if typ == b'IEND': break
+          assert pos == len(b), 'Trailing or missing PNG data'
+          print('Launcher PNG VERIFIED:',w,h,len(b),'bytes SHA256',got)
           PY
 
       - uses: actions/setup-java@v5
@@ -78,20 +76,27 @@ jobs:
         working-directory: android-youtube-test
         run: gradle clean assembleDebug
 
-      - name: Verify icon packaged and signing certificate
+      - name: Verify packaged icon and signing certificate
         run: |
           set -e
           APK=android-youtube-test/app/build/outputs/apk/debug/app-debug.apk
           unzip -l "$APK" | grep -E 'res/.*/ic_launcher.*png'
+          mkdir -p /tmp/apkcheck
+          cd /tmp/apkcheck
+          unzip -p "$GITHUB_WORKSPACE/$APK" res/drawable-nodpi-v4/ic_launcher.png > ic_launcher.png || unzip -p "$GITHUB_WORKSPACE/$APK" res/drawable-nodpi/ic_launcher.png > ic_launcher.png
+          test -s ic_launcher.png
+          sha256sum ic_launcher.png
+          test "$(sha256sum ic_launcher.png | awk '{print $1}')" = "c1025efdcb809b84586b6fd4bc33419069b9d408fcf870d2648ff2cbbac4b33e"
+          cd "$GITHUB_WORKSPACE"
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
           "$APKSIGNER" verify --print-certs "$APK" | tee /tmp/apksigner.txt
           grep -qi '71:6C:1A:8A:13:9A:D9:56:EF:8A:00:F8:5F:15:3E:B0:02:8D:10:9C:75:B1:B9:38:BD:F3:BB:3E:B2:3C:22:B5' /tmp/apksigner.txt
 
       - name: Rename APK
-        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v134_VERIFIED_ORIGINAL_ICON.apk
+        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v135_VERIFIED_BINARY_ICON.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: GeoVision_v134_VERIFIED_ORIGINAL_ICON
-          path: GeoVision_v134_VERIFIED_ORIGINAL_ICON.apk
+          name: GeoVision_v135_VERIFIED_BINARY_ICON
+          path: GeoVision_v135_VERIFIED_BINARY_ICON.apk
           if-no-files-found: error
