@@ -1,4 +1,4 @@
-name: Build GeoVision v132 Verified PNG Launcher Icon APK
+name: Build GeoVision v133 Valid PNG Launcher APK
 
 on:
   push:
@@ -34,30 +34,19 @@ jobs:
           PY
           node --check /tmp/geovision-check.js
 
-      - name: Validate launcher icon sources
+      - name: Validate launcher PNG without external libraries
         run: |
-          set -e
-          file android-youtube-test/app/src/main/res/mipmap-*/ic_launcher.png
           python - <<'PY'
-          from PIL import Image
           from pathlib import Path
-          paths=sorted(Path('android-youtube-test/app/src/main/res').glob('mipmap-*/ic_launcher.png'))
-          assert paths, 'No PNG launcher icons found'
-          expected={
-            'mipmap-mdpi':48,
-            'mipmap-hdpi':72,
-            'mipmap-xhdpi':96,
-            'mipmap-xxhdpi':144,
-            'mipmap-xxxhdpi':192,
-          }
-          for p in paths:
-            im=Image.open(p)
-            im.verify()
-            im=Image.open(p)
-            side=expected.get(p.parent.name)
-            if side:
-              assert im.size==(side,side), f'{p}: expected {(side,side)}, got {im.size}'
-            print(p, im.size, im.mode)
+          import struct
+          p=Path('android-youtube-test/app/src/main/res/drawable-nodpi/ic_launcher.png')
+          b=p.read_bytes()
+          assert b[:8] == b'\x89PNG\r\n\x1a\n', 'Launcher icon is not a valid PNG'
+          assert b[12:16] == b'IHDR', 'PNG missing IHDR'
+          w,h=struct.unpack('>II',b[16:24])
+          assert (w,h)==(192,192), f'Expected 192x192 PNG, got {w}x{h}'
+          assert len(b) > 1000, 'Launcher PNG is unexpectedly small'
+          print('Launcher PNG OK:',w,h,len(b),'bytes')
           PY
 
       - uses: actions/setup-java@v5
@@ -73,19 +62,20 @@ jobs:
         working-directory: android-youtube-test
         run: gradle clean assembleDebug
 
-      - name: Verify packaged launcher icons and signing
+      - name: Verify icon packaged and signing certificate
         run: |
           set -e
           APK=android-youtube-test/app/build/outputs/apk/debug/app-debug.apk
-          unzip -l "$APK" | grep 'res/mipmap.*ic_launcher.*png'
-          apksigner verify --print-certs "$APK" | tee /tmp/apksigner.txt
+          unzip -l "$APK" | grep -E 'res/.*/ic_launcher.*png'
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
+          "$APKSIGNER" verify --print-certs "$APK" | tee /tmp/apksigner.txt
           grep -qi '71:6C:1A:8A:13:9A:D9:56:EF:8A:00:F8:5F:15:3E:B0:02:8D:10:9C:75:B1:B9:38:BD:F3:BB:3E:B2:3C:22:B5' /tmp/apksigner.txt
 
       - name: Rename APK
-        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v132_VERIFIED_PNG_ICON.apk
+        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v133_VALID_PNG_LAUNCHER.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: GeoVision_v132_VERIFIED_PNG_ICON
-          path: GeoVision_v132_VERIFIED_PNG_ICON.apk
+          name: GeoVision_v133_VALID_PNG_LAUNCHER
+          path: GeoVision_v133_VALID_PNG_LAUNCHER.apk
           if-no-files-found: error
