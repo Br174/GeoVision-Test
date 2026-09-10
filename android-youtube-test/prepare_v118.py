@@ -342,7 +342,7 @@ launchYouTubeInternal=async function(q){
 """
 # v125: il raw string della patch v123 conservava i backslash davanti ai template literal JS.
 # In WebView questo produceva un errore di sintassi all'avvio e quindi la schermata vuota.
-v123_patch=v123_patch.replace(r'\\`','`').replace(r'\\\${','\${')
+v123_patch=v123_patch.replace('\\\\`','`').replace('\\\\${','${')
 s=s.replace("initGoogleMaps().catch(() => { });",v123_patch+"\\ninitGoogleMaps().catch(() => { });",1)
 
 assert 'maxResults=12' in s
@@ -355,4 +355,4 @@ assert 'x.com/search' not in s
 assert 'speak(quick, false)' in s
 assert 'window.GeoVisionTTS' in s
 dst.write_text(s,encoding="utf-8")
-print("Prepared v121 Android",dst,len(s))
+print("Prepared v126 Android",dst,len(s))
