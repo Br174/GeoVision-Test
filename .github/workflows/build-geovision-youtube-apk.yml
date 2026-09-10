@@ -13,18 +13,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Prepare GeoVision HTML for Android HTTPS WebView
-        shell: python
-        run: |
-          from pathlib import Path
-          src=Path("GeoVision_Nova_v114_AI_RAPIDA_APPROFONDIMENTO.html")
-          dst=Path("android-youtube-test/app/src/main/assets/geovision.html")
-          dst.parent.mkdir(parents=True,exist_ok=True)
-          s=src.read_text(encoding="utf-8")
-          if '<meta name="referrer"' not in s:
-              s=s.replace('<meta name="viewport"', '<meta name="referrer" content="strict-origin-when-cross-origin">\n<meta name="viewport"', 1)
-          dst.write_text(s,encoding="utf-8")
-          print("Prepared",dst,len(s))
+      - name: Prepare GeoVision v118 HTML
+        run: python android-youtube-test/prepare_v118.py
 
       - uses: actions/setup-java@v4
         with:
@@ -40,10 +30,10 @@ jobs:
         run: gradle assembleDebug
 
       - name: Rename APK
-        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v117_YouTube_Test.apk
+        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v118_YouTube_TTS_Test.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: GeoVision_v117_YouTube_Test
-          path: GeoVision_v117_YouTube_Test.apk
+          name: GeoVision_v118_YouTube_TTS_Test
+          path: GeoVision_v118_YouTube_TTS_Test.apk
           if-no-files-found: error
