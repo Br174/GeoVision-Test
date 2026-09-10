@@ -5,8 +5,9 @@ s=p.read_text(encoding='utf-8')
 
 # v144: non tenta più di aprire la lightbox Google con eventi sintetici.
 # Apre invece un fullscreen separato: prima prova le Photo ufficiali del Place,
-# con swipe/frecce e attribuzione; se l'API foto non è disponibile, usa direttamente
-# gmp-place-media ufficiale di Places UI Kit come fallback. La scheda originale resta intatta.
+# usando tutte quelle restituite da Google, con swipe/frecce e attribuzione; se il canale
+# foto non è disponibile, usa direttamente gmp-place-media ufficiale di Places UI Kit.
+# La scheda originale resta intatta.
 
 old='async function renderOfficialGoogleCard(p) { void gvV143TapOfficialGooglePhoto(p);'
 new='async function renderOfficialGoogleCard(p) { void gvV144AutoOpenOfficialMedia(p);'
@@ -36,7 +37,7 @@ async function gvV144FetchPlacePhotos(p){
     const place=new P({id:p.placeId});
     await place.fetchFields({fields:['displayName','photos']});
     const out=[];
-    for(const ph of Array.isArray(place.photos)?place.photos.slice(0,10):[]){
+    for(const ph of Array.isArray(place.photos)?place.photos:[]){
         try{
             const url=clean(ph.getURI({maxWidth:1600,maxHeight:1600})||'');
             if(!url) continue;
@@ -150,7 +151,7 @@ async function gvV144AutoOpenOfficialMedia(p){
     const fallbackPromise=gvV144RenderUiKitPhoto(p,token);
 
     // In parallelo proviamo il canale Photo ufficiale. Se disponibile, passiamo a un viewer
-    // scorrevole con fino a 10 immagini e attribuzione autore.
+    // scorrevole usando tutte le immagini che Google restituisce per il Place.
     try{
         const photos=await Promise.race([
             gvV144FetchPlacePhotos(p),
