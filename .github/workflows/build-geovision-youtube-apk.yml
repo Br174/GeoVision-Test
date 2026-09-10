@@ -1,4 +1,4 @@
-name: Build GeoVision v151 Photo Extraction Bridge APK
+name: Build GeoVision v152 Auto Open Official Media APK
 
 on:
   push:
@@ -66,7 +66,10 @@ jobs:
       - name: Harden v151 diagnostics and rendered-photo filter
         run: python android-youtube-test/patch_v151_hardening.py
 
-      - name: Assert v151 extraction routes and fallback
+      - name: Apply v152 auto-open official media photo
+        run: python android-youtube-test/patch_v152_auto_open_official_media.py
+
+      - name: Assert v152 official media auto-open routing
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -74,43 +77,29 @@ jobs:
           java=Path('android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java').read_text(encoding='utf-8')
           gradle=Path('android-youtube-test/app/build.gradle').read_text(encoding='utf-8')
           required_html=[
-              'function gvV151UniquePush(items,url,attrs=[],source=',
-              'async function gvV151NewPlaceItems(id,place)',
-              'async function gvV151LegacyItems(id)',
-              "svc.getDetails({placeId:id,fields:['name','photos']}",
-              'function gvV151CollectRendered(root)',
-              "details.addEventListener('gmp-load'",
-              'const loaded=new Promise((resolve,reject)=>{',
-              'function gvV151RenderOwned(name,items)',
+              'async function gvV152AutoOpenOfficialMedia(body)',
+              "body.querySelector('gmp-place-media')",
+              "bridge.tapViewportCss(x,y,vw,vh)",
+              'await gvV152AutoOpenOfficialMedia(body);',
               'const diagText=',
-              'count.textContent=diagText;',
-              "GeoVision v151 proprietary viewer source=new",
-              "GeoVision v151 proprietary viewer source=legacy",
-              "GeoVision v151 proprietary viewer source=rendered",
-              'await renderGoogleUiMediaFallback(selected,body);',
-              "search.addEventListener('gmp-select'",
-              'window.gvV148LastTerritoryPlace=selected;'
+              'await renderGoogleUiMediaFallback(selected,body);'
           ]
           required_java=[
-              'private boolean gvV148HandleSpecialUrl(WebView view, String url)',
-              'public boolean shouldOverrideUrlLoading('
+              'public void tapViewportCss(double xCss, double yCss, double viewportWidthCss, double viewportHeightCss)',
+              'private boolean gvV148HandleSpecialUrl(WebView view, String url)'
           ]
           missing=[x for x in required_html if x not in html] + [x for x in required_java if x not in java]
           if missing:
-              raise SystemExit('v151 logic missing: '+repr(missing))
+              raise SystemExit('v152 logic missing: '+repr(missing))
           forbidden=['Mettetevi comodi','Iniziamo questo viaggio','Siamo a ${p.name}','speak(told);']
           found=[x for x in forbidden if x in html]
           if found:
               raise SystemExit('Artificial narration intro still present: '+repr(found))
-          if 'async function renderOfficialGoogleCard(p) { void gvV143TapOfficialGooglePhoto(p);' in html:
-              raise SystemExit('v143 automatic native tap is still active')
-          if 'versionCode 151' not in gradle or "versionName '1.51-photo-extraction-bridge'" not in gradle:
-              raise SystemExit('Android version is not v151')
-          print('v151 new Place photo route present: OK')
-          print('v151 legacy PlacesService photo route present: OK')
-          print('v151 rendered UI Kit extraction route present: OK')
-          print('v151 persistent fallback diagnostics present: OK')
-          print('v149 official Google media fallback retained: OK')
+          if 'versionCode 152' not in gradle or "versionName '1.52-auto-open-official-media'" not in gradle:
+              raise SystemExit('Android version is not v152')
+          print('v152 real gmp-place-media geometry hook: OK')
+          print('v143 viewport/native tap bridge retained: OK')
+          print('v151 Google fallback retained: OK')
           PY
 
       - name: Validate generated GeoVision JavaScript
@@ -198,7 +187,7 @@ jobs:
           test "$ACTUAL" = "$EXPECTED"
           echo "Signing certificate SHA-256 OK: $ACTUAL"
 
-      - name: Verify packaged APK contains v151 logic
+      - name: Verify packaged APK contains v152 logic
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -207,25 +196,22 @@ jobs:
           with zipfile.ZipFile(apk) as z:
               html=z.read('assets/geovision.html').decode('utf-8')
           required=[
-              'async function gvV151NewPlaceItems(id,place)',
-              'async function gvV151LegacyItems(id)',
-              'function gvV151CollectRendered(root)',
-              'function gvV151RenderOwned(name,items)',
-              'const diagText=',
-              'count.textContent=diagText;',
-              'await renderGoogleUiMediaFallback(selected,body);'
+              'async function gvV152AutoOpenOfficialMedia(body)',
+              "body.querySelector('gmp-place-media')",
+              'await gvV152AutoOpenOfficialMedia(body);',
+              'V152: apro la prima foto'
           ]
           missing=[x for x in required if x not in html]
           if missing:
-              raise SystemExit('Packaged APK missing v151 logic: '+repr(missing))
-          print('Packaged APK v151 extraction bridge + hardening present: OK')
+              raise SystemExit('Packaged APK missing v152 logic: '+repr(missing))
+          print('Packaged APK v152 auto-open official media present: OK')
           PY
 
       - name: Rename APK
-        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v151_PHOTO_EXTRACTION_BRIDGE.apk
+        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v152_AUTO_OPEN_OFFICIAL_MEDIA.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: GeoVision_v151_PHOTO_EXTRACTION_BRIDGE
-          path: GeoVision_v151_PHOTO_EXTRACTION_BRIDGE.apk
+          name: GeoVision_v152_AUTO_OPEN_OFFICIAL_MEDIA
+          path: GeoVision_v152_AUTO_OPEN_OFFICIAL_MEDIA.apk
           if-no-files-found: error
