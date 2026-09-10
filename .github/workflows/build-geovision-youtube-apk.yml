@@ -1,4 +1,4 @@
-name: Build GeoVision v122 Stable Update APK
+name: Build GeoVision v123 Stable Update APK
 
 on:
   push:
@@ -40,10 +40,10 @@ jobs:
           keytool -list -v -keystore ~/.android/debug.keystore -storepass android | grep -E "SHA256:|Alias name:" || true
 
       - name: Rename APK
-        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v122_STABLE_UPDATE.apk
+        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v123_YOUTUBE_SEARCH_FULLSCREEN.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: GeoVision_v122_STABLE_UPDATE
-          path: GeoVision_v122_STABLE_UPDATE.apk
+          name: GeoVision_v123_YOUTUBE_SEARCH_FULLSCREEN
+          path: GeoVision_v123_YOUTUBE_SEARCH_FULLSCREEN.apk
           if-no-files-found: error
