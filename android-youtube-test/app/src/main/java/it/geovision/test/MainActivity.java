@@ -6,8 +6,11 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
+import android.view.InputDevice;
+import android.view.MotionEvent;
 import android.webkit.ConsoleMessage;
 import android.webkit.GeolocationPermissions;
 import android.webkit.JavascriptInterface;
@@ -63,6 +66,7 @@ public class MainActivity extends Activity {
 
         initTts();
         webView.addJavascriptInterface(new NativeTtsBridge(), "GeoVisionTTS");
+        webView.addJavascriptInterface(new NativeUiBridge(), "GeoVisionNativeUI");
 
         final WebViewAssetLoader assetLoader =
                 new WebViewAssetLoader.Builder()
@@ -182,6 +186,38 @@ public class MainActivity extends Activity {
             if (tts != null) tts.stop();
             notifyTtsState("done");
         });
+    }
+
+    private void dispatchNativeTap(float x, float y) {
+        if (webView == null) return;
+        long downTime = SystemClock.uptimeMillis();
+        MotionEvent down = MotionEvent.obtain(
+                downTime, downTime, MotionEvent.ACTION_DOWN, x, y, 0);
+        down.setSource(InputDevice.SOURCE_TOUCHSCREEN);
+        webView.dispatchTouchEvent(down);
+        down.recycle();
+
+        main.postDelayed(() -> {
+            if (webView == null) return;
+            long eventTime = SystemClock.uptimeMillis();
+            MotionEvent up = MotionEvent.obtain(
+                    downTime, eventTime, MotionEvent.ACTION_UP, x, y, 0);
+            up.setSource(InputDevice.SOURCE_TOUCHSCREEN);
+            webView.dispatchTouchEvent(up);
+            up.recycle();
+            android.util.Log.i("GeoVisionUI", "Native photo tap dispatched at " + x + "," + y);
+        }, 70);
+    }
+
+    private class NativeUiBridge {
+        @JavascriptInterface
+        public void tapAtCss(double xCss, double yCss, double devicePixelRatio) {
+            double ratio = devicePixelRatio;
+            if (!Double.isFinite(ratio) || ratio < 0.5 || ratio > 6.0) ratio = 1.0;
+            final float x = (float) (xCss * ratio);
+            final float y = (float) (yCss * ratio);
+            main.post(() -> dispatchNativeTap(x, y));
+        }
     }
 
     private class NativeTtsBridge {
