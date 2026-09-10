@@ -15,6 +15,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.webkit.GeolocationPermissions;
+import android.webkit.ConsoleMessage;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
+import android.widget.TextView;
+import android.graphics.Color;
 import android.webkit.JavascriptInterface;
 import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
@@ -94,6 +99,10 @@ public class MainActivity extends Activity {
         });
 
         webView.setWebChromeClient(new WebChromeClient() {
+            @Override public boolean onConsoleMessage(ConsoleMessage cm) {
+                android.util.Log.e("GeoVisionJS", cm.message()+" @"+cm.lineNumber()+" "+cm.sourceId());
+                return true;
+            }
             @Override
             public void onGeolocationPermissionsShowPrompt(
                     String origin, GeolocationPermissions.Callback callback) {
