@@ -19,8 +19,8 @@ android {
         applicationId 'it.geovision.test'
         minSdk 23
         targetSdk 35
-        versionCode 130
-        versionName '1.30-full-official-logo'
+        versionCode 131
+        versionName '1.31-mipmap-official-icon'
     }
 
     buildTypes {
