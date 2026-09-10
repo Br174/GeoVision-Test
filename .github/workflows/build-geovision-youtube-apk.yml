@@ -63,6 +63,9 @@ jobs:
       - name: Apply v151 multi-source photo extraction bridge
         run: python android-youtube-test/patch_v151_photo_extraction_bridge.py
 
+      - name: Harden v151 diagnostics and rendered-photo filter
+        run: python android-youtube-test/patch_v151_hardening.py
+
       - name: Assert v151 extraction routes and fallback
         run: |
           python - <<'PY'
@@ -77,7 +80,10 @@ jobs:
               "svc.getDetails({placeId:id,fields:['name','photos']}",
               'function gvV151CollectRendered(root)',
               "details.addEventListener('gmp-load'",
+              'const loaded=new Promise((resolve,reject)=>{',
               'function gvV151RenderOwned(name,items)',
+              'const diagText=',
+              'count.textContent=diagText;',
               "GeoVision v151 proprietary viewer source=new",
               "GeoVision v151 proprietary viewer source=legacy",
               "GeoVision v151 proprietary viewer source=rendered",
@@ -103,6 +109,7 @@ jobs:
           print('v151 new Place photo route present: OK')
           print('v151 legacy PlacesService photo route present: OK')
           print('v151 rendered UI Kit extraction route present: OK')
+          print('v151 persistent fallback diagnostics present: OK')
           print('v149 official Google media fallback retained: OK')
           PY
 
@@ -204,13 +211,14 @@ jobs:
               'async function gvV151LegacyItems(id)',
               'function gvV151CollectRendered(root)',
               'function gvV151RenderOwned(name,items)',
-              'Google fallback · ',
+              'const diagText=',
+              'count.textContent=diagText;',
               'await renderGoogleUiMediaFallback(selected,body);'
           ]
           missing=[x for x in required if x not in html]
           if missing:
               raise SystemExit('Packaged APK missing v151 logic: '+repr(missing))
-          print('Packaged APK v151 extraction bridge present: OK')
+          print('Packaged APK v151 extraction bridge + hardening present: OK')
           PY
 
       - name: Rename APK
