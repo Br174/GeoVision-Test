@@ -1,4 +1,4 @@
-name: Build GeoVision v126 Stable Signing APK
+name: Build GeoVision v127 Stable Update APK
 
 on:
   push:
@@ -13,8 +13,32 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Prepare stable signing keystore
+        run: |
+          base64 -d android-youtube-test/signing/geovision-debug-stable.keystore.b64 > android-youtube-test/signing/geovision-debug-stable.keystore
+          chmod 600 android-youtube-test/signing/geovision-debug-stable.keystore
+          KEY_FP=$(keytool -list -v -keystore android-youtube-test/signing/geovision-debug-stable.keystore -storepass android -alias androiddebugkey | sed -n 's/.*SHA256: //p' | tr -d ':' | tr '[:upper:]' '[:lower:]')
+          echo "KEY_FP=$KEY_FP" >> "$GITHUB_ENV"
+          test "$KEY_FP" = "716c1a8a139ad956ef8a00f85f153eb0028d109c75b1b938bdf3bb3eb23c22b5"
+
       - name: Prepare GeoVision Android HTML
         run: python android-youtube-test/prepare_v118.py
+
+      - name: Validate generated GeoVision JavaScript
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path("android-youtube-test/app/src/main/assets/geovision.html")
+          s=p.read_text(encoding="utf-8")
+          if "\\`" in s or "\\${" in s:
+              raise SystemExit("Escaped template literal regression found")
+          blocks=re.findall(r'<script(?:\s+type="module")?[^>]*>([\s\S]*?)</script>',s)
+          out=Path("/tmp/geovision-check.js")
+          out.write_text("\n".join(blocks),encoding="utf-8")
+          print("HTML bytes:",p.stat().st_size,"script blocks:",len(blocks))
+          PY
+          node --check /tmp/geovision-check.js
 
       - uses: actions/setup-java@v4
         with:
@@ -25,27 +49,26 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Install stable GeoVision test signing key
-        run: |
-          mkdir -p ~/.android
-          base64 -d android-youtube-test/signing/geovision-debug-stable.keystore.b64 > ~/.android/debug.keystore
-          chmod 600 ~/.android/debug.keystore
-          keytool -list -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey | grep "SHA256:"
-
-      - name: Build debug APK
+      - name: Build debug APK with explicit stable signing
         working-directory: android-youtube-test
-        run: gradle assembleDebug
+        run: gradle clean assembleDebug
 
-      - name: Verify APK signing certificate
+      - name: Verify APK uses exact stable certificate
         run: |
           APKSIGNER="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/apksigner"
-          "$APKSIGNER" verify --print-certs android-youtube-test/app/build/outputs/apk/debug/app-debug.apk
+          APK="android-youtube-test/app/build/outputs/apk/debug/app-debug.apk"
+          "$APKSIGNER" verify --print-certs "$APK"
+          APK_FP=$("$APKSIGNER" verify --print-certs "$APK" | sed -n 's/Signer #1 certificate SHA-256 digest: //p' | head -1 | tr -d ':' | tr '[:upper:]' '[:lower:]')
+          echo "Keystore certificate: $KEY_FP"
+          echo "APK certificate:      $APK_FP"
+          test -n "$APK_FP"
+          test "$APK_FP" = "$KEY_FP"
 
       - name: Rename APK
-        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v126_STABLE_SIGNING_BASE.apk
+        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v127_STABLE_UPDATE.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: GeoVision_v126_STABLE_SIGNING_BASE
-          path: GeoVision_v126_STABLE_SIGNING_BASE.apk
+          name: GeoVision_v127_STABLE_UPDATE
+          path: GeoVision_v127_STABLE_UPDATE.apk
           if-no-files-found: error
