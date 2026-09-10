@@ -1,4 +1,4 @@
-name: Build GeoVision v121 Android APK
+name: Build GeoVision v122 Stable Update APK
 
 on:
   push:
@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Prepare GeoVision v121 HTML
+      - name: Prepare GeoVision Android HTML
         run: python android-youtube-test/prepare_v118.py
 
       - uses: actions/setup-java@v4
@@ -25,15 +25,25 @@ jobs:
         with:
           gradle-version: '8.9'
 
+      - name: Restore stable GeoVision debug signing key
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: geovision-android-debug-keystore-v1
+
       - name: Build debug APK
         working-directory: android-youtube-test
         run: gradle assembleDebug
 
+      - name: Verify signing certificate
+        run: |
+          keytool -list -v -keystore ~/.android/debug.keystore -storepass android | grep -E "SHA256:|Alias name:" || true
+
       - name: Rename APK
-        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v121_YouTube_Inline_AI_TTS_Social.apk
+        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v122_STABLE_UPDATE.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: GeoVision_v121_YouTube_Inline_AI_TTS_Social
-          path: GeoVision_v121_YouTube_Inline_AI_TTS_Social.apk
+          name: GeoVision_v122_STABLE_UPDATE
+          path: GeoVision_v122_STABLE_UPDATE.apk
           if-no-files-found: error
