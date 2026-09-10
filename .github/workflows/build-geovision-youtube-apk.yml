@@ -1,4 +1,4 @@
-name: Build GeoVision v144 Photo Folder Fullscreen APK
+name: Build GeoVision v145 Flatten Photo Groups APK
 
 on:
   push:
@@ -45,7 +45,10 @@ jobs:
       - name: Apply v144 existing Google photo folder fullscreen
         run: python android-youtube-test/patch_v144_official_media_fullscreen.py
 
-      - name: Assert v144 photo folder is active and v143 auto tap is disabled
+      - name: Apply v145 flattened Google photo groups
+        run: python android-youtube-test/patch_v145_flatten_photo_groups.py
+
+      - name: Assert v145 flattened photo groups and both controls
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -56,28 +59,26 @@ jobs:
           if found:
               raise SystemExit('Artificial narration intro still present: '+repr(found))
           required=[
-              'function gvV144OpenExistingPhotoFolder()',
+              'function gvV145OpenFlattenedGroupGallery()',
+              'async function gvV145CollectGroupPhotos(p)',
+              "await detail.fetchFields({fields:['displayName','photos']});",
+              'gvV145AddPhotoUrl(out,ph,60)',
+              "gvV144PhotoButton.onclick=()=>void gvV145OpenFlattenedGroupGallery();",
+              'const gvV145ImagesMenuButton=document.querySelector',
+              'void gvV145OpenFlattenedGroupGallery();',
               'function gvV144RenderPhotoFolder(p,urls)',
-              'urls=await googleGalleryPhotos(p);',
-              '#sheetPhotosVisual{pointer-events:auto!important;cursor:pointer!important;}',
-              "gvV144PhotoButton.onclick=()=>void gvV144OpenExistingPhotoFolder();",
-              'gv-v144-fullscreen',
-              'gvV144FolderPrev',
-              'gvV144FolderNext',
-              'gvV144FolderCounter'
+              '#sheetPhotosVisual{pointer-events:auto!important;cursor:pointer!important;}'
           ]
           missing=[x for x in required if x not in html]
           if missing:
-              raise SystemExit('v144 photo folder logic missing: '+repr(missing))
+              raise SystemExit('v145 photo group logic missing: '+repr(missing))
           if 'async function renderOfficialGoogleCard(p) { void gvV143TapOfficialGooglePhoto(p);' in html:
               raise SystemExit('v143 automatic native tap is still active')
-          if 'async function renderOfficialGoogleCard(p) { void gvV144AutoOpenOfficialMedia(p);' in html:
-              raise SystemExit('old v144 auto-open draft is active')
-          if 'versionCode 144' not in gradle:
-              raise SystemExit('Android versionCode is not 144')
-          print('v144 existing Photo button active: OK')
-          print('v144 fullscreen swipe viewer present: OK')
-          print('v144 reuses googleGalleryPhotos channel: OK')
+          if 'versionCode 145' not in gradle:
+              raise SystemExit('Android versionCode is not 145')
+          print('v145 group -> place details -> photos flow present: OK')
+          print('v145 round Photo button route: OK')
+          print('v145 Images menu route: OK')
           print('v143 automatic tap disabled: OK')
           PY
 
@@ -167,7 +168,7 @@ jobs:
           test "$ACTUAL" = "$EXPECTED"
           echo "Signing certificate SHA-256 OK: $ACTUAL"
 
-      - name: Verify packaged APK contains v144 photo folder
+      - name: Verify packaged APK contains v145 photo groups
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -176,25 +177,27 @@ jobs:
           with zipfile.ZipFile(apk) as z:
               html=z.read('assets/geovision.html').decode('utf-8')
           required=[
-              'function gvV144OpenExistingPhotoFolder()',
-              'function gvV144RenderPhotoFolder(p,urls)',
-              "gvV144PhotoButton.onclick=()=>void gvV144OpenExistingPhotoFolder();",
+              'function gvV145OpenFlattenedGroupGallery()',
+              'async function gvV145CollectGroupPhotos(p)',
+              "await detail.fetchFields({fields:['displayName','photos']});",
+              "gvV144PhotoButton.onclick=()=>void gvV145OpenFlattenedGroupGallery();",
+              'gvV145ImagesMenuButton',
               'gvV144FolderImage',
               'gvV144FolderCounter'
           ]
           missing=[x for x in required if x not in html]
           if missing:
-              raise SystemExit('Packaged APK missing v144 photo folder logic: '+repr(missing))
+              raise SystemExit('Packaged APK missing v145 logic: '+repr(missing))
           if 'async function renderOfficialGoogleCard(p) { void gvV143TapOfficialGooglePhoto(p);' in html:
               raise SystemExit('Packaged APK still has active v143 auto tap')
-          print('Packaged APK v144 photo folder logic present: OK')
+          print('Packaged APK v145 flattened photo groups present: OK')
           PY
 
       - name: Rename APK
-        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v144_PHOTO_FOLDER_FULLSCREEN.apk
+        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v145_FLATTEN_PHOTO_GROUPS.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: GeoVision_v144_PHOTO_FOLDER_FULLSCREEN
-          path: GeoVision_v144_PHOTO_FOLDER_FULLSCREEN.apk
+          name: GeoVision_v145_FLATTEN_PHOTO_GROUPS
+          path: GeoVision_v145_FLATTEN_PHOTO_GROUPS.apk
           if-no-files-found: error
