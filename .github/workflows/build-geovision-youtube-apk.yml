@@ -1,4 +1,4 @@
-name: Build GeoVision v137 Direct Narration APK
+name: Build GeoVision v138 Direct Narration Cache Fix APK
 
 on:
   push:
@@ -26,6 +26,29 @@ jobs:
 
       - name: Apply v137 remove artificial narration intro
         run: python android-youtube-test/patch_v137_remove_intro.py
+
+      - name: Assert artificial intro is absent and cache bust is active
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          html=Path('android-youtube-test/app/src/main/assets/geovision.html').read_text(encoding='utf-8')
+          java=Path('android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java').read_text(encoding='utf-8')
+          forbidden=[
+              'Mettetevi comodi',
+              'Iniziamo questo viaggio',
+              'Siamo a ${p.name}',
+              'speak(told);'
+          ]
+          found=[x for x in forbidden if x in html]
+          if found:
+              raise SystemExit('Artificial narration intro still present: '+repr(found))
+          if "function instantNarrationIntro(p) {\n    return '';\n}" not in html:
+              raise SystemExit('instantNarrationIntro was not neutralized')
+          if 'System.currentTimeMillis()' not in java or 'geovision.html?gv=' not in java:
+              raise SystemExit('WebView cache-busting URL is missing')
+          print('Narration intro absent: OK')
+          print('WebView cache bust active: OK')
+          PY
 
       - name: Validate generated GeoVision JavaScript
         run: |
@@ -118,11 +141,26 @@ jobs:
           test "$ACTUAL" = "$EXPECTED"
           echo "Signing certificate SHA-256 OK: $ACTUAL"
 
+      - name: Verify packaged HTML really has no artificial intro
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import zipfile
+          apk=Path('android-youtube-test/app/build/outputs/apk/debug/app-debug.apk')
+          with zipfile.ZipFile(apk) as z:
+              html=z.read('assets/geovision.html').decode('utf-8')
+          forbidden=['Mettetevi comodi','Iniziamo questo viaggio','Siamo a ${p.name}','speak(told);']
+          found=[x for x in forbidden if x in html]
+          if found:
+              raise SystemExit('Packaged APK still contains intro strings: '+repr(found))
+          print('Packaged APK narration intro absent: OK')
+          PY
+
       - name: Rename APK
-        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v137_DIRECT_NARRATION.apk
+        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v138_DIRECT_NARRATION_CACHE_FIX.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: GeoVision_v137_DIRECT_NARRATION
-          path: GeoVision_v137_DIRECT_NARRATION.apk
+          name: GeoVision_v138_DIRECT_NARRATION_CACHE_FIX
+          path: GeoVision_v138_DIRECT_NARRATION_CACHE_FIX.apk
           if-no-files-found: error
