@@ -10,13 +10,17 @@ cat \
   "$ROOT/madre001/parts/part00b.b64" \
   "$ROOT/madre001/parts/part01.b64" \
   "$ROOT/madre001/parts/part02.b64" \
-  | tr -d '\n\r ' | base64 -d | gzip -d > /tmp/GeoVision_LAB_001_SOURCE.html
+  | tr -d '\n\r ' | base64 -d | gzip -d > /tmp/GeoVision_MADRE_001_SOURCE.html
 
-test "$(sha256sum /tmp/GeoVision_LAB_001_SOURCE.html | awk '{print $1}')" = "$SOURCE_SHA"
+test "$(sha256sum /tmp/GeoVision_MADRE_001_SOURCE.html | awk '{print $1}')" = "$SOURCE_SHA"
 python "$ROOT/madre001/patch_key_panel.py"
 python "$ROOT/madre001/patch_no_fallback.py"
 python "$ROOT/madre001/patch_keybox_import.py"
 python "$ROOT/madre001/patch_google_key_failover_004_bootsafe.py"
+
+# I patch condivisi della Madre lavorano deliberatamente sul nome temporaneo Madre.
+# Da qui in poi il LAB usa una copia separata dello stesso HTML approvato.
+cp /tmp/GeoVision_MADRE_001_SOURCE.html /tmp/GeoVision_LAB_001_SOURCE.html
 
 PATCHED_SHA=$(sha256sum /tmp/GeoVision_LAB_001_SOURCE.html | awk '{print $1}')
 test "$PATCHED_SHA" = "$APPROVED_HTML_SHA"
