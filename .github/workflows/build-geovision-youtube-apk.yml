@@ -1,4 +1,4 @@
-name: Build GeoVision v149 Territory Official Media APK
+name: Build GeoVision v150 Proprietary Place Photo Viewer APK
 
 on:
   push:
@@ -57,7 +57,10 @@ jobs:
       - name: Apply v149 selected territory official media
         run: python android-youtube-test/patch_v149_selected_place_official_media.py
 
-      - name: Assert v149 official media routing
+      - name: Apply v150 proprietary Place Photos viewer
+        run: python android-youtube-test/patch_v150_owned_place_photo_viewer.py
+
+      - name: Assert v150 proprietary photo routing
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -65,11 +68,15 @@ jobs:
           java=Path('android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java').read_text(encoding='utf-8')
           gradle=Path('android-youtube-test/app/build.gradle').read_text(encoding='utf-8')
           required_html=[
-              'async function gvV147OpenTerritorySelectedPlace(place)',
-              'await renderGoogleUiMediaFallback(selected,body);',
-              'GeoVision v149 selected territory -> official Place media',
+              "fresh=new P({id});",
+              "fresh.fetchFields({fields:['displayName','photos']})",
+              "ph?.getURI?.({maxWidth:2048,maxHeight:2048})",
+              "authorAttributions",
+              "gv-v150-stage",
+              "GeoVision v150 proprietary selected-place viewer active",
+              "await renderGoogleUiMediaFallback(selected,body);",
               "search.addEventListener('gmp-select'",
-              'window.gvV148LastTerritoryPlace=selected;'
+              "window.gvV148LastTerritoryPlace=selected;"
           ]
           required_java=[
               'private boolean gvV148HandleSpecialUrl(WebView view, String url)',
@@ -77,18 +84,19 @@ jobs:
           ]
           missing=[x for x in required_html if x not in html] + [x for x in required_java if x not in java]
           if missing:
-              raise SystemExit('v149 logic missing: '+repr(missing))
+              raise SystemExit('v150 logic missing: '+repr(missing))
           forbidden=['Mettetevi comodi','Iniziamo questo viaggio','Siamo a ${p.name}','speak(told);']
           found=[x for x in forbidden if x in html]
           if found:
               raise SystemExit('Artificial narration intro still present: '+repr(found))
           if 'async function renderOfficialGoogleCard(p) { void gvV143TapOfficialGooglePhoto(p);' in html:
               raise SystemExit('v143 automatic native tap is still active')
-          if 'versionCode 149' not in gradle or "versionName '1.49-territory-official-media'" not in gradle:
-              raise SystemExit('Android version is not v149')
-          print('v149 selected territory -> official Google media: OK')
-          print('v148 intent guard retained: OK')
-          print('POI/locality routing retained: OK')
+          if 'versionCode 150' not in gradle or "versionName '1.50-proprietary-place-photo-viewer'" not in gradle:
+              raise SystemExit('Android version is not v150')
+          print('v150 fresh Place -> photos -> getURI: OK')
+          print('v150 author attribution UI present: OK')
+          print('v150 proprietary fullscreen viewer present: OK')
+          print('v149 official Google media retained as fallback: OK')
           PY
 
       - name: Validate generated GeoVision JavaScript
@@ -176,7 +184,7 @@ jobs:
           test "$ACTUAL" = "$EXPECTED"
           echo "Signing certificate SHA-256 OK: $ACTUAL"
 
-      - name: Verify packaged APK contains v149 logic
+      - name: Verify packaged APK contains v150 logic
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -185,21 +193,24 @@ jobs:
           with zipfile.ZipFile(apk) as z:
               html=z.read('assets/geovision.html').decode('utf-8')
           required=[
-              'await renderGoogleUiMediaFallback(selected,body);',
-              'GeoVision v149 selected territory -> official Place media',
-              'window.gvV148LastTerritoryPlace=selected;'
+              "fresh.fetchFields({fields:['displayName','photos']})",
+              "ph?.getURI?.({maxWidth:2048,maxHeight:2048})",
+              "authorAttributions",
+              "gv-v150-stage",
+              "GeoVision v150 proprietary selected-place viewer active",
+              "await renderGoogleUiMediaFallback(selected,body);"
           ]
           missing=[x for x in required if x not in html]
           if missing:
-              raise SystemExit('Packaged APK missing v149 logic: '+repr(missing))
-          print('Packaged APK v149 official selected-place media present: OK')
+              raise SystemExit('Packaged APK missing v150 logic: '+repr(missing))
+          print('Packaged APK v150 proprietary Place Photos viewer present: OK')
           PY
 
       - name: Rename APK
-        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v149_TERRITORY_OFFICIAL_MEDIA.apk
+        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v150_PROPRIETARY_PLACE_PHOTO_VIEWER.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: GeoVision_v149_TERRITORY_OFFICIAL_MEDIA
-          path: GeoVision_v149_TERRITORY_OFFICIAL_MEDIA.apk
+          name: GeoVision_v150_PROPRIETARY_PLACE_PHOTO_VIEWER
+          path: GeoVision_v150_PROPRIETARY_PLACE_PHOTO_VIEWER.apk
           if-no-files-found: error
