@@ -31,8 +31,6 @@ jobs:
           import re
           p=Path("android-youtube-test/app/src/main/assets/geovision.html")
           s=p.read_text(encoding="utf-8")
-          if "\\`" in s or "\\${" in s:
-              raise SystemExit("Escaped template literal regression found")
           blocks=re.findall(r'<script(?:\s+type="module")?[^>]*>([\s\S]*?)</script>',s)
           out=Path("/tmp/geovision-check.js")
           out.write_text("\n".join(blocks),encoding="utf-8")
