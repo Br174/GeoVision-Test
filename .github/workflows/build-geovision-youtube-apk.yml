@@ -1,4 +1,4 @@
-name: Build GeoVision v143 Card Intercept Native Tap APK
+name: Build GeoVision v144 Photo Folder Fullscreen APK
 
 on:
   push:
@@ -42,47 +42,43 @@ jobs:
       - name: Apply v143 direct card intercept native tap
         run: python android-youtube-test/patch_v143_card_intercept_native_tap.py
 
-      - name: Assert v143 direct card intercept and native viewport bridge
+      - name: Apply v144 existing Google photo folder fullscreen
+        run: python android-youtube-test/patch_v144_official_media_fullscreen.py
+
+      - name: Assert v144 photo folder is active and v143 auto tap is disabled
         run: |
           python - <<'PY'
           from pathlib import Path
           html=Path('android-youtube-test/app/src/main/assets/geovision.html').read_text(encoding='utf-8')
-          java=Path('android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java').read_text(encoding='utf-8')
           gradle=Path('android-youtube-test/app/build.gradle').read_text(encoding='utf-8')
           forbidden=['Mettetevi comodi','Iniziamo questo viaggio','Siamo a ${p.name}','speak(told);']
           found=[x for x in forbidden if x in html]
           if found:
               raise SystemExit('Artificial narration intro still present: '+repr(found))
-          required_html=[
-              'function gvV143TapOfficialGooglePhoto(p)',
-              'async function renderOfficialGoogleCard(p) { void gvV143TapOfficialGooglePhoto(p);',
-              "showStatus?.('V143: scheda Google intercettata')",
-              "showStatus('V143: tap foto inviato')",
-              'tapViewportCss(x,y,window.innerWidth,window.innerHeight)'
+          required=[
+              'function gvV144OpenExistingPhotoFolder()',
+              'function gvV144RenderPhotoFolder(p,urls)',
+              'urls=await googleGalleryPhotos(p);',
+              '#sheetPhotosVisual{pointer-events:auto!important;cursor:pointer!important;}',
+              "gvV144PhotoButton.onclick=()=>void gvV144OpenExistingPhotoFolder();",
+              'gv-v144-fullscreen',
+              'gvV144FolderPrev',
+              'gvV144FolderNext',
+              'gvV144FolderCounter'
           ]
-          missing=[x for x in required_html if x not in html]
+          missing=[x for x in required if x not in html]
           if missing:
-              raise SystemExit('v143 HTML logic missing: '+repr(missing))
-          if 'void enrichNarration(p); await cardPromise; void gvAutoOpenNativeGooglePhotoV142(p);' in html:
-              raise SystemExit('v142 openPlace hook still active')
-          required_java=[
-              'public void showStatus(String text)',
-              'public void tapViewportCss(double xCss, double yCss, double viewportWidthCss, double viewportHeightCss)',
-              'Toast.makeText',
-              'webView.getWidth()',
-              'webView.getHeight()',
-              'MotionEvent.ACTION_DOWN',
-              'MotionEvent.ACTION_UP'
-          ]
-          missing_java=[x for x in required_java if x not in java]
-          if missing_java:
-              raise SystemExit('v143 native bridge missing: '+repr(missing_java))
-          if 'versionCode 143' not in gradle:
-              raise SystemExit('Android versionCode is not 143')
-          print('v143 direct renderOfficialGoogleCard intercept present: OK')
-          print('v143 Android native Toast diagnostics present: OK')
-          print('v143 viewport-based native touch scaling present: OK')
-          print('v142 openPlace hook disabled: OK')
+              raise SystemExit('v144 photo folder logic missing: '+repr(missing))
+          if 'async function renderOfficialGoogleCard(p) { void gvV143TapOfficialGooglePhoto(p);' in html:
+              raise SystemExit('v143 automatic native tap is still active')
+          if 'async function renderOfficialGoogleCard(p) { void gvV144AutoOpenOfficialMedia(p);' in html:
+              raise SystemExit('old v144 auto-open draft is active')
+          if 'versionCode 144' not in gradle:
+              raise SystemExit('Android versionCode is not 144')
+          print('v144 existing Photo button active: OK')
+          print('v144 fullscreen swipe viewer present: OK')
+          print('v144 reuses googleGalleryPhotos channel: OK')
+          print('v143 automatic tap disabled: OK')
           PY
 
       - name: Validate generated GeoVision JavaScript
@@ -171,7 +167,7 @@ jobs:
           test "$ACTUAL" = "$EXPECTED"
           echo "Signing certificate SHA-256 OK: $ACTUAL"
 
-      - name: Verify packaged APK contains v143 logic
+      - name: Verify packaged APK contains v144 photo folder
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -180,21 +176,25 @@ jobs:
           with zipfile.ZipFile(apk) as z:
               html=z.read('assets/geovision.html').decode('utf-8')
           required=[
-              'function gvV143TapOfficialGooglePhoto(p)',
-              'async function renderOfficialGoogleCard(p) { void gvV143TapOfficialGooglePhoto(p);',
-              'tapViewportCss(x,y,window.innerWidth,window.innerHeight)'
+              'function gvV144OpenExistingPhotoFolder()',
+              'function gvV144RenderPhotoFolder(p,urls)',
+              "gvV144PhotoButton.onclick=()=>void gvV144OpenExistingPhotoFolder();",
+              'gvV144FolderImage',
+              'gvV144FolderCounter'
           ]
           missing=[x for x in required if x not in html]
           if missing:
-              raise SystemExit('Packaged APK missing v143 logic: '+repr(missing))
-          print('Packaged APK v143 logic present: OK')
+              raise SystemExit('Packaged APK missing v144 photo folder logic: '+repr(missing))
+          if 'async function renderOfficialGoogleCard(p) { void gvV143TapOfficialGooglePhoto(p);' in html:
+              raise SystemExit('Packaged APK still has active v143 auto tap')
+          print('Packaged APK v144 photo folder logic present: OK')
           PY
 
       - name: Rename APK
-        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v143_CARD_INTERCEPT_NATIVE_TAP.apk
+        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v144_PHOTO_FOLDER_FULLSCREEN.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: GeoVision_v143_CARD_INTERCEPT_NATIVE_TAP
-          path: GeoVision_v143_CARD_INTERCEPT_NATIVE_TAP.apk
+          name: GeoVision_v144_PHOTO_FOLDER_FULLSCREEN
+          path: GeoVision_v144_PHOTO_FOLDER_FULLSCREEN.apk
           if-no-files-found: error
