@@ -1,4 +1,4 @@
-name: Build GeoVision v150 Proprietary Place Photo Viewer APK
+name: Build GeoVision v151 Photo Extraction Bridge APK
 
 on:
   push:
@@ -60,7 +60,10 @@ jobs:
       - name: Apply v150 proprietary Place Photos viewer
         run: python android-youtube-test/patch_v150_owned_place_photo_viewer.py
 
-      - name: Assert v150 proprietary photo routing
+      - name: Apply v151 multi-source photo extraction bridge
+        run: python android-youtube-test/patch_v151_photo_extraction_bridge.py
+
+      - name: Assert v151 extraction routes and fallback
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -68,15 +71,19 @@ jobs:
           java=Path('android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java').read_text(encoding='utf-8')
           gradle=Path('android-youtube-test/app/build.gradle').read_text(encoding='utf-8')
           required_html=[
-              "fresh=new P({id});",
-              "fresh.fetchFields({fields:['displayName','photos']})",
-              "ph?.getURI?.({maxWidth:2048,maxHeight:2048})",
-              "authorAttributions",
-              "gv-v150-stage",
-              "GeoVision v150 proprietary selected-place viewer active",
-              "await renderGoogleUiMediaFallback(selected,body);",
+              'function gvV151UniquePush(items,url,attrs=[],source=',
+              'async function gvV151NewPlaceItems(id,place)',
+              'async function gvV151LegacyItems(id)',
+              "svc.getDetails({placeId:id,fields:['name','photos']}",
+              'function gvV151CollectRendered(root)',
+              "details.addEventListener('gmp-load'",
+              'function gvV151RenderOwned(name,items)',
+              "GeoVision v151 proprietary viewer source=new",
+              "GeoVision v151 proprietary viewer source=legacy",
+              "GeoVision v151 proprietary viewer source=rendered",
+              'await renderGoogleUiMediaFallback(selected,body);',
               "search.addEventListener('gmp-select'",
-              "window.gvV148LastTerritoryPlace=selected;"
+              'window.gvV148LastTerritoryPlace=selected;'
           ]
           required_java=[
               'private boolean gvV148HandleSpecialUrl(WebView view, String url)',
@@ -84,19 +91,19 @@ jobs:
           ]
           missing=[x for x in required_html if x not in html] + [x for x in required_java if x not in java]
           if missing:
-              raise SystemExit('v150 logic missing: '+repr(missing))
+              raise SystemExit('v151 logic missing: '+repr(missing))
           forbidden=['Mettetevi comodi','Iniziamo questo viaggio','Siamo a ${p.name}','speak(told);']
           found=[x for x in forbidden if x in html]
           if found:
               raise SystemExit('Artificial narration intro still present: '+repr(found))
           if 'async function renderOfficialGoogleCard(p) { void gvV143TapOfficialGooglePhoto(p);' in html:
               raise SystemExit('v143 automatic native tap is still active')
-          if 'versionCode 150' not in gradle or "versionName '1.50-proprietary-place-photo-viewer'" not in gradle:
-              raise SystemExit('Android version is not v150')
-          print('v150 fresh Place -> photos -> getURI: OK')
-          print('v150 author attribution UI present: OK')
-          print('v150 proprietary fullscreen viewer present: OK')
-          print('v149 official Google media retained as fallback: OK')
+          if 'versionCode 151' not in gradle or "versionName '1.51-photo-extraction-bridge'" not in gradle:
+              raise SystemExit('Android version is not v151')
+          print('v151 new Place photo route present: OK')
+          print('v151 legacy PlacesService photo route present: OK')
+          print('v151 rendered UI Kit extraction route present: OK')
+          print('v149 official Google media fallback retained: OK')
           PY
 
       - name: Validate generated GeoVision JavaScript
@@ -184,7 +191,7 @@ jobs:
           test "$ACTUAL" = "$EXPECTED"
           echo "Signing certificate SHA-256 OK: $ACTUAL"
 
-      - name: Verify packaged APK contains v150 logic
+      - name: Verify packaged APK contains v151 logic
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -193,24 +200,24 @@ jobs:
           with zipfile.ZipFile(apk) as z:
               html=z.read('assets/geovision.html').decode('utf-8')
           required=[
-              "fresh.fetchFields({fields:['displayName','photos']})",
-              "ph?.getURI?.({maxWidth:2048,maxHeight:2048})",
-              "authorAttributions",
-              "gv-v150-stage",
-              "GeoVision v150 proprietary selected-place viewer active",
-              "await renderGoogleUiMediaFallback(selected,body);"
+              'async function gvV151NewPlaceItems(id,place)',
+              'async function gvV151LegacyItems(id)',
+              'function gvV151CollectRendered(root)',
+              'function gvV151RenderOwned(name,items)',
+              'Google fallback · ',
+              'await renderGoogleUiMediaFallback(selected,body);'
           ]
           missing=[x for x in required if x not in html]
           if missing:
-              raise SystemExit('Packaged APK missing v150 logic: '+repr(missing))
-          print('Packaged APK v150 proprietary Place Photos viewer present: OK')
+              raise SystemExit('Packaged APK missing v151 logic: '+repr(missing))
+          print('Packaged APK v151 extraction bridge present: OK')
           PY
 
       - name: Rename APK
-        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v150_PROPRIETARY_PLACE_PHOTO_VIEWER.apk
+        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v151_PHOTO_EXTRACTION_BRIDGE.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: GeoVision_v150_PROPRIETARY_PLACE_PHOTO_VIEWER
-          path: GeoVision_v150_PROPRIETARY_PLACE_PHOTO_VIEWER.apk
+          name: GeoVision_v151_PHOTO_EXTRACTION_BRIDGE
+          path: GeoVision_v151_PHOTO_EXTRACTION_BRIDGE.apk
           if-no-files-found: error
