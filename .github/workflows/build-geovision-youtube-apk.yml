@@ -1,4 +1,4 @@
-name: Build GeoVision v140 Fullscreen Photo Viewer APK
+name: Build GeoVision v141 Photo Wait Retry APK
 
 on:
   push:
@@ -33,7 +33,10 @@ jobs:
       - name: Apply v140 robust fullscreen photo viewer
         run: python android-youtube-test/patch_v140_fullscreen_photo_viewer.py
 
-      - name: Assert narration fix and v140 viewer hook
+      - name: Apply v141 photo wait and retry
+        run: python android-youtube-test/patch_v141_photo_wait_retry.py
+
+      - name: Assert narration fix and v141 runtime hook
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -47,19 +50,22 @@ jobs:
               raise SystemExit('instantNarrationIntro was not neutralized')
           if 'System.currentTimeMillis()' not in java or 'geovision.html?gv=' not in java:
               raise SystemExit('WebView cache-busting URL is missing')
-          if 'function gvAutoOpenPhotoViewer(p)' not in html:
-              raise SystemExit('v140 fullscreen viewer helper missing')
-          if 'void enrichNarration(p); void gvAutoOpenPhotoViewer(p); await cardPromise;' not in html:
-              raise SystemExit('v140 openPlace parallel hook missing')
-          if 'gvAutoOpenFirstGooglePhoto(p); await cardPromise;' in html:
-              raise SystemExit('Old v139 synthetic click is still active in openPlace')
-          if "v.id='gvAutoPhotoViewer'" not in html:
-              raise SystemExit('v140 fullscreen viewer DOM missing')
+          if 'function gvAutoOpenPhotoViewerV141(p)' not in html:
+              raise SystemExit('v141 retry helper missing')
+          if 'function gvCollectRenderedPlacePhotosV141()' not in html:
+              raise SystemExit('v141 rendered-photo collector missing')
+          hook='void enrichNarration(p); await cardPromise; void gvAutoOpenPhotoViewerV141(p);'
+          if hook not in html:
+              raise SystemExit('v141 openPlace hook missing or storytelling order changed')
+          if 'void enrichNarration(p); void gvAutoOpenPhotoViewer(p); await cardPromise;' in html:
+              raise SystemExit('v140 early photo hook still active')
+          if 'z-index:2147483647' not in html:
+              raise SystemExit('v141 maximum viewer z-index missing')
           print('Narration intro absent: OK')
           print('WebView cache bust active: OK')
-          print('v140 direct fullscreen photo viewer present: OK')
-          print('Narration remains parallel with photo opening: OK')
-          print('Old synthetic Google click disabled: OK')
+          print('Storytelling starts before card wait: OK')
+          print('v141 waits for card then retries rendered/place/locality photos: OK')
+          print('Viewer maximum z-index active: OK')
           PY
 
       - name: Validate generated GeoVision JavaScript
@@ -150,7 +156,7 @@ jobs:
           test "$ACTUAL" = "$EXPECTED"
           echo "Signing certificate SHA-256 OK: $ACTUAL"
 
-      - name: Verify packaged HTML contains v140 viewer and no old intro
+      - name: Verify packaged HTML contains v141 retry logic
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -162,21 +168,24 @@ jobs:
           found=[x for x in forbidden if x in html]
           if found:
               raise SystemExit('Packaged APK still contains intro strings: '+repr(found))
-          if 'function gvAutoOpenPhotoViewer(p)' not in html:
-              raise SystemExit('Packaged APK missing v140 viewer helper')
-          if 'void enrichNarration(p); void gvAutoOpenPhotoViewer(p); await cardPromise;' not in html:
-              raise SystemExit('Packaged APK missing v140 parallel hook')
-          if 'gvAutoOpenFirstGooglePhoto(p); await cardPromise;' in html:
-              raise SystemExit('Packaged APK still activates v139 synthetic click')
-          print('Packaged APK v140 fullscreen viewer present: OK')
+          required=[
+              'function gvAutoOpenPhotoViewerV141(p)',
+              'function gvCollectRenderedPlacePhotosV141()',
+              'void enrichNarration(p); await cardPromise; void gvAutoOpenPhotoViewerV141(p);',
+              'z-index:2147483647'
+          ]
+          missing=[x for x in required if x not in html]
+          if missing:
+              raise SystemExit('Packaged APK missing v141 logic: '+repr(missing))
+          print('Packaged APK v141 retry logic present: OK')
           print('Packaged APK narration intro absent: OK')
           PY
 
       - name: Rename APK
-        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v140_FULLSCREEN_PHOTO_FIX.apk
+        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v141_PHOTO_WAIT_RETRY.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: GeoVision_v140_FULLSCREEN_PHOTO_FIX
-          path: GeoVision_v140_FULLSCREEN_PHOTO_FIX.apk
+          name: GeoVision_v141_PHOTO_WAIT_RETRY
+          path: GeoVision_v141_PHOTO_WAIT_RETRY.apk
           if-no-files-found: error
