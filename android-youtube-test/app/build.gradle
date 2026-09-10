@@ -19,8 +19,8 @@ android {
         applicationId 'it.geovision.test'
         minSdk 23
         targetSdk 35
-        versionCode 141
-        versionName '1.41-photo-wait-retry-fix'
+        versionCode 142
+        versionName '1.42-native-google-photo-tap'
     }
 
     buildTypes {
