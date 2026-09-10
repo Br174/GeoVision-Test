@@ -20,9 +20,12 @@ s = s.replace(
     1
 )
 
+bridge_anchor = '        webView.addJavascriptInterface(new NativeTtsBridge(), "GeoVisionTTS");\n'
+if bridge_anchor not in s:
+    raise SystemExit('TTS bridge anchor not found')
 s = s.replace(
-    '        webView.addJavascriptInterface(new NativeUiBridge(), "GeoVisionNativeUI");\n',
-    '        webView.addJavascriptInterface(new NativeUiBridge(), "GeoVisionNativeUI");\n        webView.addJavascriptInterface(new KeyBoxBridge(), "GeoVisionKeyBox");\n',
+    bridge_anchor,
+    bridge_anchor + '        webView.addJavascriptInterface(new KeyBoxBridge(), "GeoVisionKeyBox");\n',
     1
 )
 
