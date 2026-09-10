@@ -1,4 +1,4 @@
-name: Build GeoVision YouTube Test APK
+name: Build GeoVision v120 Android APK
 
 on:
   push:
@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Prepare GeoVision v118 HTML
+      - name: Prepare GeoVision v120 HTML
         run: python android-youtube-test/prepare_v118.py
 
       - uses: actions/setup-java@v4
@@ -30,10 +30,10 @@ jobs:
         run: gradle assembleDebug
 
       - name: Rename APK
-        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v118_YouTube_TTS_Test.apk
+        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v120_AI_TTS_YouTube_Social.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: GeoVision_v118_YouTube_TTS_Test
-          path: GeoVision_v118_YouTube_TTS_Test.apk
+          name: GeoVision_v120_AI_TTS_YouTube_Social
+          path: GeoVision_v120_AI_TTS_YouTube_Social.apk
           if-no-files-found: error
