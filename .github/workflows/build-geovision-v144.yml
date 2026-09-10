@@ -1,0 +1,138 @@
+name: Build GeoVision v144 Official Media Fullscreen APK
+
+on:
+  push:
+    paths:
+      - 'android-youtube-test/patch_v144_official_media_fullscreen.py'
+      - '.github/workflows/build-geovision-v144.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare stable signing keystore
+        run: |
+          base64 -d android-youtube-test/signing/geovision-debug-stable.keystore.b64 > android-youtube-test/signing/geovision-debug-stable.keystore
+          chmod 600 android-youtube-test/signing/geovision-debug-stable.keystore
+
+      - name: Prepare GeoVision HTML and patches
+        run: |
+          python android-youtube-test/prepare_v118.py
+          python android-youtube-test/patch_v136_exploration_visibility.py
+          python android-youtube-test/patch_v137_remove_intro.py
+          python android-youtube-test/patch_v139_auto_google_photo.py
+          python android-youtube-test/patch_v140_fullscreen_photo_viewer.py
+          python android-youtube-test/patch_v141_photo_wait_retry.py
+          python android-youtube-test/patch_v142_native_google_photo_tap.py
+          python android-youtube-test/patch_v143_card_intercept_native_tap.py
+          python android-youtube-test/patch_v144_official_media_fullscreen.py
+
+      - name: Set Android version v144
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('android-youtube-test/app/build.gradle')
+          s=p.read_text()
+          s=s.replace('versionCode 143','versionCode 144')
+          s=s.replace("versionName '1.43-card-intercept-native-tap'","versionName '1.44-official-media-fullscreen'")
+          p.write_text(s)
+          PY
+
+      - name: Assert v144 logic
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          html=Path('android-youtube-test/app/src/main/assets/geovision.html').read_text(encoding='utf-8')
+          gradle=Path('android-youtube-test/app/build.gradle').read_text(encoding='utf-8')
+          required=[
+              'function gvV144AutoOpenOfficialMedia(p)',
+              'function gvV144RenderSwipePhotos(p,photos,token)',
+              'function gvV144RenderUiKitPhoto(p,token)',
+              'for(const ph of Array.isArray(place.photos)?place.photos:[])',
+              'async function renderOfficialGoogleCard(p) { void gvV144AutoOpenOfficialMedia(p);'
+          ]
+          missing=[x for x in required if x not in html]
+          if missing: raise SystemExit('v144 missing: '+repr(missing))
+          if 'async function renderOfficialGoogleCard(p) { void gvV143TapOfficialGooglePhoto(p);' in html:
+              raise SystemExit('v143 native tap still active on renderOfficialGoogleCard')
+          if 'place.photos.slice(0,10)' in html:
+              raise SystemExit('Artificial 10-photo slice still present')
+          if 'versionCode 144' not in gradle:
+              raise SystemExit('versionCode 144 missing')
+          blocks=re.findall(r'<script(?:\s+type="module")?[^>]*>([\s\S]*?)</script>',html)
+          Path('/tmp/geovision-v144.js').write_text('\n'.join(blocks),encoding='utf-8')
+          print('v144 official media hook: OK')
+          print('No artificial photo slice: OK')
+          PY
+          node --check /tmp/geovision-v144.js
+
+      - name: Rebuild launcher icon
+        run: |
+          python -m pip install --disable-pip-version-check --quiet pillow
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import base64,re,io
+          raw=Path('android-youtube-test/icon/geovision_icon.png.b64').read_text(encoding='utf-8-sig',errors='ignore')
+          clean=''.join(re.findall(r'[A-Za-z0-9+/=]',raw))
+          decoded=None
+          for trim in range(4):
+              c=clean[:-trim] if trim else clean
+              c=c.rstrip('=')+'='*((4-len(c.rstrip('='))%4)%4)
+              try:
+                  d=base64.b64decode(c,validate=True); Image.open(io.BytesIO(d)).verify(); decoded=d; break
+              except Exception: pass
+          if decoded is None: raise SystemExit('Icon decode failed')
+          im=Image.open(io.BytesIO(decoded)).convert('RGBA')
+          if im.size!=(512,512): im=im.resize((512,512),Image.Resampling.LANCZOS)
+          out=Path('android-youtube-test/app/src/main/res/drawable-nodpi/ic_launcher.png')
+          out.parent.mkdir(parents=True,exist_ok=True); im.save(out,'PNG',optimize=True)
+          PY
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build APK
+        working-directory: android-youtube-test
+        run: gradle clean assembleDebug
+
+      - name: Verify APK signature and packaged v144 HTML
+        run: |
+          set -e
+          APK=android-youtube-test/app/build/outputs/apk/debug/app-debug.apk
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
+          "$APKSIGNER" verify --print-certs "$APK" | tee /tmp/apksigner.txt
+          EXPECTED='716c1a8a139ad956ef8a00f85f153eb0028d109c75b1b938bdf3bb3eb23c22b5'
+          ACTUAL=$(grep -i 'certificate SHA-256 digest:' /tmp/apksigner.txt | head -1 | awk '{print $NF}' | tr '[:upper:]' '[:lower:]' | tr -d ':')
+          test "$ACTUAL" = "$EXPECTED"
+          python - <<'PY'
+          from pathlib import Path
+          import zipfile
+          apk=Path('android-youtube-test/app/build/outputs/apk/debug/app-debug.apk')
+          with zipfile.ZipFile(apk) as z:
+              html=z.read('assets/geovision.html').decode('utf-8')
+          required=['function gvV144AutoOpenOfficialMedia(p)','function gvV144RenderSwipePhotos(p,photos,token)','async function renderOfficialGoogleCard(p) { void gvV144AutoOpenOfficialMedia(p);']
+          missing=[x for x in required if x not in html]
+          if missing: raise SystemExit('Packaged v144 missing: '+repr(missing))
+          if 'place.photos.slice(0,10)' in html: raise SystemExit('Packaged HTML still slices photos to 10')
+          print('Packaged v144 HTML verified')
+          PY
+
+      - name: Rename APK
+        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v144_OFFICIAL_MEDIA_FULLSCREEN.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GeoVision_v144_OFFICIAL_MEDIA_FULLSCREEN
+          path: GeoVision_v144_OFFICIAL_MEDIA_FULLSCREEN.apk
+          if-no-files-found: error
