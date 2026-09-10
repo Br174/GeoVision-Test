@@ -46,7 +46,6 @@ jobs:
           clean=''.join(re.findall(r'[A-Za-z0-9+/=]',raw))
           print('Base64 raw chars:',len(raw),'clean chars:',len(clean))
           decoded=None
-          # Tolleranza solo per eventuali caratteri spuri in coda: prova 0..3 rimozioni.
           for trim in range(4):
               candidate=clean[:-trim] if trim else clean
               candidate=candidate.rstrip('=')
@@ -108,7 +107,10 @@ jobs:
           unzip -l "$APK" | grep -E 'res/.*/ic_launcher.*png'
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
           "$APKSIGNER" verify --print-certs "$APK" | tee /tmp/apksigner.txt
-          grep -qi '71:6C:1A:8A:13:9A:D9:56:EF:8A:00:F8:5F:15:3E:B0:02:8D:10:9C:75:B1:B9:38:BD:F3:BB:3E:B2:3C:22:B5' /tmp/apksigner.txt
+          EXPECTED='716c1a8a139ad956ef8a00f85f153eb0028d109c75b1b938bdf3bb3eb23c22b5'
+          ACTUAL=$(grep -i 'certificate SHA-256 digest:' /tmp/apksigner.txt | head -1 | awk '{print $NF}' | tr '[:upper:]' '[:lower:]' | tr -d ':')
+          test "$ACTUAL" = "$EXPECTED"
+          echo "Signing certificate SHA-256 OK: $ACTUAL"
 
       - name: Rename APK
         run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v135_FIXED_LAUNCHER_ICON.apk
