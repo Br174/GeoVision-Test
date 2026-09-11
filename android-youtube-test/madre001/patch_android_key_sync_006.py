@@ -1,0 +1,18 @@
+from pathlib import Path
+
+j=Path('android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java')
+s=j.read_text(encoding='utf-8')
+old='''    private class KeyBoxBridge {\n        @JavascriptInterface\n        public void importKeys() {\n            main.post(() -> {\n                Intent intent = new Intent("it.geovision.keybox.EXPORT_KEYS");\n                intent.setPackage("it.geovision.keybox");\n                try {\n                    startActivityForResult(intent, REQ_KEYBOX);\n                } catch (ActivityNotFoundException e) {\n                    notifyKeyBoxError("Installa GeoVision KeyBox");\n                } catch (SecurityException e) {\n                    notifyKeyBoxError("KeyBox non autorizzato: verifica la firma GeoVision");\n                }\n            });\n        }\n    }\n'''
+new='''    private class KeyBoxBridge {\n        private void requestState() {\n            main.post(() -> {\n                Intent intent = new Intent("it.geovision.keybox.EXPORT_KEYS");\n                intent.setPackage("it.geovision.keybox");\n                try {\n                    startActivityForResult(intent, REQ_KEYBOX);\n                } catch (ActivityNotFoundException e) {\n                    notifyKeyBoxError("Installa GeoVision KeyBox");\n                } catch (SecurityException e) {\n                    notifyKeyBoxError("KeyBox non autorizzato: verifica la firma GeoVision");\n                }\n            });\n        }\n        @JavascriptInterface public void importKeys() { requestState(); }\n        @JavascriptInterface public void syncState() { requestState(); }\n        @JavascriptInterface public void setActiveIndex(int index) {\n            if (index < 0 || index > 2) return;\n            main.post(() -> {\n                try {\n                    Intent intent = new Intent("it.geovision.keybox.SET_ACTIVE_INDEX");\n                    intent.setPackage("it.geovision.keybox");\n                    intent.putExtra("activeIndex", index);\n                    intent.putExtra("targetPackage", getPackageName());\n                    sendBroadcast(intent, "it.geovision.permission.KEYBOX_IMPORT");\n                } catch (Exception ignored) { }\n            });\n        }\n    }\n'''
+if old not in s: raise SystemExit('KeyBoxBridge anchor missing')
+s=s.replace(old,new,1)
+old_payload='''            keys.put("count", data.getIntExtra("count", 0));\n            final String payload = keys.toString();'''
+new_payload='''            keys.put("count", data.getIntExtra("count", 0));\n            keys.put("activeIndex", data.getIntExtra("activeIndex", 0));\n            keys.put("activeGeneration", data.getLongExtra("activeGeneration", 0L));\n            keys.put("switchTotalToday", data.getIntExtra("switchTotalToday", 0));\n            keys.put("switchKey1Today", data.getIntExtra("switchKey1Today", 0));\n            keys.put("switchKey2Today", data.getIntExtra("switchKey2Today", 0));\n            keys.put("switchKey3Today", data.getIntExtra("switchKey3Today", 0));\n            final String payload = keys.toString();'''
+if old_payload not in s: raise SystemExit('payload anchor missing')
+s=s.replace(old_payload,new_payload,1)
+old_eval='''                            "window.gvReceiveKeyBox&&window.gvReceiveKeyBox(" + payload + ")", null);'''
+new_eval='''                            "(function(p){if(window.gvReceiveKeyBoxSync)window.gvReceiveKeyBoxSync(p);if(window.gvReceiveKeyBox)window.gvReceiveKeyBox(p);})(" + payload + ")", null);'''
+if old_eval not in s: raise SystemExit('evaluateJavascript anchor missing')
+s=s.replace(old_eval,new_eval,1)
+j.write_text(s,encoding='utf-8')
+print('Android KeyBox sync bridge patched')
