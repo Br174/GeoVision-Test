@@ -21,7 +21,7 @@ assert 'gvReceiveKeyBox = function' not in new,'old duplicate import handler'
 assert new.count('window.gvReceiveKeyBox=receive')==1
 assert 'window.gvMonitorGoogleDiagnostics=runGoogleServiceDiagnostics' in new
 j=(R/'monitor010/native/KeyBoxClient.java').read_text()
-assert 'registerReceiver(receiver,f,PERMISSION,handler,Context.RECEIVER_EXPORTED)' in j
+assert 'registerReceiver(activity,receiver,f,PERMISSION,handler,androidx.core.content.ContextCompat.RECEIVER_EXPORTED)' in j
 assert 'nonce.equals(i.getStringExtra("nonce"))' in j
 assert j.count('startActivityForResult')==1 and '.reload(' not in j and 'loadUrl' not in j
 assert 'handler.removeCallbacksAndMessages(null)' in j

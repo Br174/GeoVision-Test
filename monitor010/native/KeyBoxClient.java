@@ -20,7 +20,7 @@ public final class KeyBoxClient {
     @JavascriptInterface public void pageReady(){handler.post(()->{if(destroyed||!trusted())return;ready=true;deliver();resume();});}
     @JavascriptInterface public void setSyncEnabled(boolean enabled){handler.post(()->{if(destroyed||!trusted())return;activity.getPreferences(0).edit().putBoolean("sync_enabled_v1",enabled).apply();if(enabled)resume();else nonce=null;});}
     void resume(){if(destroyed||!ready||!activity.getPreferences(0).getBoolean("sync_enabled_v1",false)||nonce!=null||importing)return;
-        try{if(!registered){IntentFilter f=new IntentFilter("it.geovision.keybox.KEYS_V1");if(Build.VERSION.SDK_INT>=33)activity.registerReceiver(receiver,f,PERMISSION,handler,Context.RECEIVER_EXPORTED);else activity.registerReceiver(receiver,f,PERMISSION,handler);registered=true;}
+        try{if(!registered){IntentFilter f=new IntentFilter("it.geovision.keybox.KEYS_V1");androidx.core.content.ContextCompat.registerReceiver(activity,receiver,f,PERMISSION,handler,androidx.core.content.ContextCompat.RECEIVER_EXPORTED);registered=true;}
             nonce=UUID.randomUUID().toString();String sent=nonce;Intent i=new Intent("it.geovision.keybox.GET_KEYS_V1").setPackage("it.geovision.keybox");i.putExtra("replyPackage",activity.getPackageName());i.putExtra("nonce",nonce);activity.sendBroadcast(i,PERMISSION);
             handler.postDelayed(()->{if(sent.equals(nonce)){nonce=null;error("Sync non disponibile. Importazione manuale sempre disponibile.");}},8000);
         }catch(Exception e){nonce=null;error("Sync non disponibile");}
