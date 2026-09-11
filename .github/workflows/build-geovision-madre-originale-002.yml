@@ -1,0 +1,40 @@
+name: Build MADRE ORIGINALE 2
+
+on:
+  push:
+    branches:
+      - madre/originale-002
+    paths:
+      - 'android-youtube-test/madre001/build_madre_originale_002.sh'
+      - '.github/workflows/build-geovision-madre-originale-002.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Prepare stable signer
+        run: |
+          base64 -d android-youtube-test/signing/geovision-debug-stable.keystore.b64 > android-youtube-test/signing/geovision-debug-stable.keystore
+          chmod 600 android-youtube-test/signing/geovision-debug-stable.keystore
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Build MADRE ORIGINALE 2 from exact CAND 001 FOTO
+        run: bash android-youtube-test/madre001/build_madre_originale_002.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MADRE_ORIGINALE_2
+          path: |
+            MADRE_ORIGINALE_2.apk
+            MADRE_ORIGINALE_2.html
+            MADRE_ORIGINALE_2.zip
+            MANIFEST_MADRE_ORIGINALE_2.txt
+          if-no-files-found: error
