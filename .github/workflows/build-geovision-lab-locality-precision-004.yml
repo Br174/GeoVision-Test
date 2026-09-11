@@ -1,0 +1,41 @@
+name: Build LAB 004 FRAZIONI
+
+on:
+  push:
+    branches:
+      - lab/locality-precision-004
+    paths:
+      - 'android-youtube-test/madre001/build_lab_locality_precision_004.sh'
+      - 'android-youtube-test/madre001/patch_locality_precision_004.py'
+      - '.github/workflows/build-geovision-lab-locality-precision-004.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Prepare stable signer
+        run: |
+          base64 -d android-youtube-test/signing/geovision-debug-stable.keystore.b64 > android-youtube-test/signing/geovision-debug-stable.keystore
+          chmod 600 android-youtube-test/signing/geovision-debug-stable.keystore
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Build LAB 004 locality precision
+        run: bash android-youtube-test/madre001/build_lab_locality_precision_004.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LAB_004_FRAZIONI
+          path: |
+            LAB_004_FRAZIONI.apk
+            LAB_004_FRAZIONI.html
+            LAB_004_FRAZIONI.zip
+            MANIFEST_LAB_004_FRAZIONI.txt
+          if-no-files-found: error
