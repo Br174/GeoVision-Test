@@ -47,7 +47,7 @@ I due ingressi del pannello chiavi aprono lo stesso Monitor: nessun salvataggio 
 Test di stato: 20 scenari automatizzati (slot, errori, import, revisioni, rollback, failover e cooldown).
 Regressione: confronto completo di tutti i byte esterni al comparto chiavi, oltre alla sintassi di ogni script.
 Browser: apertura dal vero pulsante, cinque campi mascherati, nessuna chiamata al solo aprire il pannello, cinque test espliciti, indicatori, import ritardato, nessun doppio pannello, overflow mobile, applicazione singola e scheda/menu originali.
-Android 11: archivio cifrato compatibile 005, roundtrip, salvataggio atomico, cancellazione singola, corruzione, conteggio errato e permessi firma. Due test aggiuntivi del bridge eseguono uno scambio reale KeyBox/GeoVision su WebView e rifiutano una risposta non richiesta.
+Android 11: archivio cifrato compatibile 005, roundtrip, salvataggio atomico, cancellazione singola, corruzione, conteggio errato e permessi firma. Tre test aggiuntivi del bridge eseguono uno scambio reale KeyBox/GeoVision su WebView verificano anche l’importazione manuale e rifiutano una risposta non richiesta.
 Build: APK, lint, certificato, applicationId e identità dell'HTML impacchettato.
 
 I test dei servizi nel browser usano risposte simulate e chiavi sintetiche: non certificano quote o autorizzazioni delle chiavi personali. Il Monitor esegue le verifiche reali su richiesta dal telefono. Il verde per Gemini verifica l'accesso all'API modelli, non una narrazione generata; YouTube verifica l'accesso alla Data API; Google verifica Places REST, mentre il pulsante diagnostica separato verifica il SDK/schede/foto. Nessuna modifica ai servizi AI/video della Madre.
@@ -55,3 +55,5 @@ I test dei servizi nel browser usano risposte simulate e chiavi sintetiche: non 
 Fonti tecniche: https://developer.android.com/develop/background-work/background-tasks/broadcasts e https://developer.android.com/reference/android/webkit/WebView.
 
 Installazione: aggiornare KeyBox sopra la versione esistente senza disinstallarla; LAB 010 si installa accanto alla Madre. Non installare APK di test strumentali: non fanno parte della consegna.
+
+Ambiente di prova Android: Gradle disinstalla il KeyBox al termine dei suoi test. Il workflow lo reinstalla e lo apre esplicitamente prima della prova inter-app, come avviene nella configurazione iniziale sul telefono.

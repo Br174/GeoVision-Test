@@ -27,6 +27,11 @@ public class BridgeTest {
   assertEquals("true",js("!!window.__received && ['google1','google2','google3','ai','youtube'].every(n=>typeof __received[n]==='string')"));
   assertEquals("true",js("Number.isInteger(__received.revision)"));
  }
+ @Test public void manualImportReturnsCompleteSnapshot() throws Exception{
+  js("window.__received=null;window.gvMonitorSync=function(k){window.__received=k};GeoVisionKeyBox.setSyncEnabled(false);GeoVisionKeyBox.pageReady();GeoVisionKeyBox.importKeys();");
+  long end=SystemClock.elapsedRealtime()+12000;while(SystemClock.elapsedRealtime()<end){if("true".equals(js("!!window.__received")))break;SystemClock.sleep(200);}
+  assertEquals("true",js("!!window.__received && ['google1','google2','google3','ai','youtube'].every(n=>typeof __received[n]==='string')"));
+ }
  @Test public void unsolicitedStateCannotReplaceKeys() throws Exception{
   js("window.__received=null;window.gvMonitorSync=function(k){window.__received=k};GeoVisionKeyBox.pageReady();GeoVisionKeyBox.setSyncEnabled(false);");
   Context c=InstrumentationRegistry.getInstrumentation().getTargetContext();Intent forged=new Intent("it.geovision.keybox.KEYS_V1").setPackage(c.getPackageName()).putExtra("nonce","unrequested").putExtra("google1","forged");c.sendBroadcast(forged);SystemClock.sleep(500);assertEquals("true",js("window.__received===null"));

@@ -43,7 +43,8 @@ jobs:
             gradle -p android-keybox connectedDebugAndroidTest
             adb shell pm list packages it.geovision
             adb install -r android-keybox/app/build/outputs/apk/debug/app-debug.apk
-            gradle -p android-youtube-test connectedDebugAndroidTest || { adb logcat -d -s GeoVisionKeySync ActivityManager AndroidRuntime; exit 1; }
+            adb shell am start -W -n it.geovision.keybox/.MainActivity
+            gradle -p android-youtube-test connectedDebugAndroidTest || { adb logcat -d -s GeoVisionKeySync System.out ActivityManager AndroidRuntime; exit 1; }
             adb shell am start -n it.geovision.keybox/.MainActivity
             sleep 2
             adb exec-out screencap -p > out/Monitor_KEYBOX_007.png
