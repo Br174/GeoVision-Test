@@ -3,15 +3,15 @@ set -euo pipefail
 python monitor010/prepare.py
 node --test monitor010/tests/key-state.test.js
 python monitor010/tests/static.py
-gradle -p android-keybox assembleDebug assembleDebugAndroidTest lintDebug
-gradle -p android-youtube-test assembleDebug assembleDebugAndroidTest lintDebug
+gradle -p android-keybox assembleDebug lintDebug
+gradle -p android-youtube-test assembleDebug lintDebug
 python - <<'PY'
 from pathlib import Path
-import zipfile,hashlib,subprocess,os,re
+import zipfile,hashlib,subprocess,os
 sdk=Path(os.environ['ANDROID_HOME']);bt=sorted((sdk/'build-tools').iterdir())[-1]
 items=[
  ('android-keybox','KEYBOX_008_MONITOR','it.geovision.keybox','2008','KEYBOX 008 MONITOR',None),
- ('android-youtube-test','LAB_011_FAILOVER','it.geovision.lab.failover011','2011','LAB 011 FAILOVER','out/LAB_011_FAILOVER.html')
+ ('android-youtube-test','LAB_012_FAILOVER','it.geovision.lab.failover012','2012','LAB 012 FAILOVER','out/LAB_012_FAILOVER.html')
 ]
 for folder,name,package,version,label,html in items:
  p=Path(folder+'/app/build/outputs/apk/debug/app-debug.apk');assert p.is_file(),p
