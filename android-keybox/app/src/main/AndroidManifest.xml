@@ -5,6 +5,7 @@
         android:protectionLevel="signature" />
 
     <uses-permission android:name="it.geovision.permission.KEYBOX_IMPORT" />
+    <queries><intent><action android:name="it.geovision.keybox.SYNC_CLIENT_V1" /></intent></queries>
     <application
         android:allowBackup="false"
         android:label="KEYBOX 007 MONITOR"

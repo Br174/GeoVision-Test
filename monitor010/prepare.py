@@ -64,7 +64,7 @@ g=A/'app/build.gradle';s=g.read_text();s=re.sub(r"applicationId '[^']+'","applic
 s+='\ndependencies { implementation "androidx.core:core:1.13.1"; androidTestImplementation "androidx.test:runner:1.6.2"; androidTestImplementation "androidx.test.ext:junit:1.2.1" }\n'
 g.write_text(s)
 t=A/'app/src/androidTest/java/it/geovision/test';t.mkdir(parents=True,exist_ok=True);shutil.copyfile(M/'android-tests/BridgeTest.java',t/'BridgeTest.java')
-x=A/'app/src/main/AndroidManifest.xml';s=x.read_text();s=s.replace('<application','<uses-permission android:name="it.geovision.permission.KEYBOX_IMPORT"/>\n    <queries><package android:name="it.geovision.keybox"/><package android:name="com.instagram.android"/><package android:name="com.zhiliaoapp.musically"/></queries>\n    <application',1);s=re.sub(r'android:label="[^"]+"','android:label="LAB 010 MONITOR SYNC"',s,count=1);x.write_text(s)
+x=A/'app/src/main/AndroidManifest.xml';s=x.read_text();s=s.replace('<application','<uses-permission android:name="it.geovision.permission.KEYBOX_IMPORT"/>\n    <queries><package android:name="it.geovision.keybox"/><package android:name="com.instagram.android"/><package android:name="com.zhiliaoapp.musically"/></queries>\n    <application',1);s=re.sub(r'android:label="[^"]+"','android:label="LAB 010 MONITOR SYNC"',s,count=1);s=s.replace('<intent-filter>', '<intent-filter><action android:name="it.geovision.keybox.SYNC_CLIENT_V1"/></intent-filter><intent-filter>',1);x.write_text(s)
 # Reconstruct validated launcher PNG; remove the historical mislabeled placeholder.
 for p in (A/'app/src/main/res').rglob('ic_launcher.png'):p.unlink()
 icon=base64.b64decode((A/'icon/geovision_icon.png.b64').read_bytes());assert icon[:8]==b'\x89PNG\r\n\x1a\n'
