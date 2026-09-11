@@ -1,17 +1,26 @@
 name: Build LAB 007 KEY SYNC FIX
+
 on:
   push:
-    branches: [ "lab/key-sync-007-fix" ]
+    branches:
+      - lab/key-sync-007-fix
+    paths:
+      - 'android-youtube-test/madre001/patch_key_sync_007_fix.py'
+      - 'android-youtube-test/madre001/build_lab_key_sync_007_fix.sh'
+      - '.github/workflows/build-geovision-lab-key-sync-007-fix.yml'
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Prepare stable signer
         run: |
-          mkdir -p android-youtube-test/signing
-          cp android-youtube-test/madre001/signing/geovision-debug-stable.keystore android-youtube-test/signing/geovision-debug-stable.keystore
+          base64 -d android-youtube-test/signing/geovision-debug-stable.keystore.b64 > android-youtube-test/signing/geovision-debug-stable.keystore
+          chmod 600 android-youtube-test/signing/geovision-debug-stable.keystore
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -24,4 +33,9 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: LAB_007_KEY_SYNC_FIX
-          path: LAB_007_KEY_SYNC_FIX.zip
+          path: |
+            LAB_007_KEY_SYNC_FIX.apk
+            LAB_007_KEY_SYNC_FIX.html
+            LAB_007_KEY_SYNC_FIX.zip
+            MANIFEST_LAB_007_KEY_SYNC_FIX.txt
+          if-no-files-found: error
