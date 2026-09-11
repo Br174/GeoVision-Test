@@ -1,0 +1,30 @@
+name: LAB 013 FAST
+on:
+  push:
+    branches: ['lab/failover-013-activecheck']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with: {distribution: temurin, java-version: '17'}
+      - uses: gradle/actions/setup-gradle@v4
+        with: {gradle-version: '8.9'}
+      - name: Prepare and build only
+        run: |
+          python monitor010/prepare.py
+          sed -i "s/it.geovision.lab.failover012/it.geovision.lab.failover013/; s/versionCode 2012/versionCode 2013/; s/1.0-failover-012/1.0-failover-013/" android-youtube-test/app/build.gradle
+          sed -i 's/LAB 012 FAILOVER/LAB 013 FAST/' android-youtube-test/app/src/main/AndroidManifest.xml
+          gradle -p android-youtube-test assembleDebug
+          mkdir -p out13
+          cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk out13/LAB_013_FAST.apk
+          cp out/LAB_012_FAILOVER.html out13/LAB_013_FAST.html
+          cd out13 && zip LAB_013_FAST.zip LAB_013_FAST.apk LAB_013_FAST.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LAB-013-FAST
+          path: out13/LAB_013_FAST.zip
