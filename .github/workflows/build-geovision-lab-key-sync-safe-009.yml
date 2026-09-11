@@ -21,6 +21,21 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
+      - name: Harden LAB 009 patch script
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('android-youtube-test/madre001/build_lab_key_sync_safe_009.sh')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace("bootstrap=r'''", "bootstrap='''", 1)
+          s=s.replace("ui=r'''", "ui='''", 1)
+          old="marker='function openKeysDiagnostics(){'\nif marker not in h: raise SystemExit('diagnostics anchor missing')"
+          new="m_diag=re.search(r'function\\s+openKeysDiagnostics\\s*\\(\\)\\s*\\{',h)\nif not m_diag: raise SystemExit('diagnostics anchor missing')\nmarker=m_diag.group(0)"
+          if old not in s:
+              raise SystemExit('build-script diagnostics marker not found')
+          s=s.replace(old,new,1)
+          p.write_text(s,encoding='utf-8')
+          PY
       - name: Build LAB 009
         run: bash android-youtube-test/madre001/build_lab_key_sync_safe_009.sh
       - uses: actions/upload-artifact@v4
