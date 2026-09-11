@@ -19,8 +19,8 @@ android {
         applicationId 'it.geovision.test'
         minSdk 23
         targetSdk 35
-        versionCode 153
-        versionName '1.53-stable-google-card-restore'
+        versionCode 155
+        versionName '1.55-locality-photo-keys-import-lab'
     }
 
     buildTypes {
