@@ -6,6 +6,7 @@ on:
       - keybox/002-sync
     paths:
       - 'android-youtube-test/madre001/build_keybox_002_sync.sh'
+      - 'android-youtube-test/madre001/build_keybox_002_sync_fixed.sh'
       - '.github/workflows/build-geovision-keybox-002-sync.yml'
   workflow_dispatch:
 
@@ -28,7 +29,7 @@ jobs:
         with:
           gradle-version: '8.9'
       - name: Build KEYBOX 002 SYNC
-        run: bash android-youtube-test/madre001/build_keybox_002_sync.sh
+        run: bash android-youtube-test/madre001/build_keybox_002_sync_fixed.sh
       - uses: actions/upload-artifact@v4
         with:
           name: GeoVision_KEYBOX_002_SYNC
