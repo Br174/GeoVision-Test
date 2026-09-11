@@ -1,0 +1,29 @@
+name: Build KEYBOX 006 SYNC SAFE
+on:
+  push:
+    branches: [ keybox/006-sync-safe ]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Prepare stable signer
+        run: |
+          base64 -d android-youtube-test/signing/geovision-debug-stable.keystore.b64 > android-youtube-test/signing/geovision-debug-stable.keystore
+          chmod 600 android-youtube-test/signing/geovision-debug-stable.keystore
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Build KEYBOX 006
+        run: bash android-keybox/build_keybox_006_sync_safe.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GeoVision_KEYBOX_006_SYNC_SAFE
+          path: android-keybox/GeoVision_KEYBOX_006_SYNC_SAFE.zip
