@@ -7,8 +7,6 @@
     <application
         android:allowBackup="false"
         android:label="KEYBOX 005 RECOVERY"
-        android:icon="@drawable/ic_launcher"
-        android:roundIcon="@drawable/ic_launcher"
         android:theme="@style/AppTheme">
 
         <activity
