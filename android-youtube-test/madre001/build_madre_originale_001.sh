@@ -11,19 +11,19 @@ cat \
   "$ROOT/madre001/parts/part00b.b64" \
   "$ROOT/madre001/parts/part01.b64" \
   "$ROOT/madre001/parts/part02.b64" \
-  | tr -d '\n\r ' | base64 -d | gzip -d > /tmp/GeoVision_MADRE_ORIGINALE_1_SOURCE.html
+  | tr -d '\n\r ' | base64 -d | gzip -d > /tmp/GeoVision_MADRE_001_SOURCE.html
 
-test "$(sha256sum /tmp/GeoVision_MADRE_ORIGINALE_1_SOURCE.html | awk '{print $1}')" = "$SOURCE_SHA"
+test "$(sha256sum /tmp/GeoVision_MADRE_001_SOURCE.html | awk '{print $1}')" = "$SOURCE_SHA"
 python "$ROOT/madre001/patch_key_panel.py"
 python "$ROOT/madre001/patch_no_fallback.py"
 python "$ROOT/madre001/patch_keybox_import.py"
 python "$ROOT/madre001/patch_google_key_failover_004_bootsafe.py"
 
-test "$(sha256sum /tmp/GeoVision_MADRE_ORIGINALE_1_SOURCE.html | awk '{print $1}')" = "$MADRE_PREV_HTML_SHA"
+test "$(sha256sum /tmp/GeoVision_MADRE_001_SOURCE.html | awk '{print $1}')" = "$MADRE_PREV_HTML_SHA"
 
 # PROMOZIONE CANDIDATA APPROVATA: stesso identico metodo FOTO e stesso HTML funzionale.
 # Nessuna nuova implementazione: cambia soltanto l'identita Android della build ufficiale.
-cp /tmp/GeoVision_MADRE_ORIGINALE_1_SOURCE.html /tmp/GeoVision_LAB_001_SOURCE.html
+cp /tmp/GeoVision_MADRE_001_SOURCE.html /tmp/GeoVision_LAB_001_SOURCE.html
 python "$ROOT/madre001/patch_candidate_photo_001.py"
 cp /tmp/GeoVision_LAB_001_SOURCE.html /tmp/GeoVision_MADRE_ORIGINALE_1_SOURCE.html
 
