@@ -20,8 +20,8 @@ android {
         minSdk 23
         targetSdk 35
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
-        versionCode 2007
-        versionName '7.0-monitor'
+        versionCode 2008
+        versionName '8.0-monitor-switch'
     }
 
     buildTypes {
@@ -31,5 +31,7 @@ android {
     }
 }
 
-
-dependencies { androidTestImplementation "androidx.test:runner:1.6.2"; androidTestImplementation "androidx.test.ext:junit:1.2.1" }
+dependencies {
+    androidTestImplementation "androidx.test:runner:1.6.2"
+    androidTestImplementation "androidx.test.ext:junit:1.2.1"
+}
