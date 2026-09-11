@@ -1,4 +1,4 @@
-name: Build GeoVision v153 Stable Google Card Restore APK
+name: Build GeoVision v154 Locality Photo Resolver LAB APK
 
 on:
   push:
@@ -57,7 +57,10 @@ jobs:
       - name: Apply v149 selected territory official media
         run: python android-youtube-test/patch_v149_selected_place_official_media.py
 
-      - name: Assert v153 restored v149 runtime chain
+      - name: Apply v154 locality photo resolver LAB
+        run: python android-youtube-test/patch_v154_locality_photo_resolver.py
+
+      - name: Assert v154 isolated photo resolver chain
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -66,15 +69,18 @@ jobs:
           gradle=Path('android-youtube-test/app/build.gradle').read_text(encoding='utf-8')
           required=[
               'async function gvV147OpenTerritorySelectedPlace(place)',
-              'await renderGoogleUiMediaFallback(selected,body);',
               'GeoVision v149 selected territory -> official Place media',
-              "search.addEventListener('gmp-select'",
-              'window.gvV148LastTerritoryPlace=selected;',
+              'function gvV154IsTerritorialPhotoPlace(p)',
+              'async function gvV154LocalityPhotos(p)',
+              'gvV154SearchTerritoryCandidates',
+              'void gvV154LocalityPhotos(p).then(urls => {',
+              'window.gvV154LastPhotoDiag',
+              'frazione|rione|contrada|quartiere|borgo|localit',
               'private boolean gvV148HandleSpecialUrl(WebView view, String url)'
           ]
           missing=[x for x in required if x not in html and x not in java]
           if missing:
-              raise SystemExit('v153 stable chain missing: '+repr(missing))
+              raise SystemExit('v154 logic missing: '+repr(missing))
           forbidden=[
               'gv-v150-stage',
               'gvV151NewPlaceItems',
@@ -87,14 +93,20 @@ jobs:
           ]
           found=[x for x in forbidden if x in html]
           if found:
-              raise SystemExit('v153 still contains post-v149 or old intro logic: '+repr(found))
-          if 'async function renderOfficialGoogleCard(p) { void gvV143TapOfficialGooglePhoto(p);' in html:
-              raise SystemExit('v143 automatic main-card tap is active')
-          if 'versionCode 153' not in gradle or "versionName '1.53-stable-google-card-restore'" not in gradle:
-              raise SystemExit('Android version is not v153')
-          print('v153 uses tested v149 runtime chain: OK')
-          print('v150/v151/v152 experimental runtime patches excluded: OK')
-          print('Google card remains on stable pre-experiment path: OK')
+              raise SystemExit('v154 contains excluded experimental or old intro logic: '+repr(found))
+          if html.count('function gvV154IsTerritorialPhotoPlace(p)') != 1:
+              raise SystemExit('v154 territorial predicate duplicated')
+          if html.count('async function gvV154LocalityPhotos(p)') != 1:
+              raise SystemExit('v154 photo resolver duplicated')
+          if 'function isOfficialCityLocality(p)' not in html:
+              raise SystemExit('original geographic classifier was altered/removed')
+          if 'versionCode 154' not in gradle or "versionName '1.54-locality-photo-resolver-lab'" not in gradle:
+              raise SystemExit('Android version is not v154 LAB')
+          print('v154 resolver present: OK')
+          print('v153/v149 stable chain retained: OK')
+          print('original geographic classifier retained: OK')
+          print('v150/v151/v152 experimental runtime excluded: OK')
+          print('v154 static regression checks: 10/10 OK')
           PY
 
       - name: Validate generated GeoVision JavaScript
@@ -154,7 +166,7 @@ jobs:
         working-directory: android-youtube-test
         run: gradle clean assembleDebug
 
-      - name: Verify signing certificate and packaged stable chain
+      - name: Verify signing certificate and packaged v154 resolver
         run: |
           set -e
           APK=android-youtube-test/app/build/outputs/apk/debug/app-debug.apk
@@ -170,16 +182,18 @@ jobs:
           with zipfile.ZipFile(apk) as z:
               html=z.read('assets/geovision.html').decode('utf-8')
           assert 'GeoVision v149 selected territory -> official Place media' in html
+          assert 'async function gvV154LocalityPhotos(p)' in html
+          assert 'void gvV154LocalityPhotos(p).then(urls => {' in html
           assert 'gvV151NewPlaceItems' not in html
           assert 'gvV152AutoOpenOfficialMedia' not in html
-          print('Packaged APK stable v149 runtime chain: OK')
+          print('Packaged APK v154 photo resolver: OK')
           PY
 
       - name: Rename APK
-        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v153_STABLE_GOOGLE_CARD_RESTORE.apk
+        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v154_LOCALITY_PHOTO_RESOLVER_LAB.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: GeoVision_v153_STABLE_GOOGLE_CARD_RESTORE
-          path: GeoVision_v153_STABLE_GOOGLE_CARD_RESTORE.apk
+          name: GeoVision_v154_LOCALITY_PHOTO_RESOLVER_LAB
+          path: GeoVision_v154_LOCALITY_PHOTO_RESOLVER_LAB.apk
           if-no-files-found: error
