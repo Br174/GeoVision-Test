@@ -1,0 +1,27 @@
+name: Build LAB 007 KEY SYNC FIX
+on:
+  push:
+    branches: [ "lab/key-sync-007-fix" ]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare stable signer
+        run: |
+          mkdir -p android-youtube-test/signing
+          cp android-youtube-test/madre001/signing/geovision-debug-stable.keystore android-youtube-test/signing/geovision-debug-stable.keystore
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Build LAB 007 KEY SYNC FIX
+        run: bash android-youtube-test/madre001/build_lab_key_sync_007_fix.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LAB_007_KEY_SYNC_FIX
+          path: LAB_007_KEY_SYNC_FIX.zip
