@@ -30,10 +30,15 @@ jobs:
           s=s.replace("bootstrap=r'''", "bootstrap='''", 1)
           s=s.replace("ui=r'''", "ui='''", 1)
           old="marker='function openKeysDiagnostics(){'\nif marker not in h: raise SystemExit('diagnostics anchor missing')"
-          new="m_diag=re.search(r'function\\s+openKeysDiagnostics\\s*\\(\\)\\s*\\{',h)\nif not m_diag: raise SystemExit('diagnostics anchor missing')\nmarker=m_diag.group(0)"
+          new="marker='</body>'\nif marker not in h: raise SystemExit('body anchor missing')"
           if old not in s:
               raise SystemExit('build-script diagnostics marker not found')
           s=s.replace(old,new,1)
+          old_insert="h=h.replace(marker,ui+'\\n'+marker,1)"
+          new_insert="ui += '''\\nsetTimeout(()=>{try{new MutationObserver(()=>gv009Decorate()).observe(document.body,{childList:true,subtree:true});}catch(e){}},0);\\n'''\nh=h.replace(marker,'<script id=\"gv009-monitor-runtime\">'+ui+'</script>\\n'+marker,1)"
+          if old_insert not in s:
+              raise SystemExit('ui insertion anchor not found')
+          s=s.replace(old_insert,new_insert,1)
           p.write_text(s,encoding='utf-8')
           PY
       - name: Build LAB 009
