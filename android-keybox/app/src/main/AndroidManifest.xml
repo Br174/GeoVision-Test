@@ -6,7 +6,7 @@
 
     <application
         android:allowBackup="false"
-        android:label="KEYBOX 005 RECOVERY"
+        android:label="KEYBOX 006 SYNC SAFE"
         android:theme="@style/AppTheme">
 
         <activity
@@ -28,5 +28,15 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
+        <receiver
+            android:name=".SyncReceiver"
+            android:exported="true"
+            android:permission="it.geovision.permission.KEYBOX_IMPORT">
+            <intent-filter>
+                <action android:name="it.geovision.keybox.SET_ACTIVE_INDEX" />
+                <action android:name="it.geovision.keybox.GET_STATE" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>
