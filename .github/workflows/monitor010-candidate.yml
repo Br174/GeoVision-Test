@@ -1,0 +1,37 @@
+name: Package requested candidate APKs
+on:
+  push:
+    branches: ['delivery/keybox007-lab010']
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: bash monitor010/build.sh
+      - name: Package candidates requested before remaining tests
+        run: |
+          cp monitor010/REPORT.md out/REPORT.md
+          echo 'CANDIDATI DI PROVA richiesti prima della conclusione dei test Android. Build, firma, ID e controlli statici verificati. Sync inter-app ancora da confermare; consultare il ramo work/keybox007-monitor010 per il risultato aggiornato. Aggiornare KeyBox senza disinstallarlo; LAB separato dalla Madre.' > out/STATO_PROVE.txt
+          cd out
+          zip KEYBOX_007_MONITOR_PROVA.zip KEYBOX_007_MONITOR.apk REPORT.md STATO_PROVE.txt
+          zip LAB_010_MONITOR_SYNC_PROVA.zip LAB_010_MONITOR_SYNC.apk LAB_010_MONITOR_SYNC.html REPORT.md STATO_PROVE.txt
+          sha256sum *.apk *.zip > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GeoVision-candidates-requested
+          path: |
+            out/*PROVA.zip
+            out/SHA256SUMS.txt
+          if-no-files-found: error
