@@ -7,8 +7,10 @@ def normalize(s):
  s=re.sub(r'<script id="gv-key-state-010">[\s\S]*?</script>\s*','',s)
  s=re.sub(r'<style id="gv-monitor-style">[\s\S]*?</style>','',s)
  s=re.sub(r'<script id="gv-monitor-010">[\s\S]*?</script>\s*','',s)
- s=re.sub(r'(?:let gvSwitchPending010=false;\n)?function gvDiagAdvanceGoogleKey\(e\)[\s\S]*?(?=\ngvDiagApplySelectedKey\(\);)','KEY_FAILOVER',s)
+ s=re.sub(r'(?:let gvSwitchPending010=false,gvRetry010=0;\n)?function gvDiagAdvanceGoogleKey\(e\)[\s\S]*?(?=\ngvDiagApplySelectedKey\(\);)','KEY_FAILOVER',s)
  s=re.sub(r'(?:async )?function runGoogleDiagnostics\(\)[\s\S]*?(?=const esc =)','KEY_PANEL',s)
+ s=re.sub(r"\$\('#mapsSetup'\).onclick =[\s\S]*?(?=\$\('#sheetClose'\).onclick)",'KEY_SETTINGS',s)
+ s=s.replace("catch (e) {\n    gvDiagAdvanceGoogleKey(e);\n    setGoogleKeyState('error');", "catch {\n    setGoogleKeyState('error');")
  return re.sub(r'<head>\s*','<head>',s)
 assert normalize(base)==normalize(new),'Unexpected change outside KeyBox/diagnostics'
 for i,b in enumerate(re.findall(r'<script\b[^>]*>([\s\S]*?)</script>',new)):

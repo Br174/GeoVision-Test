@@ -22,14 +22,22 @@ h=once(h,"    const rows = document.getElementById('googleDiagRows');","    cons
 # Diagnostic requests report errors without changing keys or interrupting the current card.
 h=once(h,'            gvDiagAdvanceGoogleKey(e);','            // A manual diagnostic must not switch the running Maps SDK.')
 a=h.index('function gvDiagAdvanceGoogleKey(e) {');b=h.index('\ngvDiagApplySelectedKey();',a)
-h=h[:a]+'''let gvSwitchPending010=false;
+h=h[:a]+'''let gvSwitchPending010=false,gvRetry010=0;
 function gvDiagAdvanceGoogleKey(e){
     if(gvSwitchPending010)return false;
     const changed=GVKeyState.create(localStorage).advance(e);
     if(changed){gvSwitchPending010=true;setTimeout(()=>location.reload(),500);}
-    else if(gvDiagIsKeyFailure(e))toast('Chiavi non disponibili. Riprova la verifica tra un minuto.');
+    else if(gvDiagIsKeyFailure(e)){toast('Chiavi non disponibili. Nuova verifica tra un minuto.');if(!gvRetry010)gvRetry010=setTimeout(()=>{gvRetry010=0;gvDiagAdvanceGoogleKey({code:'REQUEST_DENIED'});},60000);}
     return changed;
-}'''+h[b:]
+}
+window.gm_authFailure=()=>gvDiagAdvanceGoogleKey({code:'REQUEST_DENIED'});'''+h[b:]
+# Both existing settings entry points open the same Monitor, avoiding a legacy single-key overwrite.
+a=h.index("$('#mapsSetup').onclick =");b=h.index("$('#sheetClose').onclick",a)
+h=h[:a]+"$('#mapsSetup').onclick = () => GVMonitor.open();\n$('#mapsSave').onclick = () => GVMonitor.open();\n"+h[b:]
+# Only an actual key/auth/quota error can trigger the bounded failover.
+old="catch {\n    setGoogleKeyState('error');\n    $('#mapsState').textContent = 'Google Maps non disponibile · mappa di riserva attiva';"
+new="catch (e) {\n    gvDiagAdvanceGoogleKey(e);\n    setGoogleKeyState('error');\n    $('#mapsState').textContent = 'Google Maps non disponibile · mappa di riserva attiva';"
+h=once(h,old,new)
 # Snapshot loading happens synchronously before any application initialization.
 bootstrap=(M/'web/key-state.js').read_text()+'''\ntry{GVKeyState.create(localStorage).commitPending();}catch(e){window.gvKeyStartupError=e.message;}\n'''
 h=once(h,'<head>','<head>\n<script id="gv-key-state-010">'+bootstrap+'</script>\n<style id="gv-monitor-style">'+(M/'web/monitor.css').read_text()+'</style>')

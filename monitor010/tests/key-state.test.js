@@ -21,3 +21,4 @@ test('errors containing keys are not persisted',()=>{const m=memory(),s=create(m
 test('005 payload without revision supported',()=>{const k=keys();delete k.revision;assert.equal(validate(k).revision,0);});
 test('bad revisions and oversized keys rejected',()=>{assert.throws(()=>validate({...keys(),revision:-1}));assert.throws(()=>validate({...keys(),ai:'x'.repeat(513)}));assert.throws(()=>validate({...keys(),google1:'line\nkey'}));});
 test('replacing Google credentials clears old cooldown slots',()=>{const m=memory(),s=create(m);s.apply(keys());s.advance(Error('429'));s.apply({...keys(2),google1:'replacement'});assert.equal(m.getItem('geovision_key_cooldowns_v1'),null);});
+test('unchanged newer sync still rejects an older changed response',()=>{const s=create(memory());s.apply(keys(1));assert.equal(s.stage(keys(8)),false);assert.equal(s.stage({...keys(7),ai:'stale-ai'}),false);assert.equal(s.pending(),null);});

@@ -28,7 +28,7 @@ function create(storage){
   catch(e){for(const [n,v]of Object.entries(before)){try{v===null?storage.removeItem(n):storage.setItem(n,v);}catch{}}throw Error('Salvataggio non riuscito: riprovare');}
   return !same(old,k);
  }
- function stage(value){const k=validate(value),old=read(),pending=json(PENDING,null);if(k.revision&&Math.max(old.revision||0,pending?.revision||0)>k.revision)return false;if(same(old,k)){if(!pending||pending.revision<=k.revision)storage.removeItem(PENDING);return false;}storage.setItem(PENDING,JSON.stringify(k));return true;}
+ function stage(value){const k=validate(value),old=read(),pending=json(PENDING,null),seen=Number(get('geovision_keybox_seen_revision_v1')||0);if(k.revision&&Math.max(old.revision||0,pending?.revision||0,seen)>k.revision)return false;if(k.revision)storage.setItem('geovision_keybox_seen_revision_v1',String(k.revision));if(same(old,k)){if(!pending||pending.revision<=k.revision)storage.removeItem(PENDING);return false;}storage.setItem(PENDING,JSON.stringify(k));return true;}
  function pending(){return json(PENDING,null);}
  function commitPending(){const k=pending();if(!k)return false;const changed=apply(k);storage.removeItem(PENDING);return changed;}
  // Failure records survive reload; duplicate callbacks never skip multiple keys.

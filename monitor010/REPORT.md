@@ -37,14 +37,14 @@ Questi sono difetti verificati nel sorgente. L'effettiva causa di ogni malfunzio
 | Sync stabile | Ricezione firmata, nonce per richiesta, payload completo, revisione, nessuna apertura automatica di Activity |
 | Schede stabili | Sync riceve un aggiornamento in attesa; attivazione al prossimo avvio o con Applica esplicito, nessuna modifica a caldo del SDK |
 | Chiave in uso preservata | L'import mantiene la stessa chiave se ancora presente, anche se cambia slot |
-| Nessuna rotazione continua | Errori di rete non ruotano; cooldown per chiavi fallite e arresto quando esaurite; riprova successiva dopo cooldown |
+| Nessuna rotazione continua | Errori di rete non ruotano; cooldown per chiavi fallite e arresto quando esaurite; riprova automatica dopo cooldown |
 | Non consegnare per sola compilazione | Workflow con sintassi, regressione integrale, stato JS, browser reale, build/lint APK e test Android 11; artefatto finale pubblicato solo dopo tutti i gate |
 
-Il Sync è attivabile nel Monitor. KEYBOX 005 resta compatibile con Importa manuale. Una risposta vuota, corrotta o obsoleta conserva le chiavi in uso. KeyBox non impone un indice Google globale alle app: ogni SDK mantiene la propria chiave durante la sessione.
+I due ingressi del pannello chiavi aprono lo stesso Monitor: nessun salvataggio parallelo della vecchia chiave singola. Il failover limitato è collegato agli errori di avvio Google e alla callback ufficiale di autenticazione. Il Sync è attivabile nel Monitor. KEYBOX 005 resta compatibile con Importa manuale. Una risposta vuota, corrotta o obsoleta conserva le chiavi in uso. KeyBox non impone un indice Google globale alle app: ogni SDK mantiene la propria chiave durante la sessione.
 
 ## Verifiche e limiti
 
-Test di stato: 19 scenari automatizzati (slot, errori, import, revisioni, rollback, failover e cooldown).
+Test di stato: 20 scenari automatizzati (slot, errori, import, revisioni, rollback, failover e cooldown).
 Regressione: confronto completo di tutti i byte esterni al comparto chiavi, oltre alla sintassi di ogni script.
 Browser: apertura dal vero pulsante, cinque campi mascherati, nessuna chiamata al solo aprire il pannello, cinque test espliciti, indicatori, import ritardato, nessun doppio pannello, overflow mobile, applicazione singola e scheda/menu originali.
 Android 11: archivio cifrato compatibile 005, roundtrip, salvataggio atomico, cancellazione singola, corruzione, conteggio errato e permessi firma. Due test aggiuntivi del bridge eseguono uno scambio reale KeyBox/GeoVision su WebView e rifiutano una risposta non richiesta.
