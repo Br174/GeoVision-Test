@@ -15,15 +15,15 @@ Path('/tmp/GeoVision_LAB_001_SOURCE.html').write_bytes(s);subprocess.run(['pytho
 baseline=Path('/tmp/GeoVision_LAB_001_SOURCE.html').read_bytes();assert sha(baseline)=='42aead77c8cac5c36d3eb9ec7cf81b9efb69f8fd5979ebd52a5e4ca01c28cb9b'
 (ROOT/'out').mkdir(exist_ok=True);(ROOT/'out/madre2-baseline.html').write_bytes(baseline)
 h=baseline.decode()
-# Replace only the diagnostics panel preamble; service checks remain explicitly available.
+# Redirect the historical diagnostics entry point to the unified Monitor; the old detail routine remains dormant for compatibility.
 a=h.index('async function runGoogleDiagnostics() {');b=h.index("    const rows = document.getElementById('googleDiagRows');",a)
 h=h[:a]+"function runGoogleDiagnostics(){GVMonitor.open();}\nwindow.gvMonitorGoogleDiagnostics=runGoogleServiceDiagnostics;\nasync function runGoogleServiceDiagnostics(){\n"+h[b:]
 h=once(h,"    const rows = document.getElementById('googleDiagRows');","    const rows = document.getElementById('googleDiagRows');\n    if(!rows)return;")
-# A manual diagnostic reports errors but does not itself rotate keys.
+# Manual legacy diagnostics must never rotate keys.
 h=once(h,'            gvDiagAdvanceGoogleKey(e);','            // Manual diagnostics do not change the running key.')
-# Replace the historical reload-on-every-failover behavior. Normal Places failures are retried in-place.
+# Replace historical reload-on-every-failover behavior. Normal Places failures are retried in-place.
 a=h.index('function gvDiagAdvanceGoogleKey(e) {');b=h.index('\ngvDiagApplySelectedKey();',a)
-h=h[:a]+'''let gvRetry011=0;
+h=h[:a]+'''let gvRetry012=0;
 function gvDiagAdvanceGoogleKey(e){
     const st=GVKeyState.create(localStorage);
     const changed=st.advance(e);
@@ -35,12 +35,12 @@ function gvDiagAdvanceGoogleKey(e){
     }
     if(gvDiagIsKeyFailure(e)){
         toast('Nessuna chiave Google abilitata e disponibile.');
-        if(!gvRetry011)gvRetry011=setTimeout(()=>{gvRetry011=0;},60000);
+        if(!gvRetry012)gvRetry012=setTimeout(()=>{gvRetry012=0;},60000);
     }
     return false;
 }
 window.gm_authFailure=()=>{
-    // The Maps JavaScript SDK itself cannot swap credentials in place: only this SDK-auth edge case reloads.
+    // Maps JavaScript cannot swap credentials in place: only this SDK-auth edge case reloads.
     if(gvDiagAdvanceGoogleKey({code:'REQUEST_DENIED',message:'Maps JavaScript authentication failure'}))setTimeout(()=>location.reload(),450);
 };'''+h[b:]
 # Existing settings entry points open one unified Monitor.
@@ -52,11 +52,11 @@ new="catch (e) {\n    gvDiagAdvanceGoogleKey(e);\n    setGoogleKeyState('error')
 h=once(h,old,new)
 # Snapshot loading happens synchronously before any application initialization.
 bootstrap=(M/'web/key-state.js').read_text()+'''\ntry{GVKeyState.create(localStorage).commitPending();}catch(e){window.gvKeyStartupError=e.message;}\n'''
-h=once(h,'<head>','<head>\n<script id="gv-key-state-011">'+bootstrap+'</script>\n<style id="gv-monitor-style">'+(M/'web/monitor.css').read_text()+'</style>')
-# Install the transparent Places wrapper after the original app has loaded its globals. It never reloads for Places quota/key failures.
+h=once(h,'<head>','<head>\n<script id="gv-key-state-012">'+bootstrap+'</script>\n<style id="gv-monitor-style">'+(M/'web/monitor.css').read_text()+'</style>')
+# Transparent Places wrapper records status only from real app requests; no synthetic Google probe is used.
 places=(M/'web/places-failover.js').read_text()+'''\nwindow.gvGoogleKeyChanged=function(idx,key,reason){try{googleKey=key||googleKey;setGoogleKeyState('ok');}catch(_){} };\n(function(){let n=0;const t=setInterval(()=>{try{if(window.GVPlacesFailover&&GVPlacesFailover.install()){clearInterval(t);return;}}catch(_){}if(++n>80)clearInterval(t);},125);})();\n'''
-h=once(h,'</body>','<script id="gv-places-failover-011">'+places+'</script>\n<script id="gv-monitor-011">'+(M/'web/monitor.js').read_text()+'</script>\n</body>')
-assets=A/'app/src/main/assets';assets.mkdir(parents=True,exist_ok=True);(assets/'geovision.html').write_text(h);(ROOT/'out/LAB_011_FAILOVER.html').write_text(h)
+h=once(h,'</body>','<script id="gv-places-failover-012">'+places+'</script>\n<script id="gv-monitor-012">'+(M/'web/monitor.js').read_text()+'</script>\n</body>')
+assets=A/'app/src/main/assets';assets.mkdir(parents=True,exist_ok=True);(assets/'geovision.html').write_text(h);(ROOT/'out/LAB_012_FAILOVER.html').write_text(h)
 # Use the exact approved Android host; no mutations of Mother branch.
 for p in (M/'host').rglob('*'):
  if p.is_file():dest=A/p.relative_to(M/'host');dest.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(p,dest)
@@ -74,14 +74,13 @@ s=s[:a]+'''    @Override protected void onActivityResult(int requestCode,int res
 '''+s[b:]
 s=once(s,'        if (webView != null) webView.destroy();','        if(keyBoxClient!=null)keyBoxClient.destroy();\n        if (webView != null) webView.destroy();')
 j.write_text(s);shutil.copyfile(M/'native/KeyBoxClient.java',j.parent/'KeyBoxClient.java')
-g=A/'app/build.gradle';s=g.read_text();s=re.sub(r"applicationId '[^']+'","applicationId 'it.geovision.lab.failover011'",s,count=1);s=re.sub(r'versionCode\s+\d+','versionCode 2011',s,count=1);s=re.sub(r"versionName '[^']+'","versionName '1.0-failover-011'",s,count=1);s=s.replace("versionCode 2011","testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'\n        versionCode 2011")
+g=A/'app/build.gradle';s=g.read_text();s=re.sub(r"applicationId '[^']+'","applicationId 'it.geovision.lab.failover012'",s,count=1);s=re.sub(r'versionCode\s+\d+','versionCode 2012',s,count=1);s=re.sub(r"versionName '[^']+'","versionName '1.0-failover-012'",s,count=1);s=s.replace("versionCode 2012","testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'\n        versionCode 2012")
 s+='\ndependencies { implementation "androidx.core:core:1.13.1"; androidTestImplementation "androidx.test:runner:1.6.2"; androidTestImplementation "androidx.test.ext:junit:1.2.1" }\n'
 g.write_text(s)
 t=A/'app/src/androidTest/java/it/geovision/test';t.mkdir(parents=True,exist_ok=True);shutil.copyfile(M/'android-tests/BridgeTest.java',t/'BridgeTest.java')
-x=A/'app/src/main/AndroidManifest.xml';s=x.read_text();s=s.replace('<application','<uses-permission android:name="it.geovision.permission.KEYBOX_IMPORT"/>\n    <queries><package android:name="it.geovision.keybox"/><package android:name="com.instagram.android"/><package android:name="com.zhiliaoapp.musically"/></queries>\n    <application',1);s=re.sub(r'android:label="[^"]+"','android:label="LAB 011 FAILOVER"',s,count=1);x.write_text(s)
-# Reconstruct validated launcher PNG; remove the historical mislabeled placeholder.
+x=A/'app/src/main/AndroidManifest.xml';s=x.read_text();s=s.replace('<application','<uses-permission android:name="it.geovision.permission.KEYBOX_IMPORT"/>\n    <queries><package android:name="it.geovision.keybox"/><package android:name="com.instagram.android"/><package android:name="com.zhiliaoapp.musically"/></queries>\n    <application',1);s=re.sub(r'android:label="[^"]+"','android:label="LAB 012 FAILOVER"',s,count=1);x.write_text(s)
 for p in (A/'app/src/main/res').rglob('ic_launcher.png'):p.unlink()
 icon=base64.b64decode((A/'icon/geovision_icon.png.b64').read_bytes());assert icon[:8]==b'\x89PNG\r\n\x1a\n'
 p=A/'app/src/main/res/drawable-nodpi/ic_launcher.png';p.parent.mkdir(exist_ok=True);p.write_bytes(icon)
 p=A/'signing/geovision-debug-stable.keystore';p.write_bytes(base64.b64decode(p.with_suffix('.keystore.b64').read_bytes()));p.chmod(0o600)
-print('Prepared KEYBOX 008 and LAB 011; Mother 2 SHA256 verified:',sha(baseline))
+print('Prepared KEYBOX 008 and LAB 012; Mother 2 SHA256 verified:',sha(baseline))
