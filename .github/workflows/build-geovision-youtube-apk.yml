@@ -1,4 +1,4 @@
-name: Build GeoVision v154 Locality Photo Resolver LAB APK
+name: Build GeoVision v155 Locality Photo + Keys Import LAB APK
 
 on:
   push:
@@ -23,90 +23,79 @@ jobs:
 
       - name: Apply v136 exploration visibility patch
         run: python android-youtube-test/patch_v136_exploration_visibility.py
-
       - name: Apply v137 remove artificial narration intro
         run: python android-youtube-test/patch_v137_remove_intro.py
-
       - name: Apply v139 automatic Google photo lightbox
         run: python android-youtube-test/patch_v139_auto_google_photo.py
-
       - name: Apply v140 robust fullscreen photo viewer
         run: python android-youtube-test/patch_v140_fullscreen_photo_viewer.py
-
       - name: Apply v141 photo wait and retry
         run: python android-youtube-test/patch_v141_photo_wait_retry.py
-
       - name: Apply v142 native Android Google photo tap
         run: python android-youtube-test/patch_v142_native_google_photo_tap.py
-
       - name: Apply v143 direct card intercept native tap
         run: python android-youtube-test/patch_v143_card_intercept_native_tap.py
-
       - name: Apply v144 existing Google photo folder fullscreen
         run: python android-youtube-test/patch_v144_official_media_fullscreen.py
-
       - name: Apply v145 single-place/locality photo routing
         run: python android-youtube-test/patch_v145_flatten_photo_groups.py
-
       - name: Apply v147 territory result photo selection
         run: python android-youtube-test/patch_v147_territory_result_photos.py
-
       - name: Apply v148 Maps intent guard
         run: python android-youtube-test/patch_v148_block_maps_intent.py
-
       - name: Apply v149 selected territory official media
         run: python android-youtube-test/patch_v149_selected_place_official_media.py
-
       - name: Apply v154 locality photo resolver LAB
         run: python android-youtube-test/patch_v154_locality_photo_resolver.py
+      - name: Apply v155 API key backup restore
+        run: python android-youtube-test/patch_v155_key_backup_restore.py
 
-      - name: Assert v154 isolated photo resolver chain
+      - name: Assert v155 photo + key import chain
         run: |
           python - <<'PY'
           from pathlib import Path
           html=Path('android-youtube-test/app/src/main/assets/geovision.html').read_text(encoding='utf-8')
           java=Path('android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java').read_text(encoding='utf-8')
           gradle=Path('android-youtube-test/app/build.gradle').read_text(encoding='utf-8')
-          required=[
-              'async function gvV147OpenTerritorySelectedPlace(place)',
+          required_html=[
               'GeoVision v149 selected territory -> official Place media',
-              'function gvV154IsTerritorialPhotoPlace(p)',
               'async function gvV154LocalityPhotos(p)',
-              'gvV154SearchTerritoryCandidates',
-              'void gvV154LocalityPhotos(p).then(urls => {',
               'window.gvV154LastPhotoDiag',
-              'frazione|rione|contrada|quartiere|borgo|localit',
-              'private boolean gvV148HandleSpecialUrl(WebView view, String url)'
+              'id="keysImportOpen"',
+              '>Importa chiavi<',
+              'id="keysExportOpen"',
+              'function gvV155KeyConfig()',
+              'window.gvV155ReceiveImportedKeys',
+              'geovision_google_maps_api_key_1',
+              'geovision_gemini_api_key',
+              'geovision_youtube_api_key'
           ]
-          missing=[x for x in required if x not in html and x not in java]
+          required_java=[
+              'new NativeKeyBackupBridge()',
+              'GV_IMPORT_KEYS_REQUEST = 7011',
+              'Intent.ACTION_OPEN_DOCUMENT',
+              'Intent.ACTION_CREATE_DOCUMENT',
+              'JSONObject.quote(raw)'
+          ]
+          missing=[x for x in required_html if x not in html]+[x for x in required_java if x not in java]
           if missing:
-              raise SystemExit('v154 logic missing: '+repr(missing))
-          forbidden=[
-              'gv-v150-stage',
-              'gvV151NewPlaceItems',
-              'gvV151OfficialRenderedItems',
-              'gvV152AutoOpenOfficialMedia',
-              'V152: apro la prima foto',
-              'Mettetevi comodi',
-              'Iniziamo questo viaggio',
-              'speak(told);'
-          ]
+              raise SystemExit('v155 logic missing: '+repr(missing))
+          forbidden=['gvV151NewPlaceItems','gvV152AutoOpenOfficialMedia','Mettetevi comodi','Iniziamo questo viaggio','speak(told);']
           found=[x for x in forbidden if x in html]
           if found:
-              raise SystemExit('v154 contains excluded experimental or old intro logic: '+repr(found))
-          if html.count('function gvV154IsTerritorialPhotoPlace(p)') != 1:
-              raise SystemExit('v154 territorial predicate duplicated')
-          if html.count('async function gvV154LocalityPhotos(p)') != 1:
-              raise SystemExit('v154 photo resolver duplicated')
+              raise SystemExit('v155 contains excluded experimental/old logic: '+repr(found))
+          if html.count('id="keysImportOpen"') != 1 or html.count('function gvV155KeyConfig()') != 1:
+              raise SystemExit('v155 duplicate import UI/logic')
+          if java.count('class NativeKeyBackupBridge') != 1:
+              raise SystemExit('v155 duplicate native key bridge')
           if 'function isOfficialCityLocality(p)' not in html:
-              raise SystemExit('original geographic classifier was altered/removed')
-          if 'versionCode 154' not in gradle or "versionName '1.54-locality-photo-resolver-lab'" not in gradle:
-              raise SystemExit('Android version is not v154 LAB')
-          print('v154 resolver present: OK')
-          print('v153/v149 stable chain retained: OK')
-          print('original geographic classifier retained: OK')
-          print('v150/v151/v152 experimental runtime excluded: OK')
-          print('v154 static regression checks: 10/10 OK')
+              raise SystemExit('original geographic classifier removed')
+          if 'versionCode 155' not in gradle or "versionName '1.55-locality-photo-keys-import-lab'" not in gradle:
+              raise SystemExit('Android version is not v155')
+          print('v155 photo resolver retained: OK')
+          print('v155 Importa chiavi UI present: OK')
+          print('v155 native SAF import/export bridge present: OK')
+          print('stable v149 Google card chain retained: OK')
           PY
 
       - name: Validate generated GeoVision JavaScript
@@ -157,7 +146,6 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
@@ -166,7 +154,7 @@ jobs:
         working-directory: android-youtube-test
         run: gradle clean assembleDebug
 
-      - name: Verify signing certificate and packaged v154 resolver
+      - name: Verify signing certificate and packaged v155
         run: |
           set -e
           APK=android-youtube-test/app/build/outputs/apk/debug/app-debug.apk
@@ -181,19 +169,19 @@ jobs:
           apk=Path('android-youtube-test/app/build/outputs/apk/debug/app-debug.apk')
           with zipfile.ZipFile(apk) as z:
               html=z.read('assets/geovision.html').decode('utf-8')
-          assert 'GeoVision v149 selected territory -> official Place media' in html
+              java_marker='classes.dex' in z.namelist()
           assert 'async function gvV154LocalityPhotos(p)' in html
-          assert 'void gvV154LocalityPhotos(p).then(urls => {' in html
-          assert 'gvV151NewPlaceItems' not in html
-          assert 'gvV152AutoOpenOfficialMedia' not in html
-          print('Packaged APK v154 photo resolver: OK')
+          assert 'id="keysImportOpen"' in html
+          assert 'window.gvV155ReceiveImportedKeys' in html
+          assert java_marker
+          print('Packaged APK v155 photo + Importa chiavi: OK')
           PY
 
       - name: Rename APK
-        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v154_LOCALITY_PHOTO_RESOLVER_LAB.apk
+        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v155_PHOTO_KEYS_IMPORT_LAB.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: GeoVision_v154_LOCALITY_PHOTO_RESOLVER_LAB
-          path: GeoVision_v154_LOCALITY_PHOTO_RESOLVER_LAB.apk
+          name: GeoVision_v155_PHOTO_KEYS_IMPORT_LAB
+          path: GeoVision_v155_PHOTO_KEYS_IMPORT_LAB.apk
           if-no-files-found: error
