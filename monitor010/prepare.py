@@ -30,7 +30,16 @@ function gvDiagAdvanceGoogleKey(e){
     else if(gvDiagIsKeyFailure(e)){toast('Chiavi non disponibili. Nuova verifica tra un minuto.');if(!gvRetry010)gvRetry010=setTimeout(()=>{gvRetry010=0;gvDiagAdvanceGoogleKey({code:'REQUEST_DENIED'});},60000);}
     return changed;
 }
+async function gvPlacesSearch010(P,request){
+    try{return await P.searchByText(request);}
+    catch(e){gvDiagAdvanceGoogleKey(e);throw e;}
+}
 window.gm_authFailure=()=>gvDiagAdvanceGoogleKey({code:'REQUEST_DENIED'});'''+h[b:]
+# Route operational Places searches through quota/auth handling; diagnostics remain observational.
+cut=h.index('const esc =');before,after=h[:cut],h[cut:]
+assert after.count('P.searchByText(')==6
+after=after.replace('P.searchByText(', 'gvPlacesSearch010(P,')
+h=before+after
 # Both existing settings entry points open the same Monitor, avoiding a legacy single-key overwrite.
 a=h.index("$('#mapsSetup').onclick =");b=h.index("$('#sheetClose').onclick",a)
 h=h[:a]+"$('#mapsSetup').onclick = () => GVMonitor.open();\n$('#mapsSave').onclick = () => GVMonitor.open();\n"+h[b:]
@@ -60,7 +69,7 @@ s=s[:a]+'''    @Override protected void onActivityResult(int requestCode,int res
 '''+s[b:]
 s=once(s,'        if (webView != null) webView.destroy();','        if(keyBoxClient!=null)keyBoxClient.destroy();\n        if (webView != null) webView.destroy();')
 j.write_text(s);shutil.copyfile(M/'native/KeyBoxClient.java',j.parent/'KeyBoxClient.java')
-g=A/'app/build.gradle';s=g.read_text();s=re.sub(r"applicationId '[^']+'","applicationId 'it.geovision.lab.monitor010'",s,count=1);s=re.sub(r'versionCode\s+\d+','versionCode 2010',s,count=1);s=re.sub(r"versionName '[^']+'","versionName '1.0-monitor-sync-010'",s,count=1);s=s.replace("versionCode 2010","testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'\n        versionCode 2010")
+g=A/'app/build.gradle';s=g.read_text();s=re.sub(r"applicationId '[^']+'","applicationId 'it.geovision.lab.monitor010'",s,count=1);s=re.sub(r'versionCode\s+\d+','versionCode 2011',s,count=1);s=re.sub(r"versionName '[^']+'","versionName '1.0-monitor-sync-010-fix1'",s,count=1);s=s.replace("versionCode 2011","testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'\n        versionCode 2011")
 s+='\ndependencies { implementation "androidx.core:core:1.13.1"; androidTestImplementation "androidx.test:runner:1.6.2"; androidTestImplementation "androidx.test.ext:junit:1.2.1" }\n'
 g.write_text(s)
 t=A/'app/src/androidTest/java/it/geovision/test';t.mkdir(parents=True,exist_ok=True);shutil.copyfile(M/'android-tests/BridgeTest.java',t/'BridgeTest.java')

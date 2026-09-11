@@ -22,3 +22,22 @@ test('005 payload without revision supported',()=>{const k=keys();delete k.revis
 test('bad revisions and oversized keys rejected',()=>{assert.throws(()=>validate({...keys(),revision:-1}));assert.throws(()=>validate({...keys(),ai:'x'.repeat(513)}));assert.throws(()=>validate({...keys(),google1:'line\nkey'}));});
 test('replacing Google credentials clears old cooldown slots',()=>{const m=memory(),s=create(m);s.apply(keys());s.advance(Error('429'));s.apply({...keys(2),google1:'replacement'});assert.equal(m.getItem('geovision_key_cooldowns_v1'),null);});
 test('unchanged newer sync still rejects an older changed response',()=>{const s=create(memory());s.apply(keys(1));assert.equal(s.stage(keys(8)),false);assert.equal(s.stage({...keys(7),ai:'stale-ai'}),false);assert.equal(s.pending(),null);});
+
+const fs=require('fs'),vm=require('vm'),path=require('path');
+function operationalSearch(storage){
+ const html=fs.readFileSync(path.join(__dirname,'../../out/LAB_010_MONITOR_SYNC.html'),'utf8');
+ const start=html.indexOf('async function gvPlacesSearch010('),end=html.indexOf('window.gm_authFailure',start);
+ const context={gvDiagAdvanceGoogleKey:e=>create(storage).advance(e)};vm.createContext(context);vm.runInContext(html.slice(start,end),context);return context.gvPlacesSearch010;
+}
+test('actual Places search quota rejection advances the active key and preserves the error',async()=>{
+ const storage=memory();create(storage).apply(keys());const search=operationalSearch(storage);
+ const error=new Error('PLACES_SEARCH_TEXT: RESOURCE_EXHAUSTED: Quota exceeded SearchTextRequest per day');
+ await assert.rejects(search({searchByText:async()=>{throw error;}},{textQuery:'Salerno'}),e=>e===error);
+ assert.equal(storage.getItem('geovision_google_active_key_index'),'1');
+});
+test('operational search success and network errors do not rotate keys',async()=>{
+ const storage=memory();create(storage).apply(keys());const search=operationalSearch(storage),result={places:[{id:'test-place'}]};
+ assert.equal(await search({searchByText:async()=>result},{}),result);
+ await assert.rejects(search({searchByText:async()=>{throw new Error('Failed to fetch');}},{}));
+ assert.equal(storage.getItem('geovision_google_active_key_index'),'0');
+});

@@ -31,7 +31,7 @@ Questi sono difetti verificati nel sorgente. L'effettiva causa di ogni malfunzio
 | Partire da KEYBOX 005 | Conservati formato cifrato, archivio `geovision_keybox_v1`, alias `GeoVisionKeyBoxMasterV1`, export manuale e firma |
 | Madre 2 intatta | Ricostruzione con SHA256 esatto; file e ramo Madre non modificati |
 | KeyBox `it.geovision.keybox` | VersionCode 2007, firma originale verificata sull'APK |
-| GeoVision di prova separata | `it.geovision.lab.monitor010`, versionCode 2010 |
+| GeoVision di prova separata | `it.geovision.lab.monitor010`, versionCode 2011 |
 | Monitor con 5 chiavi | Google 1/2/3, AI, YouTube, campi password e indicatori |
 | Separare pannello app da KeyBox | KeyBox conserva le chiavi; Monitor GeoVision modifica solo la propria copia e verifica i servizi |
 | Sync stabile | Ricezione firmata, nonce per richiesta, payload completo, revisione, nessuna apertura automatica di Activity |
@@ -44,7 +44,7 @@ I due ingressi del pannello chiavi aprono lo stesso Monitor: nessun salvataggio 
 
 ## Verifiche e limiti
 
-Test di stato: 20 scenari automatizzati (slot, errori, import, revisioni, rollback, failover e cooldown).
+Test di stato: 22 scenari automatizzati (slot, errori, import, revisioni, rollback, failover e cooldown).
 Regressione: confronto completo di tutti i byte esterni al comparto chiavi, oltre alla sintassi di ogni script.
 Browser: apertura dal vero pulsante, cinque campi mascherati, nessuna chiamata al solo aprire il pannello, cinque test espliciti, indicatori, import ritardato, nessun doppio pannello, overflow mobile, applicazione singola e scheda/menu originali.
 Android 11: archivio cifrato compatibile 005, roundtrip, salvataggio atomico, cancellazione singola, corruzione, conteggio errato e permessi firma. Tre test aggiuntivi del bridge eseguono uno scambio reale KeyBox/GeoVision su WebView verificano anche l’importazione manuale e rifiutano una risposta non richiesta.
@@ -57,3 +57,6 @@ Fonti tecniche: https://developer.android.com/develop/background-work/background
 Installazione: aggiornare KeyBox sopra la versione esistente senza disinstallarla; LAB 010 si installa accanto alla Madre. Non installare APK di test strumentali: non fanno parte della consegna.
 
 Ambiente di prova Android: Gradle disinstalla il KeyBox al termine dei suoi test. Il workflow lo reinstalla e lo apre esplicitamente prima della prova inter-app, come avviene nella configurazione iniziale sul telefono.
+
+## Correzione dopo la prova sul telefono
+Lo screenshot del cliente mostra RESOURCE_EXHAUSTED per SearchTextRequest giornaliero. Le sei ricerche Places operative ora propagano gli errori al failover limitato; prima solo gli errori di avvio Maps lo facevano. La diagnostica resta osservativa. Due regressioni riproducono la quota esaurita e verificano che successo/errore di rete non cambino chiave. Questa correzione non aumenta le quote del progetto Google né certifica disponibilità delle altre chiavi. LAB 010 fix1 usa versionCode 2011 e si aggiorna sopra LAB 010, mantenendo applicationId separato dalla Madre.

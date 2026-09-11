@@ -11,6 +11,7 @@ def normalize(s):
  s=re.sub(r'(?:async )?function runGoogleDiagnostics\(\)[\s\S]*?(?=const esc =)','KEY_PANEL',s)
  s=re.sub(r"\$\('#mapsSetup'\).onclick =[\s\S]*?(?=\$\('#sheetClose'\).onclick)",'KEY_SETTINGS',s)
  s=s.replace("catch (e) {\n    gvDiagAdvanceGoogleKey(e);\n    setGoogleKeyState('error');", "catch {\n    setGoogleKeyState('error');")
+ s=s.replace('gvPlacesSearch010(P,', 'P.searchByText(')
  return re.sub(r'<head>\s*','<head>',s)
 assert normalize(base)==normalize(new),'Unexpected change outside KeyBox/diagnostics'
 for i,b in enumerate(re.findall(r'<script\b[^>]*>([\s\S]*?)</script>',new)):
@@ -31,3 +32,6 @@ for folder,app_id in [('android-keybox','it.geovision.keybox'),('android-youtube
 k=(R/'android-keybox/app/src/main/java/it/geovision/keybox/KeyVault.java').read_text()
 assert 'geovision_keybox_v1' in k and 'GeoVisionKeyBoxMasterV1' in k
 print('PASS: exact Madre hash; all code outside key subsystem identical; JavaScript syntax; single handler; receiver security/lifecycle; IDs; vault compatibility')
+
+assert new.count('gvPlacesSearch010(P,')==7
+assert new.count('P.searchByText(')==2 # helper plus observational diagnostic
