@@ -1,148 +1,36 @@
 package it.geovision.keybox;
-
 import android.app.Activity;
-import android.graphics.Color;
 import android.os.Bundle;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.text.InputType;
 import android.view.Gravity;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.ScrollView;
-import android.widget.TextView;
-import android.widget.Toast;
-
+import android.widget.*;
 public class MainActivity extends Activity {
-    private EditText g1, g2, g3, ai, youtube;
-    private TextView status;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(buildUi());
-        loadValues();
-        updateStatus();
-    }
-
-    private int dp(int v) {
-        return Math.round(v * getResources().getDisplayMetrics().density);
-    }
-
-    private TextView text(String value, int sp, boolean bold) {
-        TextView t = new TextView(this);
-        t.setText(value);
-        t.setTextSize(sp);
-        t.setTextColor(Color.rgb(31, 41, 55));
-        if (bold) t.setTypeface(t.getTypeface(), android.graphics.Typeface.BOLD);
-        return t;
-    }
-
-    private EditText field(String label) {
-        EditText e = new EditText(this);
-        e.setHint(label);
-        e.setSingleLine(true);
-        e.setTextSize(15);
-        e.setPadding(dp(14), dp(12), dp(14), dp(12));
-        e.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT);
-        lp.topMargin = dp(10);
-        e.setLayoutParams(lp);
-        return e;
-    }
-
-    private View buildUi() {
-        ScrollView scroll = new ScrollView(this);
-        scroll.setFillViewport(true);
-        scroll.setBackgroundColor(Color.WHITE);
-
-        LinearLayout box = new LinearLayout(this);
-        box.setOrientation(LinearLayout.VERTICAL);
-        box.setPadding(dp(22), dp(28), dp(22), dp(32));
-        scroll.addView(box, new ScrollView.LayoutParams(
-                ScrollView.LayoutParams.MATCH_PARENT,
-                ScrollView.LayoutParams.WRAP_CONTENT));
-
-        TextView title = text("GeoVision KeyBox", 26, true);
-        box.addView(title);
-
-        TextView subtitle = text("Archivio chiavi separato da GeoVision", 14, false);
-        subtitle.setTextColor(Color.rgb(100, 116, 139));
-        LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT);
-        slp.topMargin = dp(4);
-        subtitle.setLayoutParams(slp);
-        box.addView(subtitle);
-
-        TextView note = text("Inserisci una volta le 5 chiavi. Ogni nuova GeoVision potrà importarle con un solo pulsante. Le chiavi vengono cifrate nel Keystore Android e restano solo su questo telefono.", 14, false);
-        note.setTextColor(Color.rgb(71, 85, 105));
-        note.setLineSpacing(0, 1.15f);
-        LinearLayout.LayoutParams nlp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT);
-        nlp.topMargin = dp(18);
-        note.setLayoutParams(nlp);
-        box.addView(note);
-
-        g1 = field("Google Maps API 1"); box.addView(g1);
-        g2 = field("Google Maps API 2"); box.addView(g2);
-        g3 = field("Google Maps API 3"); box.addView(g3);
-        ai = field("API Intelligenza Artificiale"); box.addView(ai);
-        youtube = field("YouTube Data API"); box.addView(youtube);
-
-        Button save = new Button(this);
-        save.setText("SALVA LE 5 CHIAVI");
-        save.setAllCaps(false);
-        save.setTextSize(16);
-        save.setTextColor(Color.WHITE);
-        save.setBackgroundColor(Color.rgb(47, 125, 225));
-        LinearLayout.LayoutParams blp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, dp(54));
-        blp.topMargin = dp(20);
-        save.setLayoutParams(blp);
-        save.setOnClickListener(v -> saveValues());
-        box.addView(save);
-
-        status = text("", 14, true);
-        status.setGravity(Gravity.CENTER_HORIZONTAL);
-        LinearLayout.LayoutParams stlp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT);
-        stlp.topMargin = dp(16);
-        status.setLayoutParams(stlp);
-        box.addView(status);
-
-        return scroll;
-    }
-
-    private void loadValues() {
-        g1.setText(KeyVault.get(this, KeyVault.G1));
-        g2.setText(KeyVault.get(this, KeyVault.G2));
-        g3.setText(KeyVault.get(this, KeyVault.G3));
-        ai.setText(KeyVault.get(this, KeyVault.AI));
-        youtube.setText(KeyVault.get(this, KeyVault.YOUTUBE));
-    }
-
-    private void saveValues() {
-        try {
-            KeyVault.put(this, KeyVault.G1, g1.getText().toString());
-            KeyVault.put(this, KeyVault.G2, g2.getText().toString());
-            KeyVault.put(this, KeyVault.G3, g3.getText().toString());
-            KeyVault.put(this, KeyVault.AI, ai.getText().toString());
-            KeyVault.put(this, KeyVault.YOUTUBE, youtube.getText().toString());
-            updateStatus();
-            Toast.makeText(this, "Chiavi salvate", Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
-            Toast.makeText(this, "Errore nel salvataggio", Toast.LENGTH_LONG).show();
+    private final EditText[] fields=new EditText[5];
+    private final TextView[] dots=new TextView[5],states=new TextView[5];
+    private TextView status; private boolean readable=true;
+    private final String[] names={"google1","google2","google3","ai","youtube"};
+    int dp(int x){return Math.round(x*getResources().getDisplayMetrics().density);}
+    TextView text(String s,int size,boolean bold){TextView t=new TextView(this);t.setText(s);t.setTextSize(size);t.setTextColor(Color.rgb(23,42,69));if(bold)t.setTypeface(Typeface.DEFAULT_BOLD);return t;}
+    GradientDrawable bg(int color,int radius){GradientDrawable b=new GradientDrawable();b.setColor(color);b.setCornerRadius(dp(radius));b.setStroke(dp(1),0xffdfe7f1);return b;}
+    @Override public void onCreate(Bundle b){super.onCreate(b);
+        ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setBackgroundColor(0xfff6f8fc);
+        LinearLayout body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(dp(22),dp(30),dp(22),dp(28));scroll.addView(body);
+        body.addView(text("GEOVISION · KEYBOX 007",12,true));body.addView(text("Monitor chiavi",28,true));
+        TextView note=text("Archivio condiviso. Verde: chiave salvata e leggibile. Rosso: chiave assente. La verifica dei servizi si trova in GeoVision.",13,false);note.setPadding(0,dp(10),0,dp(14));body.addView(note);
+        String[] labels={"Google 1","Google 2","Google 3","Intelligenza artificiale","YouTube"};
+        for(int i=0;i<5;i++){
+            LinearLayout card=new LinearLayout(this);card.setOrientation(LinearLayout.VERTICAL);card.setPadding(dp(14),dp(12),dp(14),dp(12));card.setBackground(bg(Color.WHITE,16));
+            LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);lp.bottomMargin=dp(10);body.addView(card,lp);
+            LinearLayout head=new LinearLayout(this);head.setGravity(Gravity.CENTER_VERTICAL);dots[i]=text("●",20,true);dots[i].setPadding(0,0,dp(10),0);head.addView(dots[i]);head.addView(text(labels[i],16,true));card.addView(head);
+            states[i]=text("",12,false);card.addView(states[i]);
+            EditText e=new EditText(this);fields[i]=e;e.setSingleLine(true);e.setTextSize(15);e.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);e.setHint("Incolla la chiave");e.setContentDescription(labels[i]);e.setSaveEnabled(false);e.setBackground(bg(0xfff9fbfe,9));e.setPadding(dp(10),dp(10),dp(10),dp(10));card.addView(e,new LinearLayout.LayoutParams(-1,-2));
         }
+        Button save=new Button(this);save.setText("Salva le cinque chiavi");save.setAllCaps(false);save.setTextColor(Color.WHITE);save.setBackground(bg(0xff256bd7,12));body.addView(save,new LinearLayout.LayoutParams(-1,dp(52)));
+        status=text("",13,true);status.setPadding(0,dp(16),0,0);body.addView(status);setContentView(scroll);load();
+        save.setOnClickListener(v->{if(!readable){status.setText("Archivio non leggibile: salvataggio bloccato per conservare i dati.");return;}try{String[] values=new String[5];for(int i=0;i<5;i++)values[i]=fields[i].getText().toString();KeyVault.putAll(this,values);load();Toast.makeText(this,"Chiavi salvate",Toast.LENGTH_SHORT).show();}catch(Exception e){status.setText("Salvataggio non riuscito. Le chiavi precedenti sono conservate.");}});
     }
-
-    private void updateStatus() {
-        int n = KeyVault.count(this);
-        status.setText("Chiavi configurate: " + n + " / 5");
-        status.setTextColor(n == 5 ? Color.rgb(22, 163, 74) : Color.rgb(217, 119, 6));
-    }
+    private void load(){try{Bundle b=KeyVault.readAll(this);int count=0;for(int i=0;i<5;i++){String v=b.getString(names[i],"");fields[i].setText(v);boolean present=!v.isEmpty();if(present)count++;dots[i].setTextColor(present?0xff16a34a:0xffdc2626);states[i].setText(present?"Salvata · servizio da verificare in GeoVision":"Chiave assente");}status.setText(count+" / 5 chiavi salvate · revisione "+b.getLong("revision"));}catch(Exception e){readable=false;status.setText("Archivio non leggibile. Nessuna chiave è stata cancellata.");}}
 }

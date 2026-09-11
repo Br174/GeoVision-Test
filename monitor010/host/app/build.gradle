@@ -1,0 +1,35 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'it.geovision.test'
+    compileSdk 35
+
+    signingConfigs {
+        stableDebug {
+            storeFile file('../signing/geovision-debug-stable.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+    }
+
+    defaultConfig {
+        applicationId 'it.geovision.test'
+        minSdk 23
+        targetSdk 35
+        versionCode 138
+        versionName '1.38-direct-narration-cache-fix'
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.stableDebug
+        }
+    }
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.12.1'
+}

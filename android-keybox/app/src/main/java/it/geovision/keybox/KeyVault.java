@@ -60,8 +60,9 @@ final class KeyVault {
     private static String decrypt(String packed64) throws Exception {
         if (packed64 == null || packed64.isEmpty()) return "";
         byte[] packed = Base64.decode(packed64, Base64.NO_WRAP);
+        if(packed.length<2)throw new IllegalArgumentException("invalid vault");
         int ivLen = packed[0] & 0xff;
-        if (ivLen < 8 || ivLen > 32 || packed.length <= 1 + ivLen) return "";
+        if (ivLen < 8 || ivLen > 32 || packed.length < 1 + ivLen + 16) throw new IllegalArgumentException("invalid vault");
         byte[] iv = new byte[ivLen];
         byte[] encrypted = new byte[packed.length - 1 - ivLen];
         System.arraycopy(packed, 1, iv, 0, ivLen);
@@ -69,6 +70,29 @@ final class KeyVault {
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
         cipher.init(Cipher.DECRYPT_MODE, getOrCreateKey(), new GCMParameterSpec(128, iv));
         return new String(cipher.doFinal(encrypted), StandardCharsets.UTF_8);
+    }
+
+    static synchronized android.os.Bundle readAll(Context context) throws Exception {
+        SharedPreferences p=context.getSharedPreferences(PREFS,Context.MODE_PRIVATE);
+        android.os.Bundle b=new android.os.Bundle();
+        for(String n:new String[]{G1,G2,G3,AI,YOUTUBE}) b.putString(n,decrypt(p.getString(n,"")));
+        b.putLong("revision",p.getLong("keys_revision_v1",0));
+        return b;
+    }
+
+    static synchronized void putAll(Context context, String[] values) throws Exception {
+        if(values==null||values.length!=5)throw new IllegalArgumentException("five keys required");
+        String[] names={G1,G2,G3,AI,YOUTUBE};
+        SharedPreferences p=context.getSharedPreferences(PREFS,Context.MODE_PRIVATE);
+        SharedPreferences.Editor e=p.edit();
+        // Encrypt all five before committing: a failure never saves half a vault.
+        for(int i=0;i<5;i++){
+            String v=values[i]==null?"":values[i].trim();
+            if(v.length()>512||v.contains("\n")||v.contains("\r"))throw new IllegalArgumentException("invalid key");
+            if(v.isEmpty())e.remove(names[i]);else e.putString(names[i],encrypt(v));
+        }
+        e.putLong("keys_revision_v1",p.getLong("keys_revision_v1",0)+1);
+        if(!e.commit())throw new java.io.IOException("vault commit failed");
     }
 
     static void put(Context context, String name, String value) throws Exception {
@@ -97,3 +121,4 @@ final class KeyVault {
         return n;
     }
 }
+

@@ -16,14 +16,13 @@ public class ExportKeysActivity extends Activity {
             return;
         }
 
-        Intent out = new Intent();
-        out.putExtra("google1", KeyVault.get(this, KeyVault.G1));
-        out.putExtra("google2", KeyVault.get(this, KeyVault.G2));
-        out.putExtra("google3", KeyVault.get(this, KeyVault.G3));
-        out.putExtra("ai", KeyVault.get(this, KeyVault.AI));
-        out.putExtra("youtube", KeyVault.get(this, KeyVault.YOUTUBE));
-        out.putExtra("count", KeyVault.count(this));
-        setResult(RESULT_OK, out);
+        try {
+            Intent out = new Intent();
+            out.putExtras(KeyVault.readAll(this));
+            out.putExtra("count",KeyVault.count(this));
+            setResult(RESULT_OK,out);
+        } catch(Exception e){setResult(RESULT_CANCELED);}
         finish();
     }
 }
+

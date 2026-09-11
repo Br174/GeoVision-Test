@@ -4,9 +4,10 @@
         android:name="it.geovision.permission.KEYBOX_IMPORT"
         android:protectionLevel="signature" />
 
+    <uses-permission android:name="it.geovision.permission.KEYBOX_IMPORT" />
     <application
         android:allowBackup="false"
-        android:label="KEYBOX 005 RECOVERY"
+        android:label="KEYBOX 007 MONITOR"
         android:theme="@style/AppTheme">
 
         <activity
@@ -28,5 +29,9 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+        <receiver android:name=".SyncReceiver" android:exported="true" android:permission="it.geovision.permission.KEYBOX_IMPORT">
+            <intent-filter><action android:name="it.geovision.keybox.GET_KEYS_V1" /></intent-filter>
+        </receiver>
     </application>
 </manifest>
+
