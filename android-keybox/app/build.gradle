@@ -19,8 +19,8 @@ android {
         applicationId 'it.geovision.keybox'
         minSdk 23
         targetSdk 35
-        versionCode 2005
-        versionName '5.0-recovery-simple'
+        versionCode 2006
+        versionName '6.0-sync-safe'
     }
 
     buildTypes {
