@@ -26,4 +26,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: GeoVision_KEYBOX_006_SYNC_SAFE
-          path: android-keybox/GeoVision_KEYBOX_006_SYNC_SAFE.zip
+          path: GeoVision_KEYBOX_006_SYNC_SAFE.zip
+          if-no-files-found: error
+          retention-days: 90
