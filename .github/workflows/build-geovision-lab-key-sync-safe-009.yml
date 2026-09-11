@@ -1,0 +1,29 @@
+name: Build LAB 009 KEY SYNC SAFE
+on:
+  push:
+    branches: [ lab/key-sync-safe-009 ]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Prepare stable signer
+        run: |
+          base64 -d android-youtube-test/signing/geovision-debug-stable.keystore.b64 > android-youtube-test/signing/geovision-debug-stable.keystore
+          chmod 600 android-youtube-test/signing/geovision-debug-stable.keystore
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Build LAB 009
+        run: bash android-youtube-test/madre001/build_lab_key_sync_safe_009.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LAB_009_KEY_SYNC_SAFE
+          path: LAB_009_KEY_SYNC_SAFE.zip
