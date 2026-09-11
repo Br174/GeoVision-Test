@@ -42,11 +42,14 @@ jobs:
           script: |
             gradle -p android-keybox connectedDebugAndroidTest
             gradle -p android-youtube-test connectedDebugAndroidTest
+            adb shell am start -n it.geovision.keybox/.MainActivity
+            sleep 2
+            adb exec-out screencap -p > out/Monitor_KEYBOX_007.png
       - name: Package verified deliverables
         run: |
           cp monitor010/REPORT.md out/REPORT.md
           cd out
-          zip KEYBOX_007_MONITOR.zip KEYBOX_007_MONITOR.apk REPORT.md
+          zip KEYBOX_007_MONITOR.zip KEYBOX_007_MONITOR.apk Monitor_KEYBOX_007.png REPORT.md
           zip LAB_010_MONITOR_SYNC.zip LAB_010_MONITOR_SYNC.apk LAB_010_MONITOR_SYNC.html Monitor_API_LAB_010.png REPORT.md
           sha256sum *.apk *.html *.zip > SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
@@ -59,6 +62,7 @@ jobs:
             out/LAB_010_MONITOR_SYNC.html
             out/LAB_010_MONITOR_SYNC.zip
             out/Monitor_API_LAB_010.png
+            out/Monitor_KEYBOX_007.png
             out/REPORT.md
             out/SHA256SUMS.txt
           if-no-files-found: error
@@ -68,5 +72,6 @@ jobs:
         with:
           name: verification-reports
           path: |
+            out/Monitor*.png
             android-keybox/app/build/reports/
             android-youtube-test/app/build/reports/
