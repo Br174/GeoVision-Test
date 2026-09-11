@@ -1,0 +1,41 @@
+name: Build LAB 005 FRAZIONI
+
+on:
+  push:
+    branches:
+      - lab/frazioni-005
+    paths:
+      - 'android-youtube-test/madre001/build_lab_frazioni_005.sh'
+      - 'android-youtube-test/madre001/patch_frazioni_005.py'
+      - '.github/workflows/build-geovision-lab-frazioni-005.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Prepare stable signer
+        run: |
+          base64 -d android-youtube-test/signing/geovision-debug-stable.keystore.b64 > android-youtube-test/signing/geovision-debug-stable.keystore
+          chmod 600 android-youtube-test/signing/geovision-debug-stable.keystore
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Build LAB 005 FRAZIONI
+        run: bash android-youtube-test/madre001/build_lab_frazioni_005.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LAB_005_FRAZIONI
+          path: |
+            LAB_005_FRAZIONI.apk
+            LAB_005_FRAZIONI.html
+            LAB_005_FRAZIONI.zip
+            MANIFEST_LAB_005_FRAZIONI.txt
+          if-no-files-found: error
