@@ -22,6 +22,7 @@ function create(storage){
   let idx=maps.indexOf(current);if(idx<0||!current)idx=maps.findIndex(Boolean);if(idx<0)idx=0;
   const changes={[SNAP]:JSON.stringify(k),geovision_google_maps_api_keys:JSON.stringify(maps),geovision_google_maps_api_key:maps[idx]||null,geovision_google_active_key_index:String(idx),geovision_ai_api_key:k.ai||null,geovision_youtube_api_key:k.youtube||null};
   maps.forEach((v,i)=>changes['geovision_google_maps_api_key_'+(i+1)]=v||null);
+  if(['google1','google2','google3'].some(n=>old[n]!==k[n]))changes.geovision_key_cooldowns_v1=null;
   const before={};Object.keys(changes).forEach(n=>before[n]=get(n));
   try{for(const [n,v]of Object.entries(changes)){v===null?storage.removeItem(n):storage.setItem(n,v);}}
   catch(e){for(const [n,v]of Object.entries(before)){try{v===null?storage.removeItem(n):storage.setItem(n,v);}catch{}}throw Error('Salvataggio non riuscito: riprovare');}

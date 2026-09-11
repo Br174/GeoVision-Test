@@ -20,3 +20,4 @@ test('duplicate keys not selected as alternatives',()=>{const s=create(memory())
 test('errors containing keys are not persisted',()=>{const m=memory(),s=create(m);s.apply(keys());s.advance(Error('429 url?key=SECRET_SENTINEL'));assert(!m.getItem('geovision_key_cooldowns_v1').includes('SECRET_SENTINEL'));});
 test('005 payload without revision supported',()=>{const k=keys();delete k.revision;assert.equal(validate(k).revision,0);});
 test('bad revisions and oversized keys rejected',()=>{assert.throws(()=>validate({...keys(),revision:-1}));assert.throws(()=>validate({...keys(),ai:'x'.repeat(513)}));assert.throws(()=>validate({...keys(),google1:'line\nkey'}));});
+test('replacing Google credentials clears old cooldown slots',()=>{const m=memory(),s=create(m);s.apply(keys());s.advance(Error('429'));s.apply({...keys(2),google1:'replacement'});assert.equal(m.getItem('geovision_key_cooldowns_v1'),null);});

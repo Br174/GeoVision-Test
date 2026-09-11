@@ -52,7 +52,10 @@ s=s[:a]+'''    @Override protected void onActivityResult(int requestCode,int res
 '''+s[b:]
 s=once(s,'        if (webView != null) webView.destroy();','        if(keyBoxClient!=null)keyBoxClient.destroy();\n        if (webView != null) webView.destroy();')
 j.write_text(s);shutil.copyfile(M/'native/KeyBoxClient.java',j.parent/'KeyBoxClient.java')
-g=A/'app/build.gradle';s=g.read_text();s=re.sub(r"applicationId '[^']+'","applicationId 'it.geovision.lab.monitor010'",s,count=1);s=re.sub(r'versionCode\s+\d+','versionCode 2010',s,count=1);s=re.sub(r"versionName '[^']+'","versionName '1.0-monitor-sync-010'",s,count=1);g.write_text(s)
+g=A/'app/build.gradle';s=g.read_text();s=re.sub(r"applicationId '[^']+'","applicationId 'it.geovision.lab.monitor010'",s,count=1);s=re.sub(r'versionCode\s+\d+','versionCode 2010',s,count=1);s=re.sub(r"versionName '[^']+'","versionName '1.0-monitor-sync-010'",s,count=1);s=s.replace("versionCode 2010","testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'\n        versionCode 2010")
+s+='\ndependencies { androidTestImplementation "androidx.test:runner:1.6.2"; androidTestImplementation "androidx.test.ext:junit:1.2.1" }\n'
+g.write_text(s)
+t=A/'app/src/androidTest/java/it/geovision/test';t.mkdir(parents=True,exist_ok=True);shutil.copyfile(M/'android-tests/BridgeTest.java',t/'BridgeTest.java')
 x=A/'app/src/main/AndroidManifest.xml';s=x.read_text();s=s.replace('<application','<uses-permission android:name="it.geovision.permission.KEYBOX_IMPORT"/>\n    <queries><package android:name="it.geovision.keybox"/><package android:name="com.instagram.android"/><package android:name="com.zhiliaoapp.musically"/></queries>\n    <application',1);s=re.sub(r'android:label="[^"]+"','android:label="LAB 010 MONITOR SYNC"',s,count=1);x.write_text(s)
 # Reconstruct validated launcher PNG; remove the historical mislabeled placeholder.
 for p in (A/'app/src/main/res').rglob('ic_launcher.png'):p.unlink()

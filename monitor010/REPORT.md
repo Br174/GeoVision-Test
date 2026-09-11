@@ -44,10 +44,10 @@ Il Sync è attivabile nel Monitor. KEYBOX 005 resta compatibile con Importa manu
 
 ## Verifiche e limiti
 
-Test di stato: 18 scenari automatizzati (slot, errori, import, revisioni, rollback, failover e cooldown).
+Test di stato: 19 scenari automatizzati (slot, errori, import, revisioni, rollback, failover e cooldown).
 Regressione: confronto completo di tutti i byte esterni al comparto chiavi, oltre alla sintassi di ogni script.
 Browser: apertura dal vero pulsante, cinque campi mascherati, nessuna chiamata al solo aprire il pannello, cinque test espliciti, indicatori, import ritardato, nessun doppio pannello, overflow mobile, applicazione singola e scheda/menu originali.
-Android 11: archivio cifrato compatibile 005, roundtrip, salvataggio atomico, cancellazione singola, corruzione, conteggio errato e permessi firma.
+Android 11: archivio cifrato compatibile 005, roundtrip, salvataggio atomico, cancellazione singola, corruzione, conteggio errato e permessi firma. Due test aggiuntivi del bridge eseguono uno scambio reale KeyBox/GeoVision su WebView e rifiutano una risposta non richiesta.
 Build: APK, lint, certificato, applicationId e identità dell'HTML impacchettato.
 
 I test dei servizi nel browser usano risposte simulate e chiavi sintetiche: non certificano quote o autorizzazioni delle chiavi personali. Il Monitor esegue le verifiche reali su richiesta dal telefono. Il verde per Gemini verifica l'accesso all'API modelli, non una narrazione generata; YouTube verifica l'accesso alla Data API; Google verifica Places REST, mentre il pulsante diagnostica separato verifica il SDK/schede/foto. Nessuna modifica ai servizi AI/video della Madre.

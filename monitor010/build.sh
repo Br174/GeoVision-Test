@@ -4,7 +4,7 @@ python monitor010/prepare.py
 node --test monitor010/tests/key-state.test.js
 python monitor010/tests/static.py
 gradle -p android-keybox assembleDebug assembleDebugAndroidTest lintDebug
-gradle -p android-youtube-test assembleDebug lintDebug
+gradle -p android-youtube-test assembleDebug assembleDebugAndroidTest lintDebug
 python - <<'PY'
 from pathlib import Path
 import zipfile,hashlib,subprocess,os

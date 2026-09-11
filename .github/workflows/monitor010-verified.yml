@@ -39,7 +39,9 @@ jobs:
           api-level: 30
           arch: x86_64
           disable-animations: true
-          script: gradle -p android-keybox connectedDebugAndroidTest
+          script: |
+            gradle -p android-keybox connectedDebugAndroidTest
+            gradle -p android-youtube-test connectedDebugAndroidTest
       - name: Package verified deliverables
         run: |
           cp monitor010/REPORT.md out/REPORT.md
