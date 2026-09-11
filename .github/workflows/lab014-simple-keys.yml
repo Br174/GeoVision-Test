@@ -1,0 +1,32 @@
+name: LAB 014 SIMPLE KEYS
+on:
+  push:
+    branches: ['lab/simple-keys-014']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Build only
+        run: |
+          mkdir -p android-youtube-test/signing
+          base64 -d android-youtube-test/signing/geovision-debug-stable.keystore.b64 > android-youtube-test/signing/geovision-debug-stable.keystore
+          bash android-youtube-test/madre001/build_lab_014_simple_keys.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LAB-014-SIMPLE-KEYS
+          path: |
+            LAB_014_SIMPLE_KEYS.apk
+            LAB_014_SIMPLE_KEYS.html
+            LAB_014_SIMPLE_KEYS.zip
+            README_LAB_014.txt
