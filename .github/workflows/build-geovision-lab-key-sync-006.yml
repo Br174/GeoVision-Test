@@ -1,0 +1,41 @@
+name: Build LAB 006 KEY SYNC
+
+on:
+  push:
+    branches:
+      - lab/key-sync-006
+    paths:
+      - 'android-youtube-test/madre001/patch_key_sync_006.py'
+      - 'android-youtube-test/madre001/build_lab_key_sync_006.sh'
+      - '.github/workflows/build-geovision-lab-key-sync-006.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Prepare stable signer
+        run: |
+          base64 -d android-youtube-test/signing/geovision-debug-stable.keystore.b64 > android-youtube-test/signing/geovision-debug-stable.keystore
+          chmod 600 android-youtube-test/signing/geovision-debug-stable.keystore
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Build LAB 006 KEY SYNC
+        run: bash android-youtube-test/madre001/build_lab_key_sync_006.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LAB_006_KEY_SYNC
+          path: |
+            LAB_006_KEY_SYNC.apk
+            LAB_006_KEY_SYNC.html
+            LAB_006_KEY_SYNC.zip
+            MANIFEST_LAB_006_KEY_SYNC.txt
+          if-no-files-found: error
