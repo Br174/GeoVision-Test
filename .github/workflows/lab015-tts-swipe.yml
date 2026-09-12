@@ -1,0 +1,31 @@
+name: LAB 015 TTS SWIPE
+on:
+  push:
+    branches: ['lab/tts-swipe-015']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with: {distribution: temurin, java-version: '17'}
+      - uses: gradle/actions/setup-gradle@v4
+        with: {gradle-version: '8.9'}
+      - name: Prepare LAB013 base and patch only TTS + swipe
+        run: |
+          python monitor010/prepare.py
+          python android-youtube-test/madre001/patch_lab_015_tts_swipe.py
+          sed -i "s/it.geovision.lab.failover012/it.geovision.lab.ttsswipe015/; s/versionCode 2012/versionCode 2015/; s/1.0-failover-012/1.0-tts-swipe-015/" android-youtube-test/app/build.gradle
+          sed -i 's/LAB 012 FAILOVER/LAB 015 TTS SWIPE/' android-youtube-test/app/src/main/AndroidManifest.xml
+          gradle -p android-youtube-test assembleDebug
+          mkdir -p out15
+          cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk out15/LAB_015_TTS_SWIPE.apk
+          cp out/LAB_012_FAILOVER.html out15/LAB_015_TTS_SWIPE.html
+          cd out15 && zip LAB_015_TTS_SWIPE.zip LAB_015_TTS_SWIPE.apk LAB_015_TTS_SWIPE.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LAB-015-TTS-SWIPE
+          path: out15/LAB_015_TTS_SWIPE.zip
