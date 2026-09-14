@@ -5,24 +5,18 @@ import android.content.Intent;
 import android.os.Bundle;
 
 public class ExportKeysActivity extends Activity {
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    @Override protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
-
-        String caller = getCallingPackage();
-        if (caller == null || caller.trim().isEmpty()) {
-            setResult(RESULT_CANCELED);
-            finish();
-            return;
-        }
-
-        try {
-            Intent out = new Intent();
-            out.putExtras(KeyVault.readAll(this));
-            out.putExtra("count",KeyVault.count(this));
+        try{
+            Bundle b=KeyVault.readAll(this);
+            Intent out=new Intent();
+            out.putExtra("google1",b.getString("google1",""));
+            out.putExtra("google2",b.getString("google2",""));
+            out.putExtra("google3",b.getString("google3",""));
+            out.putExtra("ai",b.getString("ai",""));
+            out.putExtra("youtube",b.getString("youtube",""));
             setResult(RESULT_OK,out);
-        } catch(Exception e){setResult(RESULT_CANCELED);}
+        }catch(Exception e){ setResult(RESULT_CANCELED); }
         finish();
     }
 }
-
