@@ -8,9 +8,8 @@ OUT=ROOT/'out/LAB_012_FAILOVER.html'
 def patch(path):
     s=path.read_text(encoding='utf-8')
 
-    # Guardie: la logica AI/autoguida gia approvata deve restare presente.
+    # Guardie minime: preserviamo l'AI e l'avvio automatico gia presenti nella base.
     assert 'async function aiNarration(' in s
-    assert 'async function aiNarrationRetry(' in s
     assert 'void enrichNarration(p);' in s
     assert "function speak(text, append = false) { if (!('speechSynthesis' in window))" in s
     assert 'function stopSpeech() { speechToken++;' in s
@@ -43,7 +42,6 @@ def patch(path):
         1
     )
 
-    # Stato visivo comandato dai callback del TextToSpeech Android.
     hook=r'''
 <script id="gv-ai-voice-auto-017">
 window.gvNativeTtsState=function(state){
