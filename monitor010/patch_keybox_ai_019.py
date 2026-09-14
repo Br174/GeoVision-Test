@@ -7,11 +7,16 @@ OUT=ROOT/'out/LAB_012_FAILOVER.html'
 def patch(path):
     s=path.read_text(encoding='utf-8')
 
-    old="speak(text, true);"
-    start=s.find('function appendAndSpeak')
-    pos=s.find(old,start)
-    assert start>=0 and pos>=0, 'appendAndSpeak TTS anchor not found'
-    s=s[:pos]+"speak(text, speaking);"+s[pos+len(old):]
+    anchor="if (window.GeoVisionTTS && typeof window.GeoVisionTTS.speak === 'function') {"
+    pos=s.find(anchor)
+    assert pos>=0, 'native TTS bridge anchor not found'
+    insert_pos=pos+len(anchor)
+    s=s[:insert_pos]+"\n        const gvWasSpeaking = speaking;"+s[insert_pos:]
+
+    old="parts.forEach((part, i) => window.GeoVisionTTS.speak(part, !!append || i > 0));"
+    assert old in s, 'native TTS queue anchor not found'
+    new="parts.forEach((part, i) => window.GeoVisionTTS.speak(part, (append && gvWasSpeaking) || i > 0));"
+    s=s.replace(old,new,1)
 
     addon=r'''
 <script id="gv019-simple-keybox">
@@ -62,4 +67,4 @@ def patch(path):
 
 patch(HTML)
 if OUT.exists(): patch(OUT)
-print('LAB019 simple KeyBox import + AI native TTS start applied')
+print('LAB019 simple KeyBox import + native TTS bridge fix applied')
