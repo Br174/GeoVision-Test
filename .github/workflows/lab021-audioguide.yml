@@ -28,17 +28,23 @@ jobs:
           python monitor010/patch_keybox_ai_019.py
           python monitor010/patch_audioguide_020.py
           python monitor010/patch_audioguide_021.py
+
+          grep -q 'Chiave AI assente o disattivata' out/LAB_012_FAILOVER.html
+          grep -q 'gvLastAiError' out/LAB_012_FAILOVER.html
+          grep -q 'gemini-3.6-flash' android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java
+          grep -q 'gemini-2.5-flash' android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java
+          grep -q 'gemini-3.5-flash-lite' android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java
+          grep -q 'GeoVisionAI' android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java
+          grep -q 'GeoVisionTTS' android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java
+
           sed -i "s/it.geovision.lab.failover012/it.geovision.lab.audioguide021/; s/versionCode 2012/versionCode 2021/; s/1.0-failover-012/1.0-audioguide-021/" android-youtube-test/app/build.gradle
           sed -i 's/LAB 012 FAILOVER/LAB 021 AUDIOGUIDA/' android-youtube-test/app/src/main/AndroidManifest.xml
           gradle -p android-youtube-test assembleDebug
+
           mkdir -p out21
           cp android-keybox/app/build/outputs/apk/debug/app-debug.apk out21/GeoVision_KEYBOX_009_SIMPLE.apk
           cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk out21/LAB_021_AUDIOGUIDA.apk
           cp out/LAB_012_FAILOVER.html out21/LAB_021_AUDIOGUIDA.html
-          grep -q 'Chiave AI assente o disattivata' out21/LAB_021_AUDIOGUIDA.html
-          grep -q 'gvLastAiError' out21/LAB_021_AUDIOGUIDA.html
-          unzip -p out21/LAB_021_AUDIOGUIDA.apk classes.dex | strings | grep -q 'gemini-3.6-flash'
-          unzip -p out21/LAB_021_AUDIOGUIDA.apk classes.dex | strings | grep -q 'gemini-2.5-flash'
           cd out21 && zip LAB_021_AUDIOGUIDA_PACKAGE.zip GeoVision_KEYBOX_009_SIMPLE.apk LAB_021_AUDIOGUIDA.apk LAB_021_AUDIOGUIDA.html
       - uses: actions/upload-artifact@v4
         with:
