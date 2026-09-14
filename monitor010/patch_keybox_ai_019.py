@@ -1,5 +1,4 @@
 from pathlib import Path
-import re
 
 ROOT=Path(__file__).resolve().parents[1]
 HTML=ROOT/'android-youtube-test/app/src/main/assets/geovision.html'
@@ -8,20 +7,11 @@ OUT=ROOT/'out/LAB_012_FAILOVER.html'
 def patch(path):
     s=path.read_text(encoding='utf-8')
 
-    s,n=re.subn(
-        r"let told\s*=\s*instantNarrationIntro\(p\);\s*let firstContinuation\s*=\s*'';",
-        "let told = instantNarrationIntro(p);\n    let gvVoiceStarted = !!clean(told);\n    let firstContinuation = '';",
-        s,count=1)
-    assert n==1, 'told anchor not found'
-
     old="speak(text, true);"
-    pos=s.find(old, s.find('function appendAndSpeak'))
-    assert pos>=0, 'appendAndSpeak TTS anchor not found'
-    s=s[:pos]+"speak(text, gvVoiceStarted);\n        gvVoiceStarted = true;"+s[pos+len(old):]
-
-    pos=s.find('speak(told);', s.find('function appendAndSpeak'))
-    assert pos>=0, 'initial TTS anchor not found'
-    s=s[:pos]+"if (told) speak(told);"+s[pos+len('speak(told);'):]
+    start=s.find('function appendAndSpeak')
+    pos=s.find(old,start)
+    assert start>=0 and pos>=0, 'appendAndSpeak TTS anchor not found'
+    s=s[:pos]+"speak(text, speaking);"+s[pos+len(old):]
 
     addon=r'''
 <script id="gv019-simple-keybox">
