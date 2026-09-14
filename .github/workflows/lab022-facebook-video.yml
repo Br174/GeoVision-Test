@@ -6,7 +6,7 @@ on:
 permissions:
   contents: read
 jobs:
-  inspect:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,7 +14,13 @@ jobs:
         with: {distribution: temurin, java-version: '17'}
       - uses: gradle/actions/setup-gradle@v4
         with: {gradle-version: '8.9'}
-      - name: Prepare source and inspect Facebook wiring
+      - name: Prepare stable signer
+        run: |
+          base64 -d android-youtube-test/signing/geovision-debug-stable.keystore.b64 > android-youtube-test/signing/geovision-debug-stable.keystore
+          chmod 600 android-youtube-test/signing/geovision-debug-stable.keystore
+      - name: Build KeyBox
+        run: gradle -p android-keybox clean assembleDebug
+      - name: Build LAB022 Facebook video search
         run: |
           python monitor010/prepare.py
           python monitor010/patch_restore_controls_017.py
@@ -22,19 +28,18 @@ jobs:
           python monitor010/patch_keybox_ai_019.py
           python monitor010/patch_audioguide_020.py
           python monitor010/patch_audioguide_021.py
-          echo '--- FACEBOOK MATCHES ---'
-          python - <<'PY'
-          from pathlib import Path
-          s=Path('android-youtube-test/app/src/main/assets/geovision.html').read_text(encoding='utf-8')
-          low=s.lower()
-          pos=0
-          found=0
-          while True:
-              i=low.find('facebook',pos)
-              if i<0: break
-              found+=1
-              print(f'\n--- match {found} at {i} ---')
-              print(s[max(0,i-500):min(len(s),i+900)])
-              pos=i+8
-          print('\nTOTAL',found)
-          PY
+          python monitor010/patch_facebook_video_022.py
+          sed -i "s/it.geovision.lab.failover012/it.geovision.lab.facebookvideo022/; s/versionCode 2012/versionCode 2022/; s/1.0-failover-012/1.0-facebook-video-022/" android-youtube-test/app/build.gradle
+          sed -i 's/LAB 012 FAILOVER/LAB 022 FACEBOOK VIDEO/' android-youtube-test/app/src/main/AndroidManifest.xml
+          gradle -p android-youtube-test assembleDebug
+          mkdir -p out22
+          cp android-keybox/app/build/outputs/apk/debug/app-debug.apk out22/GeoVision_KEYBOX_009_SIMPLE.apk
+          cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk out22/LAB_022_FACEBOOK_VIDEO.apk
+          cp out/LAB_012_FAILOVER.html out22/LAB_022_FACEBOOK_VIDEO.html
+          grep -q 'https://www.facebook.com/search/videos/?q=' out22/LAB_022_FACEBOOK_VIDEO.html
+          ! grep -q 'https://www.facebook.com/watch/search/?q=' out22/LAB_022_FACEBOOK_VIDEO.html
+          cd out22 && zip LAB_022_FACEBOOK_VIDEO_PACKAGE.zip GeoVision_KEYBOX_009_SIMPLE.apk LAB_022_FACEBOOK_VIDEO.apk LAB_022_FACEBOOK_VIDEO.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LAB-022-FACEBOOK-VIDEO
+          path: out22/LAB_022_FACEBOOK_VIDEO_PACKAGE.zip
