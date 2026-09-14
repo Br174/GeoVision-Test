@@ -1,0 +1,32 @@
+name: LAB 018 TTS AI AUTO
+on:
+  push:
+    branches: ['lab/tts-ai-auto-018']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with: {distribution: temurin, java-version: '17'}
+      - uses: gradle/actions/setup-gradle@v4
+        with: {gradle-version: '8.9'}
+      - name: Build LAB018 from working LAB017 base
+        run: |
+          python monitor010/prepare.py
+          python monitor010/patch_restore_controls_017.py
+          python monitor010/patch_tts_ai_auto_018.py
+          sed -i "s/it.geovision.lab.failover012/it.geovision.lab.ttsai018/; s/versionCode 2012/versionCode 2018/; s/1.0-failover-012/1.0-tts-ai-auto-018/" android-youtube-test/app/build.gradle
+          sed -i 's/LAB 012 FAILOVER/LAB 018 TTS AI AUTO/' android-youtube-test/app/src/main/AndroidManifest.xml
+          gradle -p android-youtube-test assembleDebug
+          mkdir -p out18
+          cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk out18/LAB_018_TTS_AI_AUTO.apk
+          cp out/LAB_012_FAILOVER.html out18/LAB_018_TTS_AI_AUTO.html
+          cd out18 && zip LAB_018_TTS_AI_AUTO.zip LAB_018_TTS_AI_AUTO.apk LAB_018_TTS_AI_AUTO.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LAB-018-TTS-AI-AUTO
+          path: out18/LAB_018_TTS_AI_AUTO.zip
