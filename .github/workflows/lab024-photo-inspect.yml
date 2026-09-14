@@ -1,0 +1,31 @@
+name: LAB 024 PHOTO INSPECT
+on:
+  push:
+    branches: ['lab/photo-gallery-024']
+  workflow_dispatch:
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare current Mother chain and inspect photo controls
+        run: |
+          python monitor010/prepare.py
+          python monitor010/patch_restore_controls_017.py
+          python monitor010/patch_ai_swipe_018.py
+          python monitor010/patch_keybox_ai_019.py
+          python monitor010/patch_audioguide_020.py
+          python monitor010/patch_audioguide_021.py
+          python monitor010/patch_facebook_video_023.py
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('android-youtube-test/app/src/main/assets/geovision.html').read_text(encoding='utf-8')
+          for needle in ['photoGallery','photo-gallery','sheet-head','sheetPhoto','googleCityPhotos','renderOfficialGoogleCard','Foto','Immagini']:
+              print('\n###',needle)
+              pos=0
+              for n in range(8):
+                  i=s.find(needle,pos)
+                  if i<0: break
+                  print(s[max(0,i-700):min(len(s),i+1300)])
+                  pos=i+len(needle)
+          PY
