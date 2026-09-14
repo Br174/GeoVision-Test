@@ -1,0 +1,46 @@
+name: LAB 023 FACEBOOK VIDEO
+on:
+  push:
+    branches: ['lab/facebook-video-023']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with: {distribution: temurin, java-version: '17'}
+      - uses: gradle/actions/setup-gradle@v4
+        with: {gradle-version: '8.9'}
+      - name: Prepare stable signer
+        run: |
+          base64 -d android-youtube-test/signing/geovision-debug-stable.keystore.b64 > android-youtube-test/signing/geovision-debug-stable.keystore
+          chmod 600 android-youtube-test/signing/geovision-debug-stable.keystore
+      - name: Build KeyBox
+        run: gradle -p android-keybox clean assembleDebug
+      - name: Build LAB023 historical Facebook route
+        run: |
+          python monitor010/prepare.py
+          python monitor010/patch_restore_controls_017.py
+          python monitor010/patch_ai_swipe_018.py
+          python monitor010/patch_keybox_ai_019.py
+          python monitor010/patch_audioguide_020.py
+          python monitor010/patch_audioguide_021.py
+          python monitor010/patch_facebook_legacy_023.py
+          sed -i "s/it.geovision.lab.failover012/it.geovision.lab.facebook023/; s/versionCode 2012/versionCode 2023/; s/1.0-failover-012/1.0-facebook-023/" android-youtube-test/app/build.gradle
+          sed -i 's/LAB 012 FAILOVER/LAB 023 FACEBOOK VIDEO/' android-youtube-test/app/src/main/AndroidManifest.xml
+          grep -q "gvFacebookLegacySearch(social)" android-youtube-test/app/src/main/assets/geovision.html
+          grep -q "facebook.com/watch/search/?q=" android-youtube-test/app/src/main/assets/geovision.html
+          grep -q "GeoVisionFacebook" android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java
+          gradle -p android-youtube-test assembleDebug
+          mkdir -p out23
+          cp android-keybox/app/build/outputs/apk/debug/app-debug.apk out23/GeoVision_KEYBOX_009_SIMPLE.apk
+          cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk out23/LAB_023_FACEBOOK_VIDEO.apk
+          cp out/LAB_012_FAILOVER.html out23/LAB_023_FACEBOOK_VIDEO.html
+          cd out23 && zip LAB_023_FACEBOOK_VIDEO_PACKAGE.zip GeoVision_KEYBOX_009_SIMPLE.apk LAB_023_FACEBOOK_VIDEO.apk LAB_023_FACEBOOK_VIDEO.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LAB-023-FACEBOOK-VIDEO
+          path: out23/LAB_023_FACEBOOK_VIDEO_PACKAGE.zip
