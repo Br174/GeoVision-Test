@@ -27,6 +27,10 @@ jobs:
           python monitor010/patch_ai_swipe_018.py
           python monitor010/patch_keybox_ai_019.py
           python monitor010/patch_audioguide_020.py
+          grep -q 'class NativeAiBridge' android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java
+          grep -q 'addJavascriptInterface(new NativeAiBridge(), "GeoVisionAI")' android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java
+          grep -q 'GeoVisionAI.generate' out/LAB_012_FAILOVER.html
+          grep -q 'window.gvNativeAiResult' out/LAB_012_FAILOVER.html
           sed -i "s/it.geovision.lab.failover012/it.geovision.lab.audioguide020/; s/versionCode 2012/versionCode 2020/; s/1.0-failover-012/1.0-audioguide-020/" android-youtube-test/app/build.gradle
           sed -i 's/LAB 012 FAILOVER/LAB 020 AUDIOGUIDA/' android-youtube-test/app/src/main/AndroidManifest.xml
           gradle -p android-youtube-test assembleDebug
@@ -34,12 +38,9 @@ jobs:
           cp android-keybox/app/build/outputs/apk/debug/app-debug.apk out20/GeoVision_KEYBOX_009_SIMPLE.apk
           cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk out20/LAB_020_AUDIOGUIDA.apk
           cp out/LAB_012_FAILOVER.html out20/LAB_020_AUDIOGUIDA.html
-          grep -q 'GeoVisionAI.generate' out20/LAB_020_AUDIOGUIDA.html
-          grep -q 'window.gvNativeAiResult' out20/LAB_020_AUDIOGUIDA.html
-          unzip -p out20/LAB_020_AUDIOGUIDA.apk classes.dex | strings | grep -q 'GeoVisionAI'
+          unzip -t out20/LAB_020_AUDIOGUIDA.apk
           cd out20 && zip LAB_020_AUDIOGUIDA_PACKAGE.zip GeoVision_KEYBOX_009_SIMPLE.apk LAB_020_AUDIOGUIDA.apk LAB_020_AUDIOGUIDA.html
       - uses: actions/upload-artifact@v4
         with:
           name: LAB-020-AUDIOGUIDA
           path: out20/LAB_020_AUDIOGUIDA_PACKAGE.zip
-# validation build trigger
