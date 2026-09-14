@@ -17,13 +17,13 @@ jobs:
       - name: Prepare LAB013 base and patch only TTS + swipe
         run: |
           python monitor010/prepare.py
-          python android-youtube-test/madre001/patch_lab_015_tts_swipe.py
+          python monitor010/patch_tts_swipe_015.py
           sed -i "s/it.geovision.lab.failover012/it.geovision.lab.ttsswipe015/; s/versionCode 2012/versionCode 2015/; s/1.0-failover-012/1.0-tts-swipe-015/" android-youtube-test/app/build.gradle
           sed -i 's/LAB 012 FAILOVER/LAB 015 TTS SWIPE/' android-youtube-test/app/src/main/AndroidManifest.xml
           gradle -p android-youtube-test assembleDebug
           mkdir -p out15
           cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk out15/LAB_015_TTS_SWIPE.apk
-          cp out/LAB_012_FAILOVER.html out15/LAB_015_TTS_SWIPE.html
+          cp android-youtube-test/app/src/main/assets/geovision.html out15/LAB_015_TTS_SWIPE.html
           cd out15 && zip LAB_015_TTS_SWIPE.zip LAB_015_TTS_SWIPE.apk LAB_015_TTS_SWIPE.html
       - uses: actions/upload-artifact@v4
         with:
