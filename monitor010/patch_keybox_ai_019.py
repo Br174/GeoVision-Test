@@ -61,25 +61,37 @@ def patch(path):
   watch.observe(document.documentElement,{childList:true,subtree:true});
   addImportButton(document.getElementById('gvLocalApi'));
 
-  // Audioguida: ogni nuova scheda Google avvia automaticamente la narrazione AI.
-  // Non modifica la scheda: osserva soltanto l'apertura dell'area audioGuide.
+  // Audioguida: usa direttamente i binding del documento GeoVision.
+  // Le variabili dichiarate con let/const non sono proprietà di window: il vecchio
+  // trigger cercava window.current e quindi si fermava prima di chiamare AI/TTS.
   let guideSeq=0,lastGuide=null;
   async function startGuide(node){
-    if(!node||node===lastGuide)return; lastGuide=node; const seq=++guideSeq;
+    if(!node||node===lastGuide)return;
+    lastGuide=node;
+    const seq=++guideSeq;
     try{
-      if(typeof stopSpeech==='function')stopSpeech();
-      const p=window.current;
-      if(!p||typeof window.aiNarration!=='function')return;
-      const text=String(await window.aiNarration(p,'initial','', '',0)||'').trim();
-      if(seq!==guideSeq||!node.isConnected||!text)return;
+      if(typeof stopSpeech==='function') stopSpeech();
+      const p=(typeof current!=='undefined') ? current : null;
+      if(!p || typeof aiNarration!=='function') return;
+      const text=String(await aiNarration(p,'initial','','',0)||'').trim();
+      if(seq!==guideSeq || !node.isConnected || !text) return;
       node.innerHTML='<div class="narration-text"></div>';
-      const out=node.querySelector('.narration-text'); if(out)out.textContent=text;
-      if(typeof window.speak==='function')window.speak(text,false);
-    }catch(_){ }
+      const out=node.querySelector('.narration-text');
+      if(out) out.textContent=text;
+      if(typeof speak==='function') speak(text,false);
+      else if(window.GeoVisionTTS && typeof window.GeoVisionTTS.speak==='function') window.GeoVisionTTS.speak(text,false);
+    }catch(e){
+      try{console.error('GeoVision audioguide start failed',e);}catch(_){}
+    }
   }
-  const guideWatch=new MutationObserver(()=>{const n=document.getElementById('audioGuide');if(n&&n!==lastGuide)setTimeout(()=>startGuide(n),0);});
+  function detectGuide(){
+    const n=document.getElementById('audioGuide');
+    if(n&&n!==lastGuide) setTimeout(()=>startGuide(n),30);
+  }
+  const guideWatch=new MutationObserver(detectGuide);
   guideWatch.observe(document.documentElement,{childList:true,subtree:true});
-  const n=document.getElementById('audioGuide');if(n)startGuide(n);
+  document.addEventListener('click',()=>setTimeout(detectGuide,80),true);
+  detectGuide();
 })();
 </script>
 '''
