@@ -42,3 +42,4 @@ jobs:
         with:
           name: LAB-020-AUDIOGUIDA
           path: out20/LAB_020_AUDIOGUIDA_PACKAGE.zip
+# validation build trigger
