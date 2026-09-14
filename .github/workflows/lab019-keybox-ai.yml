@@ -1,0 +1,40 @@
+name: LAB 019 KEYBOX AI
+on:
+  push:
+    branches: ['lab/keybox-ai-019']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with: {distribution: temurin, java-version: '17'}
+      - uses: gradle/actions/setup-gradle@v4
+        with: {gradle-version: '8.9'}
+      - name: Prepare stable signer
+        run: |
+          base64 -d android-youtube-test/signing/geovision-debug-stable.keystore.b64 > android-youtube-test/signing/geovision-debug-stable.keystore
+          chmod 600 android-youtube-test/signing/geovision-debug-stable.keystore
+      - name: Build simple KeyBox
+        run: gradle -p android-keybox clean assembleDebug
+      - name: Build LAB019 from AI SWIPE 018
+        run: |
+          python monitor010/prepare.py
+          python monitor010/patch_restore_controls_017.py
+          python monitor010/patch_ai_swipe_018.py
+          python monitor010/patch_keybox_ai_019.py
+          sed -i "s/it.geovision.lab.failover012/it.geovision.lab.keyboxai019/; s/versionCode 2012/versionCode 2019/; s/1.0-failover-012/1.0-keybox-ai-019/" android-youtube-test/app/build.gradle
+          sed -i 's/LAB 012 FAILOVER/LAB 019 KEYBOX AI/' android-youtube-test/app/src/main/AndroidManifest.xml
+          gradle -p android-youtube-test assembleDebug
+          mkdir -p out19
+          cp android-keybox/app/build/outputs/apk/debug/app-debug.apk out19/GeoVision_KEYBOX_009_SIMPLE.apk
+          cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk out19/LAB_019_KEYBOX_AI.apk
+          cp out/LAB_012_FAILOVER.html out19/LAB_019_KEYBOX_AI.html
+          cd out19 && zip LAB_019_KEYBOX_AI_PACKAGE.zip GeoVision_KEYBOX_009_SIMPLE.apk LAB_019_KEYBOX_AI.apk LAB_019_KEYBOX_AI.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LAB-019-KEYBOX-AI
+          path: out19/LAB_019_KEYBOX_AI_PACKAGE.zip
