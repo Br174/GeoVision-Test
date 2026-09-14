@@ -8,16 +8,7 @@ def patch(path):
     s=path.read_text(encoding='utf-8')
 
     intro=r'''function instantNarrationIntro(p) {
-    const k = String(p.kind || '').toLowerCase();
-    const food = /restaurant|ristor|trattor|oster|pizzer|cafe|caff|bar|bakery|pasticc|gelater|food|pub|bistrot/.test(k);
-    if (food) return 'Iniziamo questo viaggio all’insegna del gusto. Mettetevi comodi, si comincia.';
-    if (p.family === 'culture' || /monument|muse|chies|castell|palazz|sito arche|rovine|tempio|cattedral|basilic|teatro|anfiteatro|stor/.test(k))
-        return 'Mettetevi comodi, si comincia. Iniziamo questo viaggio alla scoperta della storia e delle curiosità di questo luogo.';
-    if (p.family === 'nature' || /parc|giardin|natura|lago|mont|spiaggia|baia|golfo|valle|riserva/.test(k))
-        return 'Mettetevi comodi, si comincia. Iniziamo questo viaggio alla scoperta della natura.';
-    if (!p.isPoi)
-        return `Siamo a ${p.name}. Iniziamo a scoprirne identità, storia, cucina, tradizioni e curiosità. Mettetevi comodi, si comincia.`;
-    return `Ci troviamo ${p.parent ? `a ${p.parent} ` : ''}al ${p.name}. Scopriamo che cos’è, cosa lo rende interessante e qualche curiosità. Mettetevi comodi, si comincia.`;
+    return '';
 }
 '''
     a=s.index('function instantNarrationIntro(p)')
@@ -38,13 +29,13 @@ function gvNarrationPrompt(p, mode, extract='', previous='', depth=0){
     const locality=!p.isPoi || /città|comune|paese|quartiere|frazione|rione|borgo|contrada|municipio|localit/.test(k);
     let focus='';
     if(food){
-        focus=`È un'attività di ristorazione. Spiega in modo concreto che tipo di locale è, le specialità o i piatti per cui è noto quando supportati dai dati, dove si trova, atmosfera e servizio, e riassumi il senso delle recensioni disponibili senza inventare. NON parlare di arte o di storia generale della città, salvo un dettaglio strettamente legato al locale.`;
+        focus=`È un'attività di ristorazione. Parti subito dal locale, senza frasi introduttive predefinite. Spiega in modo concreto che tipo di locale è, le specialità o i piatti per cui è noto quando supportati dai dati, dove si trova, atmosfera e servizio, e riassumi il senso delle recensioni disponibili senza inventare. NON parlare di arte o di storia generale della città, salvo un dettaglio strettamente legato al locale.`;
     }else if(locality){
-        focus=`È una località territoriale, non chiamarla mai "punto di interesse". Identificala correttamente come città, comune, paese, quartiere, frazione, rione, borgo o contrada in base ai dati. Racconta: per cosa è famosa, identità geografica, eventi storici essenziali, cucina e specialità locali, tradizioni e feste, artigianato o attività tipiche, poi una curiosità introdotta con "Lo sapevi che…".`;
+        focus=`È una località territoriale, non chiamarla mai "punto di interesse". Identificala correttamente come città, comune, paese, quartiere, frazione, rione, borgo o contrada in base ai dati. Parti subito con la descrizione AI, senza formule introduttive. Racconta: per cosa è famosa, identità geografica, eventi storici essenziali, cucina e specialità locali, tradizioni e feste, artigianato o attività tipiche, poi una curiosità introdotta con "Lo sapevi che…".`;
     }else if(culture){
-        focus=`È un monumento o luogo culturale. Racconta origine e periodo storico, funzione, elementi architettonici o artistici importanti, eventi o personaggi collegati, cosa osservare durante la visita e almeno una curiosità concreta.`;
+        focus=`È un monumento o luogo culturale. Parti subito dal luogo, senza frasi introduttive predefinite. Racconta origine e periodo storico, funzione, elementi architettonici o artistici importanti, eventi o personaggi collegati, cosa osservare durante la visita e almeno una curiosità concreta.`;
     }else{
-        focus=`È un luogo o un'attività. Spiega con precisione che cos'è, dove si trova, perché può interessare, caratteristiche principali, eventuali servizi o specialità e una curiosità utile, senza inventare dati mancanti.`;
+        focus=`È un luogo o un'attività. Parti subito dalla descrizione AI, senza frasi introduttive predefinite. Spiega con precisione che cos'è, dove si trova, perché può interessare, caratteristiche principali, eventuali servizi o specialità e una curiosità utile, senza inventare dati mancanti.`;
     }
     const length = mode==='deepen'
       ? 'Aggiungi informazioni NUOVE, senza ripetere il testo precedente. Circa 180-280 parole.'
@@ -53,7 +44,7 @@ function gvNarrationPrompt(p, mode, extract='', previous='', depth=0){
     const summary = clean(p.summary||'');
     const context = clean(extract||'');
     const prev = clean(previous||'');
-    return `Sei l'audioguida italiana di GeoVision. Scrivi SOLO il testo da leggere ad alta voce, niente markdown, niente elenchi puntati, niente titoli tecnici, niente link, niente riferimenti a API o fonti. Usa un tono naturale, informativo e piacevole, con frasi abbastanza brevi per il Text-to-Speech. Non inventare fatti: quando un dato non è supportato, omettilo.
+    return `Sei l'audioguida italiana di GeoVision. Scrivi SOLO il testo da leggere ad alta voce, niente markdown, niente elenchi puntati, niente titoli tecnici, niente link, niente riferimenti a API o fonti. Usa un tono naturale, informativo e piacevole, con frasi abbastanza brevi per il Text-to-Speech. Non inventare fatti: quando un dato non è supportato, omettilo. Non usare una frase introduttiva di attesa: inizia immediatamente con il contenuto informativo.
 Luogo: ${p.name||''}
 Tipo: ${p.kind||''}
 Località/contesto: ${p.parent||''}
@@ -138,4 +129,4 @@ sheet.addEventListener('touchcancel', ()=>{gvSwipeOn=false;sheet.style.transitio
 
 patch(HTML)
 if OUT.exists(): patch(OUT)
-print('LAB018 AI narration + robust downward swipe applied')
+print('LAB018 AI direct + robust downward swipe applied')
