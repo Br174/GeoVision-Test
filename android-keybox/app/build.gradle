@@ -19,19 +19,11 @@ android {
         applicationId 'it.geovision.keybox'
         minSdk 23
         targetSdk 35
-        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
-        versionCode 2008
-        versionName '8.0-monitor-switch'
+        versionCode 2009
+        versionName '9.0-simple-keybox'
     }
 
     buildTypes {
-        debug {
-            signingConfig signingConfigs.stableDebug
-        }
+        debug { signingConfig signingConfigs.stableDebug }
     }
-}
-
-dependencies {
-    androidTestImplementation "androidx.test:runner:1.6.2"
-    androidTestImplementation "androidx.test.ext:junit:1.2.1"
 }
