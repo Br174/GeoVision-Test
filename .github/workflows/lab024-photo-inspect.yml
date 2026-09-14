@@ -16,7 +16,7 @@ jobs:
           python monitor010/patch_keybox_ai_019.py
           python monitor010/patch_audioguide_020.py
           python monitor010/patch_audioguide_021.py
-          python monitor010/patch_facebook_video_023.py
+          python monitor010/patch_facebook_legacy_023.py
           python - <<'PY'
           from pathlib import Path
           s=Path('android-youtube-test/app/src/main/assets/geovision.html').read_text(encoding='utf-8')
