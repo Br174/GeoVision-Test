@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <permission android:name="it.geovision.permission.KEYBOX_IMPORT" android:protectionLevel="signature" />
     <uses-permission android:name="it.geovision.permission.KEYBOX_IMPORT" />
-    <application android:allowBackup="false" android:label="KEYBOX 008 MONITOR" android:theme="@style/AppTheme">
+    <application android:allowBackup="false" android:label="GeoVision KeyBox" android:theme="@style/AppTheme">
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -15,11 +15,5 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <receiver android:name=".SyncReceiver" android:exported="true" android:permission="it.geovision.permission.KEYBOX_IMPORT">
-            <intent-filter>
-                <action android:name="it.geovision.keybox.GET_KEYS_V1" />
-                <action android:name="it.geovision.keybox.SET_GOOGLE_ENABLED_V1" />
-            </intent-filter>
-        </receiver>
     </application>
 </manifest>
