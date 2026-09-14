@@ -1,14 +1,24 @@
-name: LAB 024 PHOTO INSPECT
+name: LAB 024 GOOGLE FOTO
 on:
   push:
     branches: ['lab/photo-gallery-024']
   workflow_dispatch:
+permissions:
+  contents: read
 jobs:
-  inspect:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Prepare current Mother chain and inspect photo controls
+      - uses: actions/setup-java@v5
+        with: {distribution: temurin, java-version: '17'}
+      - uses: gradle/actions/setup-gradle@v4
+        with: {gradle-version: '8.9'}
+      - name: Prepare stable signer
+        run: |
+          base64 -d android-youtube-test/signing/geovision-debug-stable.keystore.b64 > android-youtube-test/signing/geovision-debug-stable.keystore
+          chmod 600 android-youtube-test/signing/geovision-debug-stable.keystore
+      - name: Build LAB024 Google Photos button
         run: |
           python monitor010/prepare.py
           python monitor010/patch_restore_controls_017.py
@@ -17,15 +27,21 @@ jobs:
           python monitor010/patch_audioguide_020.py
           python monitor010/patch_audioguide_021.py
           python monitor010/patch_facebook_legacy_023.py
-          python - <<'PY'
-          from pathlib import Path
-          s=Path('android-youtube-test/app/src/main/assets/geovision.html').read_text(encoding='utf-8')
-          for needle in ['photoGallery','photo-gallery','sheet-head','sheetPhoto','googleCityPhotos','renderOfficialGoogleCard','Foto','Immagini']:
-              print('\n###',needle)
-              pos=0
-              for n in range(8):
-                  i=s.find(needle,pos)
-                  if i<0: break
-                  print(s[max(0,i-700):min(len(s),i+1300)])
-                  pos=i+len(needle)
-          PY
+          python monitor010/patch_photo_gallery_024.py
+          sed -i "s/it.geovision.lab.failover012/it.geovision.lab.photogallery024/; s/versionCode 2012/versionCode 2024/; s/1.0-failover-012/1.0-photo-gallery-024/" android-youtube-test/app/build.gradle
+          sed -i 's/LAB 012 FAILOVER/LAB 024 GOOGLE FOTO/' android-youtube-test/app/src/main/AndroidManifest.xml
+          grep -q 'gv024PhotoButton.onclick' android-youtube-test/app/src/main/assets/geovision.html
+          grep -q 'openPhotoGallery();' android-youtube-test/app/src/main/assets/geovision.html
+          grep -q 'pointer-events:auto!important' android-youtube-test/app/src/main/assets/geovision.html
+          grep -q 'gp-red' android-youtube-test/app/src/main/assets/geovision.html
+          grep -q 'gp-blue' android-youtube-test/app/src/main/assets/geovision.html
+          gradle -p android-youtube-test assembleDebug
+          mkdir -p out24
+          cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk out24/LAB_024_GOOGLE_FOTO.apk
+          cp out/LAB_012_FAILOVER.html out24/LAB_024_GOOGLE_FOTO.html
+          cd out24 && zip LAB_024_GOOGLE_FOTO_PACKAGE.zip LAB_024_GOOGLE_FOTO.apk LAB_024_GOOGLE_FOTO.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LAB-024-GOOGLE-FOTO
+          path: out24/LAB_024_GOOGLE_FOTO_PACKAGE.zip
+          if-no-files-found: error
