@@ -1,0 +1,31 @@
+name: LAB 017 RESTORE CONTROLS
+on:
+  push:
+    branches: ['lab/restore-controls-017']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with: {distribution: temurin, java-version: '17'}
+      - uses: gradle/actions/setup-gradle@v4
+        with: {gradle-version: '8.9'}
+      - name: Build LAB017 from LAB013 base
+        run: |
+          python monitor010/prepare.py
+          python monitor010/patch_restore_controls_017.py
+          sed -i "s/it.geovision.lab.failover012/it.geovision.lab.restore017/; s/versionCode 2012/versionCode 2017/; s/1.0-failover-012/1.0-restore-017/" android-youtube-test/app/build.gradle
+          sed -i 's/LAB 012 FAILOVER/LAB 017 RESTORE CONTROLS/' android-youtube-test/app/src/main/AndroidManifest.xml
+          gradle -p android-youtube-test assembleDebug
+          mkdir -p out17
+          cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk out17/LAB_017_RESTORE_CONTROLS.apk
+          cp out/LAB_012_FAILOVER.html out17/LAB_017_RESTORE_CONTROLS.html
+          cd out17 && zip LAB_017_RESTORE_CONTROLS.zip LAB_017_RESTORE_CONTROLS.apk LAB_017_RESTORE_CONTROLS.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LAB-017-RESTORE-CONTROLS
+          path: out17/LAB_017_RESTORE_CONTROLS.zip
