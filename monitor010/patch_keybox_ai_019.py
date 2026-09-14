@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 ROOT=Path(__file__).resolve().parents[1]
 HTML=ROOT/'android-youtube-test/app/src/main/assets/geovision.html'
@@ -7,27 +8,20 @@ OUT=ROOT/'out/LAB_012_FAILOVER.html'
 def patch(path):
     s=path.read_text(encoding='utf-8')
 
-    old="let told = instantNarrationIntro(p);\n    let firstContinuation = '';"
-    new="let told = instantNarrationIntro(p);\n    let gvVoiceStarted = !!clean(told);\n    let firstContinuation = '';"
-    assert old in s
-    s=s.replace(old,new,1)
+    s,n=re.subn(
+        r"let told\s*=\s*instantNarrationIntro\(p\);\s*let firstContinuation\s*=\s*'';",
+        "let told = instantNarrationIntro(p);\n    let gvVoiceStarted = !!clean(told);\n    let firstContinuation = '';",
+        s,count=1)
+    assert n==1, 'told anchor not found'
 
-    old="""        transcript.insertAdjacentHTML('beforeend', `<div class=\"${cssClass}\">${esc(text)}</div>`);
-        speak(text, true);
-    }"""
-    new="""        transcript.insertAdjacentHTML('beforeend', `<div class=\"${cssClass}\">${esc(text)}</div>`);
-        speak(text, gvVoiceStarted);
-        gvVoiceStarted = true;
-    }"""
-    assert old in s
-    s=s.replace(old,new,1)
+    old="speak(text, true);"
+    pos=s.find(old, s.find('function appendAndSpeak'))
+    assert pos>=0, 'appendAndSpeak TTS anchor not found'
+    s=s[:pos]+"speak(text, gvVoiceStarted);\n        gvVoiceStarted = true;"+s[pos+len(old):]
 
-    old="""    /* Solo ora parte la frase iniziale: l'AI principale sta già lavorando. */
-    speak(told);"""
-    new="""    /* Se l'introduzione è vuota, il primo testo AI avvia direttamente il TTS nativo. */
-    if (told) speak(told);"""
-    assert old in s
-    s=s.replace(old,new,1)
+    pos=s.find('speak(told);', s.find('function appendAndSpeak'))
+    assert pos>=0, 'initial TTS anchor not found'
+    s=s[:pos]+"if (told) speak(told);"+s[pos+len('speak(told);'):]
 
     addon=r'''
 <script id="gv019-simple-keybox">
@@ -45,7 +39,7 @@ def patch(path):
       if(first)localStorage.setItem('geovision_google_maps_api_key',first);else localStorage.removeItem('geovision_google_maps_api_key');
       if(ai)localStorage.setItem('geovision_ai_api_key',ai);else localStorage.removeItem('geovision_ai_api_key');
       if(yt)localStorage.setItem('geovision_youtube_api_key',yt);else localStorage.removeItem('geovision_youtube_api_key');
-      try{const st=GVKeyState?.create?.(localStorage);st?.apply?.({google1:g1,google2:g2,google3:g3,ai:ai,youtube:yt,googleEnabled:[true,true,true],revision:0});}catch(_){}
+      try{const st=window.GVKeyState?.create?.(localStorage);st?.apply?.({google1:g1,google2:g2,google3:g3,ai:ai,youtube:yt,googleEnabled:[true,true,true],revision:0});}catch(_){}
       const root=document.getElementById('gvLocalApi');
       if(root){
         const vals={google1:g1,google2:g2,google3:g3,ai:ai,youtube:yt};
