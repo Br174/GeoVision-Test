@@ -4,6 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 HTML=ROOT/'android-youtube-test/app/src/main/assets/geovision.html'
 OUT=ROOT/'out/LAB_012_FAILOVER.html'
 
+# Facebook's old Watch search route can fall back to the home page.
+# Use the dedicated video-results route and the cleaned GeoVision query.
 OLD="p === 'facebook' ? `https://www.facebook.com/watch/search/?q=${encodeURIComponent(q)}`"
 NEW="p === 'facebook' ? `https://www.facebook.com/search/videos/?q=${encodeURIComponent(social)}`"
 
