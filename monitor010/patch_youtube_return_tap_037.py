@@ -1,32 +1,32 @@
 from pathlib import Path
+import re
 ROOT=Path(__file__).resolve().parents[1]
 J=ROOT/'android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java'
 
 s=J.read_text(encoding='utf-8')
-# Actual generated chain is LAB029 return + LAB030 CLEAR_TOP. Replace that exact block.
-old='''private void returnToGeoVision(){
-        hideReturnBubble();
-        Intent back=new Intent(this,MainActivity.class);
-        back.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT|Intent.FLAG_ACTIVITY_SINGLE_TOP|Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(back);
-    }'''
+# Replace the generated return method by boundaries instead of depending on earlier patch formatting.
+pat=r'private void returnToGeoVision\(\)\s*\{.*?\n\s*\}\n\s*private class ReturnBubbleBridge'
 new='''private void returnToGeoVision(){
         try{
             Intent back=new Intent(getApplicationContext(), MainActivity.class);
             back.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_REORDER_TO_FRONT|Intent.FLAG_ACTIVITY_SINGLE_TOP);
             getApplicationContext().startActivity(back);
-            // Do not hide here: hide only after GeoVision has genuinely resumed.
+            // Bubble stays visible until GeoVision really resumes.
         }catch(Exception ignored){
-            // Failed foreground request: leave the bubble visible for another tap.
+            // Keep bubble visible when foregrounding fails.
         }
-    }'''
-assert old in s, 'Actual LAB036 returnToGeoVision block not found'
-s=s.replace(old,new,1)
+    }
+    private class ReturnBubbleBridge'''
+s,n=re.subn(pat,new,s,count=1,flags=re.S)
+assert n==1, 'returnToGeoVision method boundaries not found'
 
-resume='@Override protected void onResume(){super.onResume();if(keyBoxClient!=null)keyBoxClient.resume();}'
-replacement='@Override protected void onResume(){super.onResume();hideReturnBubble();if(keyBoxClient!=null)keyBoxClient.resume();}'
-assert resume in s, 'Expected LAB036 onResume not found'
-s=s.replace(resume,replacement,1)
+# Hide only once the retained GeoVision Activity has actually resumed.
+old='@Override protected void onResume(){super.onResume();if(keyBoxClient!=null)keyBoxClient.resume();}'
+new_resume='@Override protected void onResume(){super.onResume();hideReturnBubble();if(keyBoxClient!=null)keyBoxClient.resume();}'
+if old in s:
+    s=s.replace(old,new_resume,1)
+elif new_resume not in s:
+    raise AssertionError('GeoVision onResume hook not found')
 
 J.write_text(s,encoding='utf-8')
-print('LAB037: return tap fixed against actual LAB036 chain; no premature bubble hide or CLEAR_TOP')
+print('LAB037 robust return tap patch applied; no premature bubble hide, no CLEAR_TOP')
