@@ -1,0 +1,57 @@
+name: LAB 036 YOUTUBE OPEN RETURN
+on:
+  push:
+    branches: ['lab/youtube-open-return-036']
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with: {distribution: temurin, java-version: '17'}
+      - uses: gradle/actions/setup-gradle@v4
+        with: {gradle-version: '8.9'}
+      - name: Build LAB036
+        run: |
+          python monitor010/prepare.py
+          python monitor010/patch_restore_controls_017.py
+          python monitor010/patch_ai_swipe_018.py
+          python monitor010/patch_keybox_ai_019.py
+          python monitor010/patch_audioguide_020.py
+          python monitor010/patch_audioguide_021.py
+          python monitor010/patch_facebook_legacy_023.py
+          python monitor010/patch_photo_gallery_024.py
+          python monitor010/patch_google_card_photo_025.py
+          python monitor010/patch_audio_video_back_027.py
+          python monitor010/patch_media_googlecard_028.py
+          python monitor010/patch_floating_return_029.py
+          python monitor010/patch_audio_return_030.py
+          python monitor010/patch_persistent_return_audio_031.py
+          python monitor010/patch_safe_return_033.py
+          python monitor010/patch_youtube_native_return_035.py
+          python monitor010/patch_youtube_open_return_036.py
+          sed -i "s/it.geovision.lab.failover012/it.geovision.lab.youtubeopen036/; s/versionCode 2012/versionCode 2036/; s/1.0-failover-012/1.0-youtube-open-return-036/" android-youtube-test/app/build.gradle
+          sed -i 's/LAB 012 FAILOVER/LAB 036 YOUTUBE OPEN RETURN/' android-youtube-test/app/src/main/AndroidManifest.xml
+          python - <<'PY'
+          from pathlib import Path
+          j=Path('android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java').read_text()
+          h=Path('out/LAB_012_FAILOVER.html').read_text()
+          assert "if(p === 'youtube') gv029ShowReturnBubble();" in h
+          assert "p === 'youtube' && gv035OpenYouTube(social)" not in h
+          assert 'yt.setPackage("com.google.android.youtube")' not in j
+          assert 'showReturnBubble();' in j
+          assert 'task.moveToFront()' not in j and 'ActivityManager.AppTask' not in j
+          print('LAB036 YouTube open + existing return bubble checks OK')
+          PY
+          gradle -p android-youtube-test assembleDebug
+          mkdir -p out36
+          cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk out36/LAB_036_YOUTUBE_OPEN_RETURN.apk
+          cp out/LAB_012_FAILOVER.html out36/LAB_036_YOUTUBE_OPEN_RETURN.html
+          cd out36 && zip LAB_036_YOUTUBE_OPEN_RETURN_PACKAGE.zip LAB_036_YOUTUBE_OPEN_RETURN.apk LAB_036_YOUTUBE_OPEN_RETURN.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LAB-036-YOUTUBE-OPEN-RETURN
+          path: out36/LAB_036_YOUTUBE_OPEN_RETURN_PACKAGE.zip
+          if-no-files-found: error
