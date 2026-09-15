@@ -40,11 +40,14 @@ jobs:
           j=Path('android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java').read_text()
           h=Path('out/LAB_012_FAILOVER.html').read_text()
           assert "if(p === 'youtube') gv029ShowReturnBubble();" in h
+          assert 'private void returnToGeoVision()' in j
+          assert 'private void hideReturnBubble()' in j
+          assert '@JavascriptInterface public void hide(){hideReturnBubble();}' in j
           assert 'Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_REORDER_TO_FRONT|Intent.FLAG_ACTIVITY_SINGLE_TOP' in j
           assert 'getApplicationContext().startActivity(back);' in j
           assert '@Override protected void onResume(){super.onResume();hideReturnBubble();' in j
           assert 'task.moveToFront()' not in j and 'ActivityManager.AppTask' not in j
-          print('LAB037 corrected return tap checks OK')
+          print('LAB037 surgical return tap checks OK')
           PY
           gradle -p android-youtube-test assembleDebug
           mkdir -p out37
