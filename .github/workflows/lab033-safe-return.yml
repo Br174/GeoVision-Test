@@ -1,0 +1,56 @@
+name: LAB 033 SAFE RETURN
+on:
+  push:
+    branches: ['lab/safe-return-033']
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with: {distribution: temurin, java-version: '17'}
+      - uses: gradle/actions/setup-gradle@v4
+        with: {gradle-version: '8.9'}
+      - name: Build LAB033
+        run: |
+          python monitor010/prepare.py
+          python monitor010/patch_restore_controls_017.py
+          python monitor010/patch_ai_swipe_018.py
+          python monitor010/patch_keybox_ai_019.py
+          python monitor010/patch_audioguide_020.py
+          python monitor010/patch_audioguide_021.py
+          python monitor010/patch_facebook_legacy_023.py
+          python monitor010/patch_photo_gallery_024.py
+          python monitor010/patch_google_card_photo_025.py
+          python monitor010/patch_audio_video_back_027.py
+          python monitor010/patch_media_googlecard_028.py
+          python monitor010/patch_floating_return_029.py
+          python monitor010/patch_audio_return_030.py
+          python monitor010/patch_persistent_return_audio_031.py
+          python monitor010/patch_safe_return_033.py
+          sed -i "s/it.geovision.lab.failover012/it.geovision.lab.safereturn033/; s/versionCode 2012/versionCode 2033/; s/1.0-failover-012/1.0-safe-return-033/" android-youtube-test/app/build.gradle
+          sed -i 's/LAB 012 FAILOVER/LAB 033 SAFE RETURN/' android-youtube-test/app/src/main/AndroidManifest.xml
+          python - <<'PY'
+          from pathlib import Path
+          j=Path('android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java').read_text()
+          h=Path('out/LAB_012_FAILOVER.html').read_text()
+          assert 'SpannableString("●")' in j
+          assert 'gv033-safe-external-bubble' in h
+          assert 'ActivityManager.AppTask' not in j
+          assert 'task.moveToFront()' not in j
+          assert 'getLaunchIntentForPackage(getPackageName())' in j
+          assert 'FLAG_ACTIVITY_CLEAR_TOP' not in j
+          print('LAB033 conservative checks OK')
+          PY
+          gradle -p android-youtube-test assembleDebug
+          mkdir -p out33
+          cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk out33/LAB_033_SAFE_RETURN.apk
+          cp out/LAB_012_FAILOVER.html out33/LAB_033_SAFE_RETURN.html
+          cd out33 && zip LAB_033_SAFE_RETURN_PACKAGE.zip LAB_033_SAFE_RETURN.apk LAB_033_SAFE_RETURN.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LAB-033-SAFE-RETURN
+          path: out33/LAB_033_SAFE_RETURN_PACKAGE.zip
+          if-no-files-found: error
