@@ -1,0 +1,55 @@
+name: LAB 027 AUDIO VIDEO BACK
+on:
+  push:
+    branches: ['lab/audio-video-back-027']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with: {distribution: temurin, java-version: '17'}
+      - uses: gradle/actions/setup-gradle@v4
+        with: {gradle-version: '8.9'}
+      - name: Prepare stable signer
+        run: |
+          base64 -d android-youtube-test/signing/geovision-debug-stable.keystore.b64 > android-youtube-test/signing/geovision-debug-stable.keystore
+          chmod 600 android-youtube-test/signing/geovision-debug-stable.keystore
+      - name: Build LAB027
+        run: |
+          python monitor010/prepare.py
+          python monitor010/patch_restore_controls_017.py
+          python monitor010/patch_ai_swipe_018.py
+          python monitor010/patch_keybox_ai_019.py
+          python monitor010/patch_audioguide_020.py
+          python monitor010/patch_audioguide_021.py
+          python monitor010/patch_facebook_legacy_023.py
+          python monitor010/patch_photo_gallery_024.py
+          python monitor010/patch_google_card_photo_025.py
+          python monitor010/patch_audio_video_back_027.py
+          sed -i "s/it.geovision.lab.failover012/it.geovision.lab.audiovideoback027/; s/versionCode 2012/versionCode 2027/; s/1.0-failover-012/1.0-audio-video-back-027/" android-youtube-test/app/build.gradle
+          sed -i 's/LAB 012 FAILOVER/LAB 027 AUDIO VIDEO BACK/' android-youtube-test/app/src/main/AndroidManifest.xml
+          python - <<'PY'
+          from pathlib import Path
+          h=Path('android-youtube-test/app/src/main/assets/geovision.html').read_text(encoding='utf-8')
+          j=Path('android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java').read_text(encoding='utf-8')
+          assert 'function gv027StopGuideForMedia()' in h
+          assert 'gv027StopGuideForMedia();' in h
+          assert 'stopNative();' in j
+          assert 'public void onBackPressed()' in j
+          assert 'renderOfficialGoogleCard(p)' in h
+          print('LAB027 static checks OK')
+          PY
+          gradle -p android-youtube-test assembleDebug
+          mkdir -p out27
+          cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk out27/LAB_027_AUDIO_VIDEO_BACK.apk
+          cp out/LAB_012_FAILOVER.html out27/LAB_027_AUDIO_VIDEO_BACK.html
+          cd out27 && zip LAB_027_AUDIO_VIDEO_BACK_PACKAGE.zip LAB_027_AUDIO_VIDEO_BACK.apk LAB_027_AUDIO_VIDEO_BACK.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LAB-027-AUDIO-VIDEO-BACK
+          path: out27/LAB_027_AUDIO_VIDEO_BACK_PACKAGE.zip
+          if-no-files-found: error
