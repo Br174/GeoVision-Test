@@ -13,7 +13,7 @@ jobs:
         with: {distribution: temurin, java-version: '17'}
       - uses: gradle/actions/setup-gradle@v4
         with: {gradle-version: '8.9'}
-      - name: Build LAB037
+      - name: Build LAB037 corrected
         run: |
           python monitor010/prepare.py
           python monitor010/patch_restore_controls_017.py
@@ -44,7 +44,7 @@ jobs:
           assert 'getApplicationContext().startActivity(back);' in j
           assert '@Override protected void onResume(){super.onResume();hideReturnBubble();' in j
           assert 'task.moveToFront()' not in j and 'ActivityManager.AppTask' not in j
-          print('LAB037 safe return tap checks OK')
+          print('LAB037 corrected return tap checks OK')
           PY
           gradle -p android-youtube-test assembleDebug
           mkdir -p out37
