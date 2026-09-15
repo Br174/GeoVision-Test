@@ -1,0 +1,54 @@
+name: LAB 031 PERSISTENT RETURN AUDIO
+on:
+  push:
+    branches: ['lab/persistent-return-audio-031']
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with: {distribution: temurin, java-version: '17'}
+      - uses: gradle/actions/setup-gradle@v4
+        with: {gradle-version: '8.9'}
+      - name: Build LAB031
+        run: |
+          python monitor010/prepare.py
+          python monitor010/patch_restore_controls_017.py
+          python monitor010/patch_ai_swipe_018.py
+          python monitor010/patch_keybox_ai_019.py
+          python monitor010/patch_audioguide_020.py
+          python monitor010/patch_audioguide_021.py
+          python monitor010/patch_facebook_legacy_023.py
+          python monitor010/patch_photo_gallery_024.py
+          python monitor010/patch_google_card_photo_025.py
+          python monitor010/patch_audio_video_back_027.py
+          python monitor010/patch_media_googlecard_028.py
+          python monitor010/patch_floating_return_029.py
+          python monitor010/patch_audio_return_030.py
+          python monitor010/patch_persistent_return_audio_031.py
+          sed -i "s/it.geovision.lab.failover012/it.geovision.lab.persistentreturn031/; s/versionCode 2012/versionCode 2031/; s/1.0-failover-012/1.0-persistent-return-031/" android-youtube-test/app/build.gradle
+          sed -i 's/LAB 012 FAILOVER/LAB 031 PERSISTENT RETURN/' android-youtube-test/app/src/main/AndroidManifest.xml
+          python - <<'PY'
+          from pathlib import Path
+          j=Path('android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java').read_text()
+          m=Path('android-youtube-test/app/src/main/AndroidManifest.xml').read_text()
+          assert 'ForegroundColorSpan(0xff1677ff)' in j
+          assert 'gvAudioFocusListener' in j and 'requestAudioFocus' in j
+          assert 'getLaunchIntentForPackage(getPackageName())' in j
+          assert 'FLAG_ACTIVITY_CLEAR_TOP' not in j
+          assert 'singleTask' in m
+          print('LAB031 persistence/audio checks OK')
+          PY
+          gradle -p android-youtube-test assembleDebug
+          mkdir -p out31
+          cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk out31/LAB_031_PERSISTENT_RETURN_AUDIO.apk
+          cp out/LAB_012_FAILOVER.html out31/LAB_031_PERSISTENT_RETURN_AUDIO.html
+          cd out31 && zip LAB_031_PERSISTENT_RETURN_AUDIO_PACKAGE.zip LAB_031_PERSISTENT_RETURN_AUDIO.apk LAB_031_PERSISTENT_RETURN_AUDIO.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LAB-031-PERSISTENT-RETURN-AUDIO
+          path: out31/LAB_031_PERSISTENT_RETURN_AUDIO_PACKAGE.zip
+          if-no-files-found: error
