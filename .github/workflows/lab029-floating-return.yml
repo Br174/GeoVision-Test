@@ -1,0 +1,50 @@
+name: LAB 029 FLOATING RETURN
+on:
+  push:
+    branches: ['lab/floating-return-029']
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with: {distribution: temurin, java-version: '17'}
+      - uses: gradle/actions/setup-gradle@v4
+        with: {gradle-version: '8.9'}
+      - name: Build LAB029
+        run: |
+          python monitor010/prepare.py
+          python monitor010/patch_restore_controls_017.py
+          python monitor010/patch_ai_swipe_018.py
+          python monitor010/patch_keybox_ai_019.py
+          python monitor010/patch_audioguide_020.py
+          python monitor010/patch_audioguide_021.py
+          python monitor010/patch_facebook_legacy_023.py
+          python monitor010/patch_photo_gallery_024.py
+          python monitor010/patch_google_card_photo_025.py
+          python monitor010/patch_audio_video_back_027.py
+          python monitor010/patch_media_googlecard_028.py
+          python monitor010/patch_floating_return_029.py
+          sed -i "s/it.geovision.lab.failover012/it.geovision.lab.floatingreturn029/; s/versionCode 2012/versionCode 2029/; s/1.0-failover-012/1.0-floating-return-029/" android-youtube-test/app/build.gradle
+          sed -i 's/LAB 012 FAILOVER/LAB 029 FLOATING RETURN/' android-youtube-test/app/src/main/AndroidManifest.xml
+          python - <<'PY'
+          from pathlib import Path
+          h=Path('android-youtube-test/app/src/main/assets/geovision.html').read_text()
+          j=Path('android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java').read_text()
+          m=Path('android-youtube-test/app/src/main/AndroidManifest.xml').read_text()
+          assert 'gv029ShowReturnBubble' in h and 'GeoVisionReturnBubble' in j
+          assert 'SYSTEM_ALERT_WINDOW' in m and 'TYPE_APPLICATION_OVERLAY' in j
+          print('LAB029 overlay checks OK')
+          PY
+          gradle -p android-youtube-test assembleDebug
+          mkdir -p out29
+          cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk out29/LAB_029_FLOATING_RETURN.apk
+          cp out/LAB_012_FAILOVER.html out29/LAB_029_FLOATING_RETURN.html
+          cd out29 && zip LAB_029_FLOATING_RETURN_PACKAGE.zip LAB_029_FLOATING_RETURN.apk LAB_029_FLOATING_RETURN.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LAB-029-FLOATING-RETURN
+          path: out29/LAB_029_FLOATING_RETURN_PACKAGE.zip
+          if-no-files-found: error
