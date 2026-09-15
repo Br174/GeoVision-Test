@@ -1,0 +1,58 @@
+name: LAB 037 YOUTUBE RETURN TAP
+on:
+  push:
+    branches: ['lab/youtube-return-tap-037']
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with: {distribution: temurin, java-version: '17'}
+      - uses: gradle/actions/setup-gradle@v4
+        with: {gradle-version: '8.9'}
+      - name: Build LAB037
+        run: |
+          python monitor010/prepare.py
+          python monitor010/patch_restore_controls_017.py
+          python monitor010/patch_ai_swipe_018.py
+          python monitor010/patch_keybox_ai_019.py
+          python monitor010/patch_audioguide_020.py
+          python monitor010/patch_audioguide_021.py
+          python monitor010/patch_facebook_legacy_023.py
+          python monitor010/patch_photo_gallery_024.py
+          python monitor010/patch_google_card_photo_025.py
+          python monitor010/patch_audio_video_back_027.py
+          python monitor010/patch_media_googlecard_028.py
+          python monitor010/patch_floating_return_029.py
+          python monitor010/patch_audio_return_030.py
+          python monitor010/patch_persistent_return_audio_031.py
+          python monitor010/patch_safe_return_033.py
+          python monitor010/patch_youtube_native_return_035.py
+          python monitor010/patch_youtube_open_return_036.py
+          python monitor010/patch_youtube_return_tap_037.py
+          sed -i "s/it.geovision.lab.failover012/it.geovision.lab.youtubereturn037/; s/versionCode 2012/versionCode 2037/; s/1.0-failover-012/1.0-youtube-return-tap-037/" android-youtube-test/app/build.gradle
+          sed -i 's/LAB 012 FAILOVER/LAB 037 YOUTUBE RETURN TAP/' android-youtube-test/app/src/main/AndroidManifest.xml
+          python - <<'PY'
+          from pathlib import Path
+          j=Path('android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java').read_text()
+          h=Path('out/LAB_012_FAILOVER.html').read_text()
+          assert "if(p === 'youtube') gv029ShowReturnBubble();" in h
+          assert 'Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_REORDER_TO_FRONT|Intent.FLAG_ACTIVITY_SINGLE_TOP' in j
+          assert 'getApplicationContext().startActivity(back);' in j
+          assert '@Override protected void onResume(){super.onResume();hideReturnBubble();' in j
+          assert 'task.moveToFront()' not in j and 'ActivityManager.AppTask' not in j
+          print('LAB037 safe return tap checks OK')
+          PY
+          gradle -p android-youtube-test assembleDebug
+          mkdir -p out37
+          cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk out37/LAB_037_YOUTUBE_RETURN_TAP.apk
+          cp out/LAB_012_FAILOVER.html out37/LAB_037_YOUTUBE_RETURN_TAP.html
+          cd out37 && zip LAB_037_YOUTUBE_RETURN_TAP_PACKAGE.zip LAB_037_YOUTUBE_RETURN_TAP.apk LAB_037_YOUTUBE_RETURN_TAP.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LAB-037-YOUTUBE-RETURN-TAP
+          path: out37/LAB_037_YOUTUBE_RETURN_TAP_PACKAGE.zip
+          if-no-files-found: error
