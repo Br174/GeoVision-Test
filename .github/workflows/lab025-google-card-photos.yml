@@ -1,0 +1,46 @@
+name: LAB 025 GOOGLE CARD FOTO
+on:
+  push:
+    branches: ['lab/google-card-photos-025']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with: {distribution: temurin, java-version: '17'}
+      - uses: gradle/actions/setup-gradle@v4
+        with: {gradle-version: '8.9'}
+      - name: Prepare stable signer
+        run: |
+          base64 -d android-youtube-test/signing/geovision-debug-stable.keystore.b64 > android-youtube-test/signing/geovision-debug-stable.keystore
+          chmod 600 android-youtube-test/signing/geovision-debug-stable.keystore
+      - name: Build LAB025
+        run: |
+          python monitor010/prepare.py
+          python monitor010/patch_restore_controls_017.py
+          python monitor010/patch_ai_swipe_018.py
+          python monitor010/patch_keybox_ai_019.py
+          python monitor010/patch_audioguide_020.py
+          python monitor010/patch_audioguide_021.py
+          python monitor010/patch_facebook_legacy_023.py
+          python monitor010/patch_photo_gallery_024.py
+          python monitor010/patch_google_card_photos_025.py
+          sed -i "s/it.geovision.lab.failover012/it.geovision.lab.googlecardphotos025/; s/versionCode 2012/versionCode 2025/; s/1.0-failover-012/1.0-google-card-photos-025/" android-youtube-test/app/build.gradle
+          sed -i 's/LAB 012 FAILOVER/LAB 025 GOOGLE CARD FOTO/' android-youtube-test/app/src/main/AndroidManifest.xml
+          grep -q "renderOfficialGoogleCard(p)" android-youtube-test/app/src/main/assets/geovision.html
+          grep -q "tbm=isch" android-youtube-test/app/src/main/assets/geovision.html
+          grep -q "gv025-google-card-guard" android-youtube-test/app/src/main/assets/geovision.html
+          gradle -p android-youtube-test assembleDebug
+          mkdir -p out25
+          cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk out25/LAB_025_GOOGLE_CARD_FOTO.apk
+          cp out/LAB_012_FAILOVER.html out25/LAB_025_GOOGLE_CARD_FOTO.html
+          cd out25 && zip LAB_025_GOOGLE_CARD_FOTO_PACKAGE.zip LAB_025_GOOGLE_CARD_FOTO.apk LAB_025_GOOGLE_CARD_FOTO.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LAB-025-GOOGLE-CARD-FOTO
+          path: out25/LAB_025_GOOGLE_CARD_FOTO_PACKAGE.zip
+          if-no-files-found: error
