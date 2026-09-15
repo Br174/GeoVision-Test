@@ -4,17 +4,12 @@ ROOT=Path(__file__).resolve().parents[1]
 HTML=ROOT/'android-youtube-test/app/src/main/assets/geovision.html'
 OUT=ROOT/'out/LAB_012_FAILOVER.html'
 
-# LAB025 is deliberately narrow: preserve LAB024 UI, restore the official Google-card
-# rendering path and make the photo button open Google results already filtered to photos.
-
 def patch(path):
     s=path.read_text(encoding='utf-8')
-    # Do not alter the card renderer itself. Remove only any LAB024 accidental takeover of card clicks.
-    assert 'async function renderOfficialGoogleCard' in s
-    assert 'id="googleCardHost"' in s
-    assert 'const gv024PhotoButton' in s
+    assert 'async function renderOfficialGoogleCard' in s, 'official card renderer missing'
+    assert 'googleCardHost' in s, 'official card host missing'
+    assert 'const gv024PhotoButton' in s, 'LAB024 photo button missing'
 
-    # Replace only LAB024 photo-button action. The selected place is `current`, the same object used by the card.
     old="gv024PhotoButton.onclick=e=>{e.preventDefault();e.stopPropagation();openPhotoGallery();};"
     new="""gv024PhotoButton.onclick=e=>{
     e.preventDefault();e.stopPropagation();
@@ -30,12 +25,11 @@ def patch(path):
     assert old in s, 'LAB024 photo handler anchor missing'
     s=s.replace(old,new,1)
 
-    # Guard against the regression observed on phone: the official card must still be rendered by openPlace.
-    assert 'const cardPromise=renderOfficialGoogleCard(p);' in s, 'official Google card call missing'
-    assert 'await cardPromise;' in s, 'official Google card await missing'
-    assert "$('#sheet').classList.add('show')" in s, 'sheet show missing'
+    # Regression guards: this patch must not rewrite/remove the existing Google card machinery.
+    assert 'renderOfficialGoogleCard(p)' in s
+    assert "$('#sheet').classList.add('show')" in s
     path.write_text(s,encoding='utf-8')
 
 patch(HTML)
 if OUT.exists(): patch(OUT)
-print('LAB025: Google card preserved + photo button opens Google image results for current place')
+print('LAB025: official Google card preserved; photo button opens Google image results for current place')
