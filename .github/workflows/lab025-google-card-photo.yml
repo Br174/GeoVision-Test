@@ -31,9 +31,14 @@ jobs:
           python monitor010/patch_google_card_photo_025.py
           sed -i "s/it.geovision.lab.failover012/it.geovision.lab.googlecardphoto025/; s/versionCode 2012/versionCode 2025/; s/1.0-failover-012/1.0-google-card-photo-025/" android-youtube-test/app/build.gradle
           sed -i 's/LAB 012 FAILOVER/LAB 025 GOOGLE CARD FOTO/' android-youtube-test/app/src/main/AndroidManifest.xml
-          grep -q 'const cardPromise=renderOfficialGoogleCard(p);' android-youtube-test/app/src/main/assets/geovision.html
-          grep -q "google.com/search?tbm=isch" android-youtube-test/app/src/main/assets/geovision.html
-          grep -q 'gv024PhotoButton.onclick' android-youtube-test/app/src/main/assets/geovision.html
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('android-youtube-test/app/src/main/assets/geovision.html').read_text(encoding='utf-8')
+          assert 'renderOfficialGoogleCard(p)' in s
+          assert 'google.com/search?tbm=isch' in s
+          assert 'gv024PhotoButton.onclick' in s
+          print('LAB025 static checks OK')
+          PY
           gradle -p android-youtube-test assembleDebug
           mkdir -p out25
           cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk out25/LAB_025_GOOGLE_CARD_FOTO.apk
