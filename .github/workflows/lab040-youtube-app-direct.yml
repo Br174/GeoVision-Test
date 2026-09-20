@@ -1,0 +1,71 @@
+name: LAB 040 YOUTUBE APP DIRECT
+on:
+  push:
+    branches: ['lab/youtube-app-direct-040']
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with: {distribution: temurin, java-version: '17'}
+      - uses: gradle/actions/setup-gradle@v4
+        with: {gradle-version: '8.9'}
+      - name: Build LAB040
+        run: |
+          python monitor010/prepare.py
+          python monitor010/patch_restore_controls_017.py
+          python monitor010/patch_ai_swipe_018.py
+          python monitor010/patch_keybox_ai_019.py
+          python monitor010/patch_audioguide_020.py
+          python monitor010/patch_audioguide_021.py
+          python monitor010/patch_facebook_legacy_023.py
+          python monitor010/patch_photo_gallery_024.py
+          python monitor010/patch_google_card_photo_025.py
+          python monitor010/patch_audio_video_back_027.py
+          python monitor010/patch_media_googlecard_028.py
+          python monitor010/patch_floating_return_029.py
+          python monitor010/patch_audio_return_030.py
+          python monitor010/patch_persistent_return_audio_031.py
+          python monitor010/patch_safe_return_033.py
+          python monitor010/patch_youtube_native_return_035.py
+          python monitor010/patch_youtube_open_return_036.py
+          python monitor010/patch_youtube_return_tap_037.py
+          python monitor010/patch_youtube_app_direct_040.py
+          sed -i "s/it.geovision.lab.failover012/it.geovision.lab.youtubeapp040/; s/versionCode 2012/versionCode 2040/; s/1.0-failover-012/1.0-youtube-app-direct-040/" android-youtube-test/app/build.gradle
+          sed -i 's/LAB 012 FAILOVER/LAB 040 YOUTUBE APP DIRECT/' android-youtube-test/app/src/main/AndroidManifest.xml
+          python - <<'PY'
+          from pathlib import Path
+          j=Path('android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java').read_text()
+          h=Path('out/LAB_012_FAILOVER.html').read_text()
+          m=Path('android-youtube-test/app/src/main/AndroidManifest.xml').read_text()
+          assert 'function gv040OpenYouTubeApp(q)' in h
+          assert "if (p === 'youtube') { gv040OpenYouTubeApp(q); return; }" in h
+          assert "p === 'youtube' ? `https://www.youtube.com/results?search_query=" not in h
+          assert 'Intent search=new Intent(Intent.ACTION_SEARCH);' in j
+          assert 'search.setPackage("com.google.android.youtube");' in j
+          assert 'search.putExtra(android.app.SearchManager.QUERY,q);' in j
+          assert 'yt.setPackage("com.google.android.youtube");' in j
+          a=j.index('private class YouTubeExternalBridge')
+          b=j.index('private void initTts()',a)
+          bridge=j[a:b]
+          assert 'Intent web=' not in bridge
+          assert 'browser_fallback' not in bridge
+          assert '<package android:name="com.google.android.youtube"/>' in m
+          assert 'private void returnToGeoVision()' in j
+          assert 'Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_REORDER_TO_FRONT|Intent.FLAG_ACTIVITY_SINGLE_TOP' in j
+          assert 'task.moveToFront()' not in j and 'ActivityManager.AppTask' not in j
+          print('LAB040 native YouTube app + LAB037 return checks OK')
+          PY
+          gradle -p android-youtube-test assembleDebug
+          mkdir -p out40
+          cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk out40/LAB_040_YOUTUBE_APP_DIRECT.apk
+          cp out/LAB_012_FAILOVER.html out40/LAB_040_YOUTUBE_APP_DIRECT.html
+          cd out40 && zip LAB_040_YOUTUBE_APP_DIRECT_PACKAGE.zip LAB_040_YOUTUBE_APP_DIRECT.apk LAB_040_YOUTUBE_APP_DIRECT.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LAB-040-YOUTUBE-APP-DIRECT
+          path: out40/LAB_040_YOUTUBE_APP_DIRECT_PACKAGE.zip
+          if-no-files-found: error
