@@ -1,0 +1,81 @@
+name: LAB 042 YOUTUBE NATIVE
+on:
+  push:
+    branches: ['lab/youtube-native-042']
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with: {distribution: temurin, java-version: '17'}
+      - uses: gradle/actions/setup-gradle@v4
+        with: {gradle-version: '8.9'}
+      - name: Build LAB042 from proven LAB037
+        run: |
+          python monitor010/prepare.py
+          python monitor010/patch_restore_controls_017.py
+          python monitor010/patch_ai_swipe_018.py
+          python monitor010/patch_keybox_ai_019.py
+          python monitor010/patch_audioguide_020.py
+          python monitor010/patch_audioguide_021.py
+          python monitor010/patch_facebook_legacy_023.py
+          python monitor010/patch_photo_gallery_024.py
+          python monitor010/patch_google_card_photo_025.py
+          python monitor010/patch_audio_video_back_027.py
+          python monitor010/patch_media_googlecard_028.py
+          python monitor010/patch_floating_return_029.py
+          python monitor010/patch_audio_return_030.py
+          python monitor010/patch_persistent_return_audio_031.py
+          python monitor010/patch_safe_return_033.py
+          python monitor010/patch_youtube_native_return_035.py
+          python monitor010/patch_youtube_open_return_036.py
+          python monitor010/patch_youtube_return_tap_037.py
+          python monitor010/patch_youtube_native_intent_042.py
+          sed -i "s/it.geovision.lab.failover012/it.geovision.lab.youtubeappdir042/; s/versionCode 2012/versionCode 2042/; s/1.0-failover-012/1.0-youtube-app-direct-042/" android-youtube-test/app/build.gradle
+          sed -i 's/LAB 012 FAILOVER/LAB 042 YOUTUBE APP DIRECT/' android-youtube-test/app/src/main/AndroidManifest.xml
+          python - <<'PY'
+          from pathlib import Path
+          h=Path('out/LAB_012_FAILOVER.html').read_text()
+          j=Path('android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java').read_text()
+          g=Path('android-youtube-test/app/build.gradle').read_text()
+          m=Path('android-youtube-test/app/src/main/AndroidManifest.xml').read_text()
+          assert 'package=com.google.android.youtube;end' in h
+          yt=h[h.index("if(p === 'youtube') {"):h.index("gv029ShowReturnBubble(); if (p === 'images')")]
+          assert 'browser_fallback_url' not in yt
+          assert 'Intent.parseUri(url, Intent.URI_INTENT_SCHEME)' in j
+          assert 'private void returnToGeoVision()' in j
+          assert 'private void hideReturnBubble()' in j
+          assert 'Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_REORDER_TO_FRONT|Intent.FLAG_ACTIVITY_SINGLE_TOP' in j
+          assert "applicationId 'it.geovision.lab.youtubeappdir042'" in g
+          assert 'versionCode 2042' in g
+          assert 'LAB 042 YOUTUBE APP DIRECT' in m
+          print('LAB042 pre-build checks OK')
+          PY
+          gradle -p android-youtube-test assembleDebug
+          APK=android-youtube-test/app/build/outputs/apk/debug/app-debug.apk
+          test -s "$APK"
+          python - <<'PY'
+          import zipfile, os
+          apk='android-youtube-test/app/build/outputs/apk/debug/app-debug.apk'
+          with zipfile.ZipFile(apk) as z:
+              assert z.testzip() is None
+              names=set(z.namelist())
+              for req in ['AndroidManifest.xml','classes.dex','resources.arsc','assets/geovision.html']:
+                  assert req in names
+          print('APK integrity OK',os.path.getsize(apk),'bytes')
+          PY
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
+          test -n "$APKSIGNER"
+          "$APKSIGNER" verify --verbose --print-certs "$APK"
+          mkdir -p out42
+          cp "$APK" out42/LAB_042_YOUTUBE_NATIVE.apk
+          cp out/LAB_012_FAILOVER.html out42/LAB_042_YOUTUBE_NATIVE.html
+          cd out42 && zip LAB_042_YOUTUBE_NATIVE_PACKAGE.zip LAB_042_YOUTUBE_NATIVE.apk LAB_042_YOUTUBE_NATIVE.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LAB-042-YOUTUBE-NATIVE
+          path: out42/LAB_042_YOUTUBE_NATIVE_PACKAGE.zip
+          if-no-files-found: error
