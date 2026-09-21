@@ -33,7 +33,7 @@ def patch(path):
     s=s.replace(CSS_ANCHOR,CSS_ANCHOR+'\n'+CSS_SHORTS,1)
     s=s.replace(LAUNCH_ANCHOR,LAUNCH_NEW,1)
     assert s.count('data-p="shorts"')==1
-    assert s.count('data-vp="shorts"')==1
+    assert s.count('<button data-vp="shorts">')==1
     assert s.count("if(p === 'shorts')")==1
     assert 'sp=EgIQCQ%253D%253D' in s
     assert 'package=com.google.android.youtube;end' in s
