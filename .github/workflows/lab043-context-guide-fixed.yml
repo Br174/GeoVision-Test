@@ -1,6 +1,7 @@
 name: LAB 043 CONTEXT GUIDE FIXED
-# rebuild 61e02b
 on:
+  push:
+    branches: ['lab/context-guide-043-fixed']
   workflow_dispatch:
 permissions: {contents: read}
 jobs:
