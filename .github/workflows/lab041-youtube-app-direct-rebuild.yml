@@ -34,34 +34,30 @@ jobs:
           python monitor010/patch_youtube_open_return_036.py
           python monitor010/patch_youtube_return_tap_037.py
           python monitor010/patch_youtube_app_direct_041.py
-          sed -i "s/it.geovision.lab.failover012/it.geovision.lab.youtubeapp041/; s/versionCode 2012/versionCode 2041/; s/1.0-failover-012/1.0-youtube-app-direct-rebuild-041/" android-youtube-test/app/build.gradle
+          sed -i "s/it.geovision.lab.failover012/it.geovision.lab.youtubeappdir041/; s/versionCode 2012/versionCode 2041/; s/1.0-failover-012/1.0-youtube-app-direct-041/" android-youtube-test/app/build.gradle
           sed -i 's/LAB 012 FAILOVER/LAB 041 YOUTUBE APP DIRECT/' android-youtube-test/app/src/main/AndroidManifest.xml
           python - <<'PY'
           from pathlib import Path
           j=Path('android-youtube-test/app/src/main/java/it/geovision/test/MainActivity.java').read_text()
           h=Path('out/LAB_012_FAILOVER.html').read_text()
-          m=Path('android-youtube-test/app/src/main/AndroidManifest.xml').read_text()
           g=Path('android-youtube-test/app/build.gradle').read_text()
 
+          y=h[h.index("if(p === 'youtube') {"):h.index("if(p === 'youtube') {")+650]
           checks = [
-              ('direct HTML bridge', "if(p === 'youtube' && gv035OpenYouTube(social)) return;" in h),
-              ('native ACTION_SEARCH', 'Intent search=new Intent(Intent.ACTION_SEARCH);' in j),
-              ('YouTube package search', 'search.setPackage("com.google.android.youtube");' in j),
-              ('query passed to YouTube', 'search.putExtra(android.app.SearchManager.QUERY,q);' in j),
-              ('forced YouTube ACTION_VIEW fallback', 'yt.setPackage("com.google.android.youtube");' in j),
-              ('YouTube package visibility', '<package android:name="com.google.android.youtube"/>' in m),
+              ('direct YouTube intent', 'package=com.google.android.youtube;end' in y),
+              ('no browser fallback in YouTube intent', 'browser_fallback_url' not in y),
+              ('return bubble kept', 'gv029ShowReturnBubble();' in y),
+              ('intent deep-link host kept', 'Intent.parseUri(url, Intent.URI_INTENT_SCHEME)' in j),
+              ('external deep-link handler kept', 'openExternalDeepLink' in j),
               ('LAB037 return method kept', 'private void returnToGeoVision()' in j),
               ('LAB037 return flags kept', 'Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_REORDER_TO_FRONT|Intent.FLAG_ACTIVITY_SINGLE_TOP' in j),
               ('bubble hidden on resume', '@Override protected void onResume(){super.onResume();hideReturnBubble();' in j),
-              ('new application id', "applicationId 'it.geovision.lab.youtubeapp041'" in g),
+              ('new application id', "applicationId 'it.geovision.lab.youtubeappdir041'" in g),
               ('new version code', 'versionCode 2041' in g),
+              ('new version name', "versionName '1.0-youtube-app-direct-041'" in g),
           ]
           failed=[name for name,ok in checks if not ok]
           if failed: raise AssertionError('LAB041 checks failed: '+', '.join(failed))
-          a=j.index('private class YouTubeExternalBridge')
-          b=j.index('private void initTts()',a)
-          bridge=j[a:b]
-          assert 'Intent web=' not in bridge
           assert 'task.moveToFront()' not in j and 'ActivityManager.AppTask' not in j
           print('LAB041 pre-build regression checks OK:', len(checks))
           PY
@@ -78,6 +74,8 @@ jobs:
               assert 'AndroidManifest.xml' in names
               assert 'classes.dex' in names
               assert 'resources.arsc' in names
+              html=z.read('assets/geovision.html').decode('utf-8')
+              assert 'package=com.google.android.youtube;end' in html
           print('APK ZIP integrity OK', os.path.getsize(apk), 'bytes')
           PY
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
