@@ -38,7 +38,7 @@ jobs:
           python monitor010/patch_youtube_native_intent_042.py
           python monitor010/patch_context_guide_043.py
           python monitor010/patch_shorts_direct_044.py
-          sed -i "s/it.geovision.lab.failover012/it.geovision.lab.shorts044/; s/versionCode 2012/versionCode 2044/; s/1.0-failover-012/1.0-shorts-direct-044/" android-youtube-test/app/build.gradle
+          sed -i "s/it.geovision.lab.failover012/it.geovision.lab.shortsdirect044/; s/versionCode 2012/versionCode 2044/; s/1.0-failover-012/1.0-shorts-direct-044/" android-youtube-test/app/build.gradle
           sed -i 's/LAB 012 FAILOVER/LAB 044 SHORTS DIRECT/' android-youtube-test/app/src/main/AndroidManifest.xml
           python - <<'PY'
           from pathlib import Path
@@ -49,7 +49,7 @@ jobs:
           checks=[
             h.count('function launchPlatform(p) {')==1,
             h.count('data-p="shorts"')==1,
-            h.count('data-vp="shorts"')==1,
+            h.count('<button data-vp="shorts">')==1,
             h.count("if(p === 'shorts')")==1,
             'sp=EgIQCQ%253D%253D' in h,
             h.count('function gv043PlatformQuery()')==1,
@@ -61,7 +61,7 @@ jobs:
             "aiNarration(p, 'guide', '', told)" in h,
             'private void returnToGeoVision()' in j,
             'private void hideReturnBubble()' in j,
-            "applicationId 'it.geovision.lab.shorts044'" in g,
+            "applicationId 'it.geovision.lab.shortsdirect044'" in g,
             'versionCode 2044' in g,
             'LAB 044 SHORTS DIRECT' in m,
           ]
@@ -81,7 +81,7 @@ jobs:
               names=set(z.namelist())
               for req in ['AndroidManifest.xml','classes.dex','resources.arsc','assets/geovision.html']: assert req in names
               h=z.read('assets/geovision.html').decode('utf-8')
-              assert 'data-p="shorts"' in h and 'data-vp="shorts"' in h
+              assert 'data-p="shorts"' in h and '<button data-vp="shorts">' in h
               assert 'sp=EgIQCQ%253D%253D' in h
           print('LAB044 APK integrity OK',os.path.getsize(apk))
           PY
