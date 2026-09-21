@@ -1,7 +1,5 @@
 name: LAB 043 CONTEXT GUIDE FIXED
 'on':
-  push:
-    branches: ['lab/context-guide-043-fixed']
   workflow_dispatch:
 permissions:
   contents: read
@@ -47,13 +45,13 @@ jobs:
           m=Path('android-youtube-test/app/src/main/AndroidManifest.xml').read_text()
           checks=[
             h.count('function launchPlatform(p) {')==1,
-            h.count('function gv043SearchPair()')==1,
+            h.count('function gv043PlatformQuery()')==1,
             'package=com.google.android.youtube;end' in h,
             'gvFacebookLegacySearch' in h,
             'instagram' in h.lower(),
             'tiktok' in h.lower(),
-            'if(gv043Intro) speak(gv043Intro)' in h,
-            'instantNarrationIntro(p)' in h,
+            'if (gv043Intro) speak(gv043Intro)' in h,
+            "aiNarration(p, 'guide', '', told)" in h,
             'private void returnToGeoVision()' in j,
             'private void hideReturnBubble()' in j,
             "applicationId 'it.geovision.lab.contextguide043'" in g,
