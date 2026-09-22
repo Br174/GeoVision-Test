@@ -41,8 +41,8 @@ jobs:
           python monitor010/patch_search_audio_045.py
           python monitor010/patch_context_clean_046.py
           python monitor010/patch_social_composite_047.py
-          sed -i "s/it.geovision.lab.failover012/it.geovision.lab.socialcomposite047/; s/versionCode 2012/versionCode 2047/; s/1.0-failover-012/1.0-social-composite-047/" android-youtube-test/app/build.gradle
-          sed -i 's/LAB 012 FAILOVER/LAB 047 SOCIAL COMPOSITE/' android-youtube-test/app/src/main/AndroidManifest.xml
+          sed -i "s/it.geovision.lab.failover012/it.geovision.lab.socialsearch047/; s/versionCode 2012/versionCode 2047/; s/1.0-failover-012/1.0-social-search-047/" android-youtube-test/app/build.gradle
+          sed -i 's/LAB 012 FAILOVER/LAB 047 SOCIAL SEARCH/' android-youtube-test/app/src/main/AndroidManifest.xml
           python - <<'PY'
           from pathlib import Path
           h=Path('out/LAB_012_FAILOVER.html').read_text()
@@ -55,9 +55,9 @@ jobs:
           assert "(p === 'instagram' || p === 'tiktok') ? platformQuery047()" in h
           assert "return [manual,poi,place].filter(Boolean).join(' ');" in h
           assert 'function platformQuery046()' in h
-          assert "applicationId 'it.geovision.lab.socialcomposite047'" in g
+          assert "applicationId 'it.geovision.lab.socialsearch047'" in g
           assert 'versionCode 2047' in g
-          assert 'LAB 047 SOCIAL COMPOSITE' in m
+          assert 'LAB 047 SOCIAL SEARCH' in m
           print('LAB047 pre-build checks OK')
           PY
           gradle -p android-youtube-test assembleDebug
