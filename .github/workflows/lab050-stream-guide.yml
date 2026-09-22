@@ -43,8 +43,8 @@ jobs:
           python monitor010/patch_social_composite_047.py
           python monitor010/patch_audio_fast_049.py
           python monitor010/patch_stream_guide_social_050.py
-          sed -i "s/it.geovision.lab.failover012/it.geovision.lab.streamguide050/; s/versionCode 2012/versionCode 2050/; s/1.0-failover-012/1.0-stream-guide-050/" android-youtube-test/app/build.gradle
-          sed -i 's/LAB 012 FAILOVER/LAB 050 STREAM GUIDE/' android-youtube-test/app/src/main/AndroidManifest.xml
+          sed -i "s/it.geovision.lab.failover012/it.geovision.lab.streamguide050xx/; s/versionCode 2012/versionCode 2050/; s/1.0-failover-012/1.0-guide-block-direct-050/" android-youtube-test/app/build.gradle
+          sed -i 's/LAB 012 FAILOVER/LAB 050 STREAM GUIDE AI/' android-youtube-test/app/src/main/AndroidManifest.xml
           gradle -p android-youtube-test assembleDebug
           APK=android-youtube-test/app/build/outputs/apk/debug/app-debug.apk
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
