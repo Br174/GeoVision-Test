@@ -11,7 +11,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Progress 5% - accepted
+        run: echo "[UAB_PROGRESS=5] Richiesta presa in carico"
+
       - uses: actions/checkout@v4
+
+      - name: Progress 15% - source ready
+        run: echo "[UAB_PROGRESS=15] Sorgenti GeoVision recuperati"
 
       - name: Prepare stable signing keystore
         run: |
@@ -55,7 +61,9 @@ jobs:
         run: python android-youtube-test/patch_v148_block_maps_intent.py
 
       - name: Apply v149 selected territory official media
-        run: python android-youtube-test/patch_v149_selected_place_official_media.py
+        run: |
+          python android-youtube-test/patch_v149_selected_place_official_media.py
+          echo "[UAB_PROGRESS=30] Patch GeoVision applicate"
 
       - name: Assert v153 restored v149 runtime chain
         run: |
@@ -109,6 +117,15 @@ jobs:
           print('HTML bytes:',p.stat().st_size,'script blocks:',len(blocks))
           PY
           node --check /tmp/geovision-check.js
+          echo "[UAB_PROGRESS=45] Controlli statici completati"
+
+      - name: Cache pip downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-geovision-pip-v1
+          restore-keys: |
+            ${{ runner.os }}-geovision-pip-
 
       - name: Rebuild launcher icon from repository Base64
         run: |
@@ -149,10 +166,16 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
+          cache-cleanup: on-success
+
+      - name: Progress 60% - cache ready
+        run: echo "[UAB_PROGRESS=60] Toolchain e cache persistenti pronte"
 
       - name: Build APK
         working-directory: android-youtube-test
-        run: gradle clean assembleDebug
+        run: |
+          gradle clean assembleDebug --build-cache
+          echo "[UAB_PROGRESS=75] Compilazione completata"
 
       - name: Verify signing certificate and packaged stable chain
         run: |
@@ -174,12 +197,18 @@ jobs:
           assert 'gvV152AutoOpenOfficialMedia' not in html
           print('Packaged APK stable v149 runtime chain: OK')
           PY
+          echo "[UAB_PROGRESS=85] APK verificato"
 
       - name: Rename APK
-        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v153_STABLE_GOOGLE_CARD_RESTORE.apk
+        run: |
+          cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v153_STABLE_GOOGLE_CARD_RESTORE.apk
+          echo "[UAB_PROGRESS=95] Artefatto finale preparato"
 
       - uses: actions/upload-artifact@v4
         with:
           name: GeoVision_v153_STABLE_GOOGLE_CARD_RESTORE
           path: GeoVision_v153_STABLE_GOOGLE_CARD_RESTORE.apk
           if-no-files-found: error
+
+      - name: Progress 100% - complete
+        run: echo "[UAB_PROGRESS=100] GeoVision stable build completata e artefatto consegnato"
