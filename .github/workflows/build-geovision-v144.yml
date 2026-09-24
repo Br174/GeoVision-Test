@@ -11,7 +11,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Progress 5% - accepted
+        run: echo "[UAB_PROGRESS=5] Richiesta presa in carico"
+
       - uses: actions/checkout@v4
+
+      - name: Progress 15% - source ready
+        run: echo "[UAB_PROGRESS=15] Sorgenti GeoVision recuperati"
 
       - name: Prepare stable signing keystore
         run: |
@@ -29,6 +35,7 @@ jobs:
           python android-youtube-test/patch_v142_native_google_photo_tap.py
           python android-youtube-test/patch_v143_card_intercept_native_tap.py
           python android-youtube-test/patch_v144_official_media_fullscreen.py
+          echo "[UAB_PROGRESS=30] Patch e modifiche preparate"
 
       - name: Set Android version v144
         run: |
@@ -69,6 +76,15 @@ jobs:
           print('No artificial photo slice: OK')
           PY
           node --check /tmp/geovision-v144.js
+          echo "[UAB_PROGRESS=45] Controlli statici completati"
+
+      - name: Cache pip downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-geovision-pip-v1
+          restore-keys: |
+            ${{ runner.os }}-geovision-pip-
 
       - name: Rebuild launcher icon
         run: |
@@ -101,10 +117,16 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
+          cache-cleanup: on-success
+
+      - name: Progress 60% - cache ready
+        run: echo "[UAB_PROGRESS=60] Toolchain e cache persistenti pronte"
 
       - name: Build APK
         working-directory: android-youtube-test
-        run: gradle clean assembleDebug
+        run: |
+          gradle clean assembleDebug --build-cache
+          echo "[UAB_PROGRESS=75] Compilazione completata"
 
       - name: Verify APK signature and packaged v144 HTML
         run: |
@@ -127,12 +149,18 @@ jobs:
           if 'place.photos.slice(0,10)' in html: raise SystemExit('Packaged HTML still slices photos to 10')
           print('Packaged v144 HTML verified')
           PY
+          echo "[UAB_PROGRESS=85] APK verificato"
 
       - name: Rename APK
-        run: cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v144_OFFICIAL_MEDIA_FULLSCREEN.apk
+        run: |
+          cp android-youtube-test/app/build/outputs/apk/debug/app-debug.apk GeoVision_v144_OFFICIAL_MEDIA_FULLSCREEN.apk
+          echo "[UAB_PROGRESS=95] Artefatto finale preparato"
 
       - uses: actions/upload-artifact@v4
         with:
           name: GeoVision_v144_OFFICIAL_MEDIA_FULLSCREEN
           path: GeoVision_v144_OFFICIAL_MEDIA_FULLSCREEN.apk
           if-no-files-found: error
+
+      - name: Progress 100% - complete
+        run: echo "[UAB_PROGRESS=100] GeoVision build completata e artefatto consegnato"
