@@ -3,6 +3,12 @@ MOTORLAB PROJECT HOOK V1
 PROJECT_NAME=GeoVision
 PROJECT_REPOSITORY=Br174/GeoVision-Test
 MOTORLAB_CONTROL_REPOSITORY=Br174/Chatgpt
+MOTORLAB_CORE_ENTRYPOINT=MOTORLAB_CORE_ENTRYPOINT_V1.txt
+MOTORLAB_RELEASE_MANIFEST=MOTORLAB_RELEASE_MANIFEST_V1.txt
+MOTORLAB_SATELLITE_SYNC_MODULE=MOTORLAB_SATELLITE_SYNC_V1.txt
+MOTORLAB_LOCAL_CORE=.motorlab/MOTORLAB_LOCAL_CORE.txt
+MOTORLAB_LOCAL_LAST_GOOD=.motorlab/MOTORLAB_LOCAL_CORE_LAST_GOOD.txt
+MOTORLAB_LOCAL_SYNC_STATE=.motorlab/MOTORLAB_SYNC_STATE.txt
 MOTORLAB_BOOTSTRAP_MODULE=MOTORLAB_AUTO_BOOTSTRAP_V1.txt
 MOTORLAB_GOVERNANCE_MODULE=MOTORLAB_GOVERNANCE_V1.txt
 MOTORLAB_GLOBAL_PERSISTENT_ACTIVATION_MODULE=MOTORLAB_GLOBAL_PERSISTENT_ACTIVATION_V1.txt
@@ -11,32 +17,27 @@ MOTORLAB_PROGRESS_REPORTING_MODULE=MOTORLAB_PROGRESS_REPORTING_V1.txt
 MOTORLAB_VISUAL_STATUS_MODULE=MOTORLAB_VISUAL_STATUS_V1.txt
 MOTORLAB_WATCHDOG_MODULE=MOTORLAB_WATCHDOG_V1.txt
 MOTORLAB_RESUME_RECOVERY_MODULE=MOTORLAB_RESUME_RECOVERY_V1.txt
-MOTORLAB_ACTIVATION_MODE=implicit-persistent
+MOTORLAB_ACTIVATION_MODE=implicit-persistent-local-first
 MOTORLAB_PROJECT_CHAT_POLICY=canonical-project-chat
 MOTORLAB_NATIVE_ENGINE_POLICY=coexist-preserve
 MOTORLAB_VISIBLE_ACTIVATION_PROOF=required
 
 PURPOSE
-This file is the persistent project-side structural hook for MotorLab. When the project context is identifiable, MotorLab is implicitly and persistently enabled and loads the current canonical CORE from Br174/Chatgpt before write-capable or lifecycle-changing work.
+Persistent project-side MotorLab hook. A recognized GeoVision session loads the VERIFIED local satellite first, then checks the central Br174/Chatgpt release at the first safe boundary. Central remains authoritative; the local satellite provides immediate activation and fallback.
 
 MANDATORY RULES
-1. Do not require Bruno to paste an activation string in each new GeoVision chat.
-2. Every new identifiable GeoVision chat inherits MotorLab automatically by project context alone, even if the first message contains no software-build intent.
-3. At the first available user-facing response of every recognized GeoVision chat/session, visibly state that MotorLab is active and operating alongside GeoVision's native engine.
-4. If the visible MotorLab startup message has not appeared, Bruno must not be expected to assume that MotorLab is active.
-5. After startup, apply current MotorLab progress percentage, watchdog lightning/recovery and verified fireworks-success contracts whenever applicable.
-6. Br174/Chatgpt is authoritative; do not freeze a CORE copy here.
-7. MotorLab must coexist with GeoVision native geospatial/POI/AI/runtime engines and must not replace, disable, absorb or rewrite them merely because MotorLab is active.
-8. Before write-capable/lifecycle work, reconcile current CORE/governance/routing/registry and relevant durable job/checkpoint/lock state.
-9. This hook is orchestration metadata only and must not alter application logic, UI, package identity, signing, Google-card/runtime behavior, map/POI logic, AI behavior or release behavior by itself.
-10. MOTORLAB_GLOBAL_PERSISTENT_ACTIVATION_V1.txt is mandatory and remains inherited by this project until explicitly superseded by Bruno through canonical MotorLab governance.
-11. MOTORLAB_RESUME_RECOVERY_V1.txt is mandatory. Incomplete tool-driven work must continue in the same turn when control remains available; host interruptions must resume at the first later execution cycle from the last verified checkpoint with a visible lightning recovery event.
-12. If control state is unavailable, preserve project state and report the blocker rather than guessing.
-13. Later canonical MotorLab governance revisions supersede frozen assumptions in this hook.
+1. Do not require a manual MotorLab activation string in GeoVision chats.
+2. Load local sync state/core immediately and synchronize only at a safe boundary.
+3. Never change MotorLab release during an active write/build/test/promotion operation.
+4. If central access fails, continue from a VERIFIED local/LAST_GOOD release and report fallback when relevant.
+5. Show the visible MotorLab startup banner in the first available response.
+6. Apply progress percentages, Watchdog lightning/recovery, Resume Recovery and fireworks-success contracts.
+7. Br174/Chatgpt is authoritative; the local copy is a synchronized satellite, not a fork.
+8. MotorLab must coexist with GeoVision geospatial/POI/AI/runtime engines and never replace or rewrite them merely because MotorLab is active.
+9. Satellite synchronization must not alter GeoVision application logic, UI, package/signing identity, Google-card behavior, map/POI logic, AI behavior or lifecycle state.
+10. Reconcile repository/ref, checkpoint, pending-action and single-writer state before write-capable work.
 
 VERSION
-MOTORLAB-PROJECT-HOOK-V1.3
+MOTORLAB-PROJECT-HOOK-V1.4
 Established: 2026-09-29
-Revision 1.1: mandatory visible session boot banner plus explicit progress/watchdog/visual-status bindings.
-Revision 1.2: explicit binding to global persistent MotorLab activation for every future GeoVision chat.
-Revision 1.3: mandatory Resume Recovery binding.
+Revision 1.4: local-first synchronized satellite with LAST_GOOD fallback and safe-boundary release pinning.
