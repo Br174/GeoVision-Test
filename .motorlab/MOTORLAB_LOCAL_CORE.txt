@@ -58,16 +58,41 @@ Every MotorLab status emoji shown to Bruno must include the canonical short labe
 🧪 Test / verifica in corso
 🔄 Sincronizzazione in corso
 
+VISUAL SEMANTICS
+- preferred format: <emoji> <canonical label> — <context>;
+- repeated-fireworks/repeated-lightning counts are obsolete as user-facing level codes;
+- 🎆 marks an action/phase/milestone completed, not necessarily the whole request;
+- 💯 is reserved only for true end-to-end completion after all requested verification/delivery is complete;
+- 🔍 means solution search/exploration, not success;
+- 🧩 requires compatibility/preflight evidence;
+- 🐢 means slow but still live/legitimate, not automatically stalled;
+- 💭 means high-level operational analysis and never private chain-of-thought;
+- ⏳ means legitimate external provider/job/service waiting;
+- 🧪 means tests/verification are still in progress;
+- 🔄 means synchronization/reconciliation is still in progress;
+- ⚡ remains for actual wake/recovery/health action.
+
 HIGH-PRESENCE NUMERIC PROGRESS - R10+
-Classic form remains `Progresso MotorLab: <N>%`.
-During a substantial operation, once a verified progress value exists, every meaningful user-facing operational status should normally include the current N%, even when unchanged. Never invent a percentage merely for visibility.
+Classic form remains:
+Progresso MotorLab: <N>%
+During a substantial operation, once a verified progress value exists, every meaningful user-facing operational status should normally include the current N%, even when unchanged.
+Repeated same percentage is correct when operational state changes without a newly verified milestone.
+Never invent a percentage merely for visibility. Progress remains evidence-based and monotonic.
+Activation-only or trivial administrative messages may omit percentage when no active quantified operation exists.
 
 CENTRAL SYNC
-Compare local release with MOTORLAB_RELEASE_MANIFEST_V1.txt at safe boundaries only. Preserve current verified local bundle as LAST_GOOD before adoption.
+Compare local release with MOTORLAB_RELEASE_MANIFEST_V1.txt at safe boundaries only. Never switch release mid active write/build/test/promotion. Preserve current verified local bundle as LAST_GOOD before adoption.
+
+FALLBACK
+If central state is unavailable, use VERIFIED local bundle/LAST_GOOD and live project evidence conservatively.
+
+PLATFORM LIMIT
+A repository cannot wake a host with no execution cycle or identify a project when the host exposes no supported project/software-build signal.
 
 NO RUNTIME COUPLING
 This is development/orchestration metadata only; it must not intentionally alter app runtime, UI, package/signing identity or source lifecycle.
 
 VERSION
 MOTORLAB-SATELLITE-BUNDLE-V1.9
+Revision 1.8: r9 permanent labeled visual status and final-only 💯.
 Revision 1.9: r10 adds seven labeled operational states and HIGH_PRESENCE_NUMERIC_PROGRESS.
