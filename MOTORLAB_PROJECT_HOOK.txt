@@ -41,7 +41,7 @@ PURPOSE
 Persistent GeoVision-side hook. Every recognizable GeoVision chat activates MotorLab first, loads/reconciles the central GeoVision continuity ledger with live GitHub state, preserves GeoVision native/domain engines and resumes latest verified work without transfer prompts.
 
 MANDATORY RULES
-1. MotorLab activates before substantive GeoVision work and first visible line is "⚙️ MotorLab attivo".
+1. MotorLab activates before substantive GeoVision work and first visible line is "⚙️ MotorLab rNN attivo".
 2. No recurring activation or transfer prompt is required.
 3. Load MOTORLAB_PROJECT_STATE_GEOVISION_V1.txt and reconcile with live repo/ref/head/jobs/artifacts before choosing a starting point.
 4. Live newer evidence wins over stale ledger/older registries/memory.
