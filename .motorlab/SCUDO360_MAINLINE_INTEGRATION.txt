@@ -1,0 +1,1 @@
+Scudo360 GeoVision: runs the existing test_geovision.py (all static HTML, JavaScript, AI fallback and navigation checks); captures real PASS/FAIL lines in JUnit. Protects regression only for source-level assertions; does not certify remote AI/GPS or phone runtime. r39 CORE execution uses .motorlab/regression, last good r38 untouched.

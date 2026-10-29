@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "project": "geovision",
+  "suites": [
+    {
+      "id": "geovision-static",
+      "command": [
+        "node",
+        "scripts/GeovisionStatic.mjs"
+      ],
+      "paths": [
+        "scripts/GeovisionStatic.mjs",
+        "tests/test_geovision.py",
+        "scripts/scudo360_geovision_adapter.py"
+      ],
+      "junitDir": ".motorlab/scudo360-test-results",
+      "timeoutMs": 120000
+    }
+  ],
+  "contracts": [
+    {
+      "id": "geovision.navigation-geocoding-ai-static-contracts",
+      "priority": "P1",
+      "suites": [
+        "geovision-static"
+      ],
+      "junitClasses": [
+        "geo.GeovisionStatic"
+      ],
+      "requiredAt": [
+        "lab",
+        "promotion"
+      ]
+    }
+  ]
+}
