@@ -1,0 +1,21 @@
+{
+  "commit": "c637a1f8c6561ad10d923e0ae3d5f9325498db02",
+  "passed": true,
+  "contracts": [
+    {
+      "id": "geovision.navigation-geocoding-ai-static-contracts",
+      "status": "passed",
+      "classEvidence": [
+        {
+          "name": "geo.GeovisionStatic",
+          "passed": true
+        }
+      ]
+    }
+  ],
+  "provenance": {
+    "source": "archived-executed-r39-junit-snapshot",
+    "runId": 40883875989,
+    "artifactId": 12901841057
+  }
+}
