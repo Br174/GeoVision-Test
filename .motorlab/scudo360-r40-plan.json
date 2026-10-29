@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "surface": "ci",
+  "requestTrace": [
+    {
+      "id": "protect-geovision.navigation-geocoding-ai-static-contracts",
+      "contractIds": [
+        "geovision.navigation-geocoding-ai-static-contracts"
+      ]
+    }
+  ],
+  "baselineCommit": null,
+  "baselineReportPath": null
+}
