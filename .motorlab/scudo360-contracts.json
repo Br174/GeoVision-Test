@@ -5,10 +5,11 @@
     {
       "id": "geovision-static",
       "command": [
-        "python3",
-        "scripts/scudo360_geovision_adapter.py"
+        "node",
+        "scripts/GeovisionStatic.mjs"
       ],
       "paths": [
+        "scripts/GeovisionStatic.mjs",
         "tests/test_geovision.py",
         "scripts/scudo360_geovision_adapter.py"
       ],
