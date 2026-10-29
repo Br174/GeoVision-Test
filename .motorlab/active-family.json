@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "repo": "Br174/GeoVision-Test",
+  "active_ref": "motorlab/active-geovision-control",
+  "original_verified_sha": "c637a1f8c6561ad10d923e0ae3d5f9325498db02",
+  "mode": "control-only",
+  "scudo_manifest": ".motorlab/scudo360-contracts.json",
+  "scudo_runner": ".motorlab/regression/scudo360-gate.mjs",
+  "native_workflow": ".github/workflows/build-geovision-youtube-apk.yml",
+  "scudo_command": "node .motorlab/regression/scudo360-gate.mjs"
+}

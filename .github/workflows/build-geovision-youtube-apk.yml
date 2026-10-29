@@ -16,9 +16,27 @@ jobs:
 
       - uses: actions/checkout@v4
 
+      - name: MotorLab permanent active source proof
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node scripts/motorlab-active-guard.mjs --self-test
+          node scripts/motorlab-active-guard.mjs
+
       - name: Progress 15% - source ready
         run: echo "[UAB_PROGRESS=15] Sorgenti GeoVision recuperati"
 
+      - name: Scudo360 mandatory GeoVision regression before APK
+        run: node .motorlab/regression/scudo360-gate.mjs .motorlab/scudo360-contracts.json promotion .motorlab/scudo360-report.json
+      - name: Preserve GeoVision Scudo pre-APK evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: geovision-scudo-apk-${{ github.run_id }}
+          path: |
+            .motorlab/scudo360-report.json
+            .motorlab/scudo360-test-results/*.xml
+          if-no-files-found: warn
       - name: Prepare stable signing keystore
         run: |
           base64 -d android-youtube-test/signing/geovision-debug-stable.keystore.b64 > android-youtube-test/signing/geovision-debug-stable.keystore
